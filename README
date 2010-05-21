@@ -1,0 +1,141 @@
+This subdir contains an non-official library to access CPL modules via
+Python. It is not meant as part of the MUSE pipeline software, but may be
+useful for testing.
+
+Installation
+============
+
+1. Check requirements:
+   - CPL 5.X (Esorex is not needed)
+   - Python 2.6 
+   - pyfits
+
+2. Determine where to put the compiled python package. Standard for
+   compilations is /usr/local.
+
+3. In this directory, run 
+
+   python setup.py install --prefix=<PREFIX>
+
+   where the prefix determines the path for the compiled package. The package 
+   will be installed in the subdir lib/python2.6/site-packages 
+   (lib64/python2.6/site-packages on 64 bit systems) of <PREFIX>
+
+4. Add the directory <PREFIX>/lib[64]/python2.6/site-packages to your 
+   environment variable PYTHONPATH.
+
+Short tutorial
+==============
+
+Input lines are indicated with ">>>" (the python prompt).
+The package can be imported with
+
+>>> import cpl
+
+This import statement will fail if the CPL libraries are not found. 
+Setup the search path for CPL recipes and list available recipes:
+
+>>> cpl.Recipe.search_path = '/work1/oles/Projects/2009/Muse/Pipeline/lib/'
+>>> cpl.Recipe.list()
+['muse_bias', 'muse_dark', 'muse_flat', 'muse_focus', 'muse_wavecal', 
+ 'muse_scibasic', 'muse_scipost', 'muse_sky', 'muse_quick_image']
+
+To create a recipe specified by name:
+
+>>> muse_scibasic = cpl.Recipe('muse_scibasic')
+
+List all parameters:
+
+>>> muse_scibasic.param
+[Parameter('nifu', default=99), Parameter('cr', default=none), 
+ Parameter('xbox', default=15), Parameter('ybox', default=40), 
+ Parameter('passes', default=2), Parameter('thres', default=4.5), 
+ Parameter('resample', default=False), Parameter('dlambda', default=1.25)]
+
+Set a parameter:
+
+>>> muse_scibasic.param.nifu = 1
+
+Print the value of a parameter (shows "None" if the parameter is set to default)
+
+>>> print muse_scibasic.param.nifu.value
+1
+
+List all calibration frames:
+
+>>> muse_scibasic.calib
+[FrameDef('TRACE_TABLE', value=None), FrameDef('WAVECAL_TABLE', value=None), 
+ FrameDef('MASTER_BIAS', value=None), FrameDef('MASTER_DARK', value=None), 
+ FrameDef('GEOMETRY_TABLE', value=None), FrameDef('BADPIX_TABLE', value=None), 
+ FrameDef('MASTER_FLAT', value=None)]
+
+Set calibration frames with files (variable names are lowecase calibration
+tags):
+
+>>> muse_scibasic.calib.master_bias    = 'MASTER_BIAS-01.fits'
+>>> muse_scibasic.calib.master_flat    = 'MASTER_FLAT-01.fits'
+>>> muse_scibasic.calib.trace_table    = 'TRACE_TABLE-01.fits'
+>>> muse_scibasic.calib.geometry_table = 'geometry_table.fits'
+
+Set calibration frame with Pyfits HDUList:
+
+>>> import pyfits
+>>> wavecal = pyfits.open('WAVECAL_TABLE-01_flat.fits')
+>>> muse_scibasic.calib.wavecal_table = wavecal
+
+To set more than one file for a tag, put the files and/or HDULists into a
+list.
+
+Run the recipe with the default (first) raw data tag:
+
+>>> res = muse_scibasic('Scene_fusion_1.fits')
+
+Run the recipe with a nondefault tag (use lowercase raw data tag as argument
+name):
+
+>>> res = muse_scibasic(sky = 'sky_newmoon_no_noise_1.fits')
+
+Run the recipe with alternative parameter or calibration tag setting (use
+parameter names or lowercase calibration tags as argument names)
+
+>>> res =  muse_scibasic('Scene_fusion_1.fits', nifu = 2, master_flat = None,
+...                      wavecal_table = 'WAVECAL_TABLE_noflat.fits')
+
+The results of a calibration run are pyfits HDUList objects.  To save them
+(use lowercase output tags as attributes):
+
+>>> res.pixtable_object.writeto('Scene_fusion_pixtable.fits')
+
+They can also be used directly as input of other recipes. 
+
+>>> muse_sky = cpl.Recipe('muse_sky')
+...
+>>> res_sky = muse_sky(res.pixtable_object)
+
+If not saved, the output is usually lost! During recipe run, a temporary
+directory is created where the HDUList input objects and the output files are
+put into. This directory is cleaned up afterwards.
+
+On default, the temporary directory is put into the current directory. to
+change its location:
+
+>>> muse_scibasic.temp_dir = '/tmp'
+
+You can also make the output directly permanent. For this, specify an output
+directory:
+
+>>> muse_scibasic.output_dir = '/work1/durham/Data/scibasic'
+
+To control message verbosity on terminal (use 'debug', 'info', 'warn', 'error'
+or 'off'):
+
+>>> cpl.msg.level = 'debug'
+
+To open a log file additionally to the output (possible only once!)
+
+>>> cpl.msg.logfile('muse_pipeline.log', level = 'debug')
+
+Feedback
+========
+
+Send to ole@aip.de
