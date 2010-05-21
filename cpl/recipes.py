@@ -116,17 +116,18 @@ class Recipe(object):
                 msg.indent_more()
                 for name, value in parlist:
                     msg.info("%s = %s" % (name, str(value)))
-                    msg.indent_less()
+                msg.indent_less()
             if framelist:
                 msg.info("frames:")
                 msg.indent_more()
                 for tag, file in framelist:
                     msg.info("%s = %s" % (tag, file))
-                    msg.indent_less()
+                msg.indent_less()
                 msg.indent_less()
             os.chdir(recipe_dir)
             r = Result(self._recipe.frameConfig(),
-                       self._recipe.run(parlist, framelist))
+                       self._recipe.run(parlist, framelist),
+                       (self.temp_dir and not self.output_dir))
             return r
         finally:
             os.chdir(cwd)
