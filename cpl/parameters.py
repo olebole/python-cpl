@@ -79,7 +79,7 @@ class ParameterList(RestrictedDict):
                     if param.value is not None 
                     and (ndata is None or param.name not in ndata) ]
         if ndata:
-            parlist += [ (param[name].fullname, tdata)
+            parlist += [ (self[name].fullname, tdata)
                          for name, tdata in ndata.items() 
                          if name in self ]
         return parlist
