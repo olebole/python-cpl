@@ -35,7 +35,7 @@ class Recipe(object):
         self._recipe = CPL_recipe.recipe(filename, name)
         if version and version not in self.version:
             raise IOError('wrong version %s (requested %s) for %s in %s' %
-                          str(self.version), str(version), name, filename)
+                          (str(self.version), str(version), name, filename))
         self._param = ParameterList(self)
         self._calib = FrameList(self)
         self.tag = self.tags[0]
