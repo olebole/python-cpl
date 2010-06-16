@@ -15,7 +15,7 @@ class Logger(object):
 
     def _enable_time(self, enable):
         CPL_recipe.set_msg_time(enable);
-        Logger._time_eanbled = not not enable
+        Logger._time_enabled = not not enable
 
     time = property(lambda self: Logger._time_enabled, _enable_time)
 
