@@ -213,6 +213,24 @@ CPL_log_indent_less(PyObject *self) {
     return Py_None;
 }
 
+#define CPL_memory_dump_doc \
+    "Display the memory status."
+
+static PyObject *
+CPL_memory_dump(PyObject *self) {
+    cpl_memory_dump();
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+#define CPL_memory_is_empty_doc \
+    "Tell if there is some memory allocated."
+
+static PyObject *
+CPL_memory_is_empty(PyObject *self) {
+    return Py_BuildValue("i", cpl_memory_is_empty());
+}
+
 static PyMethodDef CPL_methods[] = {
     {"version", (PyCFunction)CPL_version, METH_NOARGS, CPL_version_doc},
     {"list", CPL_list, METH_VARARGS, CPL_list_doc},
@@ -231,10 +249,14 @@ static PyMethodDef CPL_methods[] = {
     {"get_log_domain", (PyCFunction)CPL_get_log_domain, METH_NOARGS, 
      CPL_get_log_domain_doc },
     {"log", CPL_log, METH_VARARGS, CPL_log_doc}, 
-    {"log_indent_more", (PyCFunction)CPL_log_indent_more, METH_VARARGS, 
+    {"log_indent_more", (PyCFunction)CPL_log_indent_more, METH_NOARGS, 
      CPL_log_indent_more_doc},
-    {"log_indent_less", (PyCFunction)CPL_log_indent_less, METH_VARARGS, 
+    {"log_indent_less", (PyCFunction)CPL_log_indent_less, METH_NOARGS, 
      CPL_log_indent_less_doc},
+    {"memory_dump", (PyCFunction)CPL_memory_dump, METH_NOARGS, 
+     CPL_memory_dump_doc},
+    {"memory_is_empty", (PyCFunction)CPL_memory_is_empty, METH_NOARGS, 
+     CPL_memory_is_empty_doc},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -652,8 +674,11 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     int retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
     return Py_BuildValue("OO", 
 			 exec_build_retval(recipe->frames),
-			 Py_BuildValue("iss", retval, cpl_error_get_message(),
-				       cpl_error_get_where()));
+			 Py_BuildValue("issis", retval, 
+				       cpl_error_get_message(),
+				       cpl_error_get_file(),
+				       cpl_error_get_line(),
+				       cpl_error_get_function()));
 }
 
 static PyMethodDef CPL_recipe_methods[] = {
