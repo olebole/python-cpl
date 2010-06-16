@@ -1,3 +1,4 @@
+import os
 
 def load_sof(source):
     if isinstance(source, str):
@@ -20,7 +21,9 @@ def load_sof(source):
         raise ValueError('Cannot assign type %s to framelist' % 
                          source.__class__.__name__)
 
-def load_rc(source):
+def load_rc(source = None):
+    if source is None:
+        source = file(os.path.expanduser('~/.esorex/esorex.rc'))
     if isinstance(source, str):
         return load_rc(source.split('\n'))
     elif isinstance(source, (file, list)):
