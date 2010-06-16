@@ -13,7 +13,7 @@ class FrameConfig(RestrictedDictEntry):
     min: minimal number of frames, or None if not specified
     max: maximal number of frames, or None if not specified
     '''
-    def __init__(self, tag, min_frames, max_frames, parent = None):
+    def __init__(self, tag, min_frames = 0, max_frames = 0, parent = None):     
         RestrictedDictEntry.__init__(self, parent)
         self.tag = tag
         self.min = min_frames if min_frames > 0 else None
@@ -144,8 +144,8 @@ class Result(object):
             msg.indent_less()
         
         if res[1][0]:
-            msg.error("%s in %s" % (res[1][1], res[1][2]))
-            raise CplError("%s in %s" % (res[1][1], res[1][2]))
+            raise CplError(res[1][0], res[1][1], res[1][2],                     
+                           res[1][3], res[1][4])                                
         self.tags = set()
         for tag, frame in res[0]:
             hdu = pyfits.open(os.path.abspath(frame))
@@ -161,5 +161,15 @@ class Result(object):
                 self.__dict__[tag].append(hdu)
 
 class CplError(Exception):
-    pass
+    def __init__(self, code, txt, filename, line, function):
+        msg.error("%s:%i in %s(): %s" % (filename, line, function, txt))
+        self.code = code
+        self.msg = txt
+        self.file = filename
+        self.line = line
+        self.function = function
 
+    def __str__(self):
+        return repr("%s (%i) in %s() (%s:%s)" % (self.msg, self.code,
+                                                 self.function, self.file,
+                                                 self.line))
