@@ -3,7 +3,7 @@ import tempfile
 
 import CPL_recipe
 import esorex
-from frames import FrameList, Result, mkabspath
+from frames import RestrictedFrameList, UnrestrictedFrameList, Result, mkabspath
 from parameters import ParameterList
 from log import msg
 
@@ -23,7 +23,8 @@ class Recipe(object):
 
     search_path = '.'
 
-    def __init__(self, name, filename = None, version = None):
+    def __init__(self, name, filename = None, version = None, 
+                 force_list = False):
         '''Try to load a recipe with the specified name in the directory
         specified by the module variable 'recipe_dir' or its subdirectories.
         '''
@@ -37,10 +38,11 @@ class Recipe(object):
             raise IOError('wrong version %s (requested %s) for %s in %s' %
                           (str(self.version), str(version), name, filename))
         self._param = ParameterList(self)
-        self._calib = FrameList(self)
+        self._calib = RestrictedFrameList(self)
         self.tag = self.tags[0]
         self.output_dir = None
         self.temp_dir = '.'
+        self.force_list = force_list
 
     def reload(self):
         '''Reload the recipe.
@@ -67,7 +69,7 @@ class Recipe(object):
     def _load_calib(self, source = None):
         if isinstance(source, (str, file)):
             source = esorex.load_sof(source)
-        self._calib = FrameList(self, source) 
+        self._calib = RestrictedFrameList(self, source) 
 
     calib = property(lambda self: self._calib, _load_calib, _load_calib)
 
@@ -102,6 +104,10 @@ class Recipe(object):
             else os.getcwd()
         parlist = self.param._aslist(**ndata)
         framelist = self.calib._aslist(*data, **ndata)
+        try:
+            force_list = ndata['force_list']
+        except:
+            force_list = self.force_list
         tmpfiles = list()
         try:
             cwd = os.getcwd()
@@ -127,7 +133,8 @@ class Recipe(object):
             os.chdir(recipe_dir)
             r = Result(self._recipe.frameConfig(),
                        self._recipe.run(parlist, framelist),
-                       (self.temp_dir and not self.output_dir))
+                       (self.temp_dir and not self.output_dir),
+                       force_list)
             return r
         finally:
             os.chdir(cwd)

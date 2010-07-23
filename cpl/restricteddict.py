@@ -83,6 +83,23 @@ class RestrictedDict(object):
     def __repr__(self):
         return list(self).__repr__()
 
+class UnrestrictedDict(RestrictedDict):
+    def __init__(self, other = None):
+        RestrictedDict.__init__(self, other)
+        self._entries = set()
+
+    def __setitem__(self, key, value):
+        for p in self:
+            if key == self._key(p):
+                p.value = value
+                return
+        p = self._createentry(key)
+        self._entries.add(p)
+        p.value = value
+
+    def __iter__(self):
+        return self._entries.__iter__()
+
 class RestrictedDictEntry(object):
     '''Abstract class for an entry in the resctricted dictionary.
 
