@@ -166,11 +166,10 @@ class Result(object):
             if delete:
                 os.remove(frame)
             tag = tag.lower()
-            if tag.lower() not in self.__dict__:
-                self.__dict__[tag] = hdu
+            if tag.lower() not in self.__dict__:                
+                self.__dict__[tag] = [ hdu ] if force_list else hdu
                 self.tags.add(tag)
-            elif isinstance(self.__dict__[tag], pyfits.HDUList) \
-                    and not force_list:
+            elif isinstance(self.__dict__[tag], pyfits.HDUList):
                 self.__dict__[tag] = [ self.__dict__[tag], hdu ]
             else:
                 self.__dict__[tag].append(hdu)
