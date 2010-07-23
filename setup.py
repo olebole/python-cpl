@@ -9,6 +9,11 @@ setup (name = 'cpl',
        author = 'Ole Streicher',
        author_email = 'ole@aip.de',
        description = 'Python interface for the Common Pipeline Library',
+       long_description = \
+           '''Non-official library to access CPL modules via Python. 
+              It is not meant as part of the MUSE pipeline software, but 
+              may be useful for testing''',
+       license = 'Gnu Public License',
        packages = [ 'cpl'],
        ext_modules = [module1])
 
