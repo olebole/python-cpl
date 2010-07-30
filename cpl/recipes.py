@@ -21,7 +21,7 @@ class Recipe(object):
     version: (versionnumber, versionstring) pair
     '''
 
-    search_path = '.'
+    path = [ '.' ]
 
     def __init__(self, name, filename = None, version = None, 
                  force_list = False):
@@ -184,8 +184,11 @@ class Recipe(object):
     get_recipefilename = staticmethod(get_recipefilename)
 
     def get_libs():
-        files = list()
-        for i in os.walk(Recipe.search_path):
-            files += [ "%s/%s" %(i[0], f) for f in i[2] if f.endswith('.so') ]
-        return files
+        libs = [ ]
+        path = Recipe.path.split(':') if isinstance(Recipe.path, str) else Recipe.path
+        for p in path:
+            for root, dir, files in os.walk(p):
+                libs += [ os.path.join(root, f) 
+                           for f in files if f.endswith('.so') ]
+        return libs
     get_libs = staticmethod(get_libs)
