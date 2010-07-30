@@ -1,4 +1,8 @@
+'''Simple esorex compability layer.
+'''
+
 import os
+import cpl
 
 def load_sof(source):
     if isinstance(source, str):
@@ -39,3 +43,14 @@ def load_rc(source = None):
     else:
         raise ValueError('Cannot assign type %s to parameter list' % 
                          source.__class__.__name__)
+
+def init(source = None):
+    '''Set the message verbosity and recipe search path from the esorex.rc
+    file.
+    '''
+
+    rc = cpl.esorex.load_rc(source)
+    if rc.has_key('esorex.caller.recipe-dir'):
+        cpl.Recipe.path = rc['esorex.caller.recipe-dir'].split(':')
+    if rc.has_key('esorex.caller.msg-level'):
+        cpl.msg.level = rc['esorex.caller.msg-level']
