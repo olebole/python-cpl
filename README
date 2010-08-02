@@ -32,10 +32,11 @@ The package can be imported with
 
 >>> import cpl
 
-This import statement will fail if the CPL libraries are not found. 
-Setup the search path for CPL recipes and list available recipes:
+This import statement will fail if the CPL libraries are not found.  
+Init the search path for CPL recipes from the esorex startup and list
+available recipes:
 
->>> cpl.Recipe.search_path = '/work1/oles/Projects/2009/Muse/Pipeline/lib/'
+>>> cpl.esorex.init()
 >>> cpl.Recipe.list()
 ['muse_bias', 'muse_dark', 'muse_flat', 'muse_focus', 'muse_wavecal', 
  'muse_scibasic', 'muse_scipost', 'muse_sky', 'muse_quick_image']
@@ -69,19 +70,18 @@ List all calibration frames:
  FrameDef('GEOMETRY_TABLE', value=None), FrameDef('BADPIX_TABLE', value=None), 
  FrameDef('MASTER_FLAT', value=None)]
 
-Set calibration frames with files (variable names are lowecase calibration
-tags):
+Set calibration frames with files:
 
->>> muse_scibasic.calib.master_bias    = 'MASTER_BIAS-01.fits'
->>> muse_scibasic.calib.master_flat    = 'MASTER_FLAT-01.fits'
->>> muse_scibasic.calib.trace_table    = 'TRACE_TABLE-01.fits'
->>> muse_scibasic.calib.geometry_table = 'geometry_table.fits'
+>>> muse_scibasic.calib.MASTER_BIAS    = 'MASTER_BIAS-01.fits'
+>>> muse_scibasic.calib.MASTER_FLAT    = 'MASTER_FLAT-01.fits'
+>>> muse_scibasic.calib.TRACE_TABLE    = 'TRACE_TABLE-01.fits'
+>>> muse_scibasic.calib.GEOMETRY_TABLE = 'geometry_table.fits'
 
 Set calibration frame with Pyfits HDUList:
 
 >>> import pyfits
 >>> wavecal = pyfits.open('WAVECAL_TABLE-01_flat.fits')
->>> muse_scibasic.calib.wavecal_table = wavecal
+>>> muse_scibasic.calib.WAVECAL_TABLE = wavecal
 
 To set more than one file for a tag, put the files and/or HDULists into a
 list.
@@ -90,27 +90,26 @@ Run the recipe with the default (first) raw data tag:
 
 >>> res = muse_scibasic('Scene_fusion_1.fits')
 
-Run the recipe with a nondefault tag (use lowercase raw data tag as argument
-name):
+Run the recipe with a nondefault tag (use raw data tag as argument name):
 
->>> res = muse_scibasic(sky = 'sky_newmoon_no_noise_1.fits')
+>>> res = muse_scibasic(SKY = 'sky_newmoon_no_noise_1.fits')
 
 Run the recipe with alternative parameter or calibration tag setting (use
-parameter names or lowercase calibration tags as argument names)
+parameter names or calibration tags as argument names)
 
->>> res =  muse_scibasic('Scene_fusion_1.fits', nifu = 2, master_flat = None,
-...                      wavecal_table = 'WAVECAL_TABLE_noflat.fits')
+>>> res =  muse_scibasic('Scene_fusion_1.fits', nifu = 2, MASTER_FLAT = None,
+...                      WAVECAL_TABLE = 'WAVECAL_TABLE_noflat.fits')
 
 The results of a calibration run are pyfits HDUList objects.  To save them
-(use lowercase output tags as attributes):
+(use output tags as attributes):
 
->>> res.pixtable_object.writeto('Scene_fusion_pixtable.fits')
+>>> res.PIXTABLE_OBJECT.writeto('Scene_fusion_pixtable.fits')
 
 They can also be used directly as input of other recipes. 
 
 >>> muse_sky = cpl.Recipe('muse_sky')
 ...
->>> res_sky = muse_sky(res.pixtable_object)
+>>> res_sky = muse_sky(res.PIXTABLE_OBJECT)
 
 If not saved, the output is usually lost! During recipe run, a temporary
 directory is created where the HDUList input objects and the output files are

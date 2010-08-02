@@ -84,7 +84,7 @@ class Recipe(object):
         if tag is None:
             tag = self.tag
         for c in self._recipe.frameConfig():
-            if tag.lower() == c[0][0].lower():
+            if tag == c[0][0]:
                 return c[2]
 
     def __call__(self, *data, **ndata):

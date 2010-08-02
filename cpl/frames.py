@@ -55,7 +55,7 @@ class FrameList(object):
         self._recipe = recipe
 
     def _key(self, p):
-        return p.lower() if isinstance(p, str) else p.tag.lower()
+        return p if isinstance(p, str) else p.tag
 
     def _doc(self):
         r = 'Frames for recipe %s.\n\nAttributes:\n' % (
@@ -70,7 +70,7 @@ class FrameList(object):
             return self[name].tag
         except AttributeError:
             for t in self._recipe.tags:
-                if name.lower() == t.lower():
+                if name == t:
                     return t
         return None
 
@@ -115,7 +115,7 @@ class UnrestrictedFrameList(UnrestrictedDict, FrameList):
         FrameList.__init__(self, recipe)
 
     def _createentry(self, key):
-        f = FrameConfig(key.upper(), 0, 0, self)
+        f = FrameConfig(key, 0, 0, self)
         print 'creating entry %s -> %s' %(key, f)
         return f
 
@@ -165,8 +165,8 @@ class Result(object):
             hdu = pyfits.open(os.path.abspath(frame))
             if delete:
                 os.remove(frame)
-            tag = tag.lower()
-            if tag.lower() not in self.__dict__:                
+            tag = tag
+            if tag not in self.__dict__:                
                 self.__dict__[tag] = [ hdu ] if force_list else hdu
                 self.tags.add(tag)
             elif isinstance(self.__dict__[tag], pyfits.HDUList):
