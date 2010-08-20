@@ -1,4 +1,6 @@
+#include <unistd.h>
 #include <dlfcn.h>
+#include <sys/wait.h>
 #include <Python.h>
 #include <cpl.h>
 
@@ -626,10 +628,26 @@ set_parameters(cpl_parameterlist *parameters, PyObject *parlist) {
 }
 
 static PyObject *
-exec_build_retval(cpl_frameset *frames) {
+exec_build_retval(void *ptr) {
     PyObject *res = PyList_New(0);
+    long index = 2 * sizeof(long);
+    while (index < ((long *)ptr)[0]) {
+	const char *tag = ptr + index;
+	index += strlen(tag) + 1;
+	const char *file = ptr + index;
+	index += strlen(file) + 1;
+	PyList_Append(res, Py_BuildValue("ss", tag, file));
+    }
+    return res;
+}
+
+static void *
+exec_serialize_retval(cpl_frameset *frames, int retval) {
     int n_frames = cpl_frameset_get_size(frames);
     int i_frame;
+    void *ptr = cpl_malloc(2 * sizeof(long));
+    ((long *)ptr)[0] = 2 * sizeof(long);
+    ((long *)ptr)[1] = retval;
     for (i_frame = 0; i_frame < n_frames; i_frame++) {
 	cpl_frame *f = cpl_frameset_get_frame(frames, i_frame);
 	if (cpl_frame_get_group(f) != CPL_FRAME_GROUP_PRODUCT) {
@@ -637,9 +655,13 @@ exec_build_retval(cpl_frameset *frames) {
 	}
 	const char *tag = cpl_frame_get_tag(f);
 	const char *file = cpl_frame_get_filename(f);
-	PyList_Append(res, Py_BuildValue("ss", tag, file));
+	ptr = cpl_realloc(ptr, ((long *)ptr)[0] + strlen(tag)+1 + strlen(file)+1);
+	strcpy(ptr + ((long *)ptr)[0], tag);
+	((long *)ptr)[0] += strlen(tag)+1;
+	strcpy(ptr + ((long *)ptr)[0], file);
+	((long *)ptr)[0] += strlen(file)+1;
     }
-    return res;
+    return ptr;
 }
 
 #define CPL_recipe_exec_doc                                             \
@@ -652,14 +674,15 @@ static PyObject *
 CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     PyObject *parlist;
     PyObject *soflist;
-    if (!PyArg_ParseTuple(args, "OO", &parlist, &soflist))
+    const char *dirname;
+    if (!PyArg_ParseTuple(args, "sOO", &dirname, &parlist, &soflist))
         return NULL;
     if (!PySequence_Check(parlist)) {
-	PyErr_SetString(PyExc_TypeError, "First parameter not a list");
+	PyErr_SetString(PyExc_TypeError, "Second parameter not a list");
 	return NULL;
     }
     if (!PySequence_Check(soflist)) {
-	PyErr_SetString(PyExc_TypeError, "Second parameter not a list");
+	PyErr_SetString(PyExc_TypeError, "Third parameter not a list");
 	return NULL;
     }
 
@@ -671,9 +694,54 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     cpl_frameset_delete(recipe->frames);
     recipe->frames = get_frames(soflist);
     set_parameters(recipe->parameters, parlist);
-    int retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
-    return Py_BuildValue("OO", 
-			 exec_build_retval(recipe->frames),
+    int fd[2];
+    if (pipe(fd) == -1) {
+	PyErr_SetString(PyExc_IOError, "Cannot pipe()");
+	return NULL;
+    }
+    pid_t childpid = fork();
+    if (childpid == -1) {
+	PyErr_SetString(PyExc_IOError, "Cannot fork()");
+	return NULL;
+    }
+    
+    if (childpid == 0) {
+	close(fd[0]);
+	// TODO: re-establish Ctrl-C handling
+	if (chdir(dirname) == -1) {
+	    exit(0);
+	}
+	int retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
+	void *ptr = exec_serialize_retval(recipe->frames, retval);
+	write(fd[1], ptr, ((long *)ptr)[0]);
+	close(fd[1]);
+	exit(0);
+    }
+    
+    close(fd[1]);
+    long nbytes;
+    void *ptr = cpl_malloc(2 * sizeof(long));
+Py_BEGIN_ALLOW_THREADS
+    nbytes = read(fd[0], ptr, 2 * sizeof(long));
+    if (nbytes == 2 * sizeof(long)) {
+	ptr = cpl_realloc(ptr, ((long *)ptr)[0]);
+	nbytes += read(fd[0], ptr + 2 * sizeof(long), 
+		       ((long *)ptr)[0] - 2 * sizeof(long));
+    } else { // broken pipe while reading first two bytes
+	((long *)ptr)[0] = 2 * sizeof(long); 
+    }
+    close(fd[0]);
+    waitpid(childpid, NULL, 0);
+Py_END_ALLOW_THREADS
+    if (nbytes != ((long *)ptr)[0]) {
+	PyErr_SetString(PyExc_IOError, "Recipe crashed");
+	return NULL;
+    }
+    // TODO: also pipe cpl error messages.
+    PyObject *frames = exec_build_retval(ptr);
+    int retval = ((long *)ptr)[1];
+    cpl_free(ptr);
+    return Py_BuildValue("OO", frames,
 			 Py_BuildValue("issis", retval, 
 				       cpl_error_get_message(),
 				       cpl_error_get_file(),

@@ -3,6 +3,7 @@ import tempfile
 
 import CPL_recipe
 import esorex
+import threading
 from frames import RestrictedFrameList, UnrestrictedFrameList, Result, mkabspath
 from parameters import ParameterList
 from log import msg
@@ -24,7 +25,7 @@ class Recipe(object):
     path = [ '.' ]
 
     def __init__(self, name, filename = None, version = None, 
-                 force_list = False):
+                 force_list = False, threaded = False):
         '''Try to load a recipe with the specified name in the directory
         specified by the module variable 'recipe_dir' or its subdirectories.
         '''
@@ -43,6 +44,7 @@ class Recipe(object):
         self.output_dir = None
         self.temp_dir = '.'
         self.force_list = force_list
+        self.threaded = threaded
 
     def reload(self):
         '''Reload the recipe.
@@ -97,20 +99,16 @@ class Recipe(object):
         data may be a single HDUlist, a single file name, or a list of them.
 
         '''
-
         recipe_dir = self.output_dir if self.output_dir \
             else tempfile.mkdtemp(dir = self.temp_dir, 
                                   prefix = self.name + "-") if self.temp_dir \
             else os.getcwd()
         parlist = self.param._aslist(**ndata)
         framelist = self.calib._aslist(*data, **ndata)
-        try:
-            force_list = ndata['force_list']
-        except:
-            force_list = self.force_list
+        force_list = ndata.get('force_list', self.force_list)
+        threaded = ndata.get('threaded', self.threaded)
         tmpfiles = list()
         try:
-            cwd = os.getcwd()
             if (not os.access(recipe_dir, os.F_OK)):
                 os.makedirs(recipe_dir)
             tmpfiles = mkabspath(framelist, recipe_dir)
@@ -130,14 +128,25 @@ class Recipe(object):
                     msg.info("%s = %s" % (tag, file))
                 msg.indent_less()
                 msg.indent_less()
-            os.chdir(recipe_dir)
-            r = Result(self._recipe.frameConfig(),
-                       self._recipe.run(parlist, framelist),
+        except:
+            self._cleanup(recipe_dir, tmpfiles)
+            raise
+
+        return self._exec(recipe_dir, parlist, framelist, force_list, tmpfiles) \
+            if not threaded else \
+            Thread(self, recipe_dir, parlist, framelist, force_list, tmpfiles)
+
+    def _exec(self, recipe_dir, parlist, framelist, force_list, tmpfiles):
+        try:
+            r = Result(self._recipe.frameConfig(), recipe_dir,
+                       self._recipe.run(recipe_dir, parlist, framelist),
                        (self.temp_dir and not self.output_dir),
                        force_list)
             return r
         finally:
-            os.chdir(cwd)
+            self._cleanup(recipe_dir, tmpfiles)
+
+    def _cleanup(self, recipe_dir, tmpfiles):
             for f in tmpfiles:
                 os.remove(f)
             if self.temp_dir and not self.output_dir:
@@ -192,3 +201,22 @@ class Recipe(object):
                            for f in files if f.endswith('.so') ]
         return libs
     get_libs = staticmethod(get_libs)
+
+
+class Thread(threading.Thread):
+    '''Threading interface. 
+
+    '''
+    def __init__(self, recipe, *args):
+        threading.Thread.__init__(self)
+        self._recipe = recipe
+        self._args = args
+        self._res = None
+        self.start()
+        
+    def run(self):
+        self._res = self._recipe._exec(*self._args)
+
+    def __getattr__(self, name):
+        self.join()
+        return self._res.__dict__[name]

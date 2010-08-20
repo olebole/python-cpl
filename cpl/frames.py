@@ -148,8 +148,8 @@ def mkabspath(frames, tmpdir):
     return tmpfiles
 
 class Result(object):
-    def __init__(self, recipedefs, res, delete = True, force_list = False):
-        self.dir = os.getcwd()
+    def __init__(self, recipedefs, dir, res, delete = True, force_list = False):
+        self.dir = dir
         if res[0]:
             msg.info("Result frames:" )
             msg.indent_more()
@@ -162,9 +162,9 @@ class Result(object):
                            res[1][3], res[1][4])
         self.tags = set()
         for tag, frame in res[0]:
-            hdu = pyfits.open(os.path.abspath(frame))
+            hdu = pyfits.open(os.path.abspath(os.path.join(dir, frame)))
             if delete:
-                os.remove(frame)
+                os.remove(os.path.join(dir, frame))
             tag = tag
             if tag not in self.__dict__:                
                 self.__dict__[tag] = [ hdu ] if force_list else hdu
