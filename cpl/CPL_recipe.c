@@ -629,25 +629,50 @@ set_parameters(cpl_parameterlist *parameters, PyObject *parlist) {
 
 static PyObject *
 exec_build_retval(void *ptr) {
-    PyObject *res = PyList_New(0);
-    long index = 2 * sizeof(long);
+    long ret_code = ((long *)ptr)[1];
+    long error_line = ((long *)ptr)[2];
+    long index = 3 * sizeof(long);
+    const char *error_msg = ptr + index;
+    index += strlen(error_msg) + 1;
+    const char *error_file = ptr + index;
+    index += strlen(error_file) + 1;
+    const char *error_func = ptr + index;
+    index += strlen(error_func) + 1;
+    PyObject *error = Py_BuildValue("issis", ret_code, error_msg, error_file,
+				    error_line, error_func);
+
+    PyObject *frames = PyList_New(0);
     while (index < ((long *)ptr)[0]) {
 	const char *tag = ptr + index;
 	index += strlen(tag) + 1;
 	const char *file = ptr + index;
 	index += strlen(file) + 1;
-	PyList_Append(res, Py_BuildValue("ss", tag, file));
+	PyList_Append(frames, Py_BuildValue("ss", tag, file));
     }
-    return res;
+    return Py_BuildValue("OO", frames, error);
 }
 
 static void *
 exec_serialize_retval(cpl_frameset *frames, int retval) {
     int n_frames = cpl_frameset_get_size(frames);
     int i_frame;
-    void *ptr = cpl_malloc(2 * sizeof(long));
-    ((long *)ptr)[0] = 2 * sizeof(long);
+    void *ptr = cpl_malloc(3 * sizeof(long));
+    ((long *)ptr)[0] = 3 * sizeof(long);
     ((long *)ptr)[1] = retval;
+    ((long *)ptr)[2] = cpl_error_get_line();
+    const char *error_msg = cpl_error_get_message();
+    ptr = cpl_realloc(ptr, ((long *)ptr)[0] + strlen(error_msg) + 1);
+    strcpy(ptr + ((long *)ptr)[0], error_msg);
+    ((long *)ptr)[0] += strlen(error_msg) + 1;
+    const char *error_file = cpl_error_get_file();
+    ptr = cpl_realloc(ptr, ((long *)ptr)[0] + strlen(error_file) + 1);
+    strcpy(ptr + ((long *)ptr)[0], error_file);
+    ((long *)ptr)[0] += strlen(error_file) + 1;
+    const char *error_func = cpl_error_get_function();
+    ptr = cpl_realloc(ptr, ((long *)ptr)[0] + strlen(error_func) + 1);
+    strcpy(ptr + ((long *)ptr)[0], error_func);
+    ((long *)ptr)[0] += strlen(error_func) + 1;
+
     for (i_frame = 0; i_frame < n_frames; i_frame++) {
 	cpl_frame *f = cpl_frameset_get_frame(frames, i_frame);
 	if (cpl_frame_get_group(f) != CPL_FRAME_GROUP_PRODUCT) {
@@ -708,14 +733,17 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     if (childpid == 0) {
 	close(fd[0]);
 	// TODO: re-establish Ctrl-C handling
-	if (chdir(dirname) == -1) {
-	    exit(0);
+	int retval;
+	if (chdir(dirname) == 0) {
+	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
+	} else {
+	    retval = CPL_ERROR_FILE_NOT_CREATED;
+	    cpl_error_set(__func__, retval);
 	}
-	int retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
 	void *ptr = exec_serialize_retval(recipe->frames, retval);
-	write(fd[1], ptr, ((long *)ptr)[0]);
+	long n_bytes = write(fd[1], ptr, ((long *)ptr)[0]);
 	close(fd[1]);
-	exit(0);
+	exit(n_bytes != ((long *)ptr)[0]);
     }
     
     close(fd[1]);
@@ -737,16 +765,9 @@ Py_END_ALLOW_THREADS
 	PyErr_SetString(PyExc_IOError, "Recipe crashed");
 	return NULL;
     }
-    // TODO: also pipe cpl error messages.
-    PyObject *frames = exec_build_retval(ptr);
-    int retval = ((long *)ptr)[1];
+    PyObject *retval = exec_build_retval(ptr);
     cpl_free(ptr);
-    return Py_BuildValue("OO", frames,
-			 Py_BuildValue("issis", retval, 
-				       cpl_error_get_message(),
-				       cpl_error_get_file(),
-				       cpl_error_get_line(),
-				       cpl_error_get_function()));
+    return retval;
 }
 
 static PyMethodDef CPL_recipe_methods[] = {

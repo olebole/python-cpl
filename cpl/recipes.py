@@ -212,11 +212,18 @@ class Thread(threading.Thread):
         self._recipe = recipe
         self._args = args
         self._res = None
+        self._exception = None
         self.start()
         
     def run(self):
-        self._res = self._recipe._exec(*self._args)
+        try:
+            self._res = self._recipe._exec(*self._args)
+        except Exception as exception:
+            self._exception = exception
 
     def __getattr__(self, name):
         self.join()
-        return self._res.__dict__[name]
+        if self._exception is None:
+            return self._res.__dict__[name]
+        else:
+            raise self._exception
