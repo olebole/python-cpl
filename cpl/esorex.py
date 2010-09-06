@@ -1,10 +1,31 @@
-'''Simple esorex compability layer.
+'''This module contains some limited support for reading esorex SOF and
+configuration files.
+
+Esorex is a standard execution environment for CPL recipes provided by
+ESO. See http://www.eso.org/sci/data-processing/software/cpl/esorex.html for
+details.
 '''
 
 import os
 import cpl
 
 def load_sof(source):
+    '''Read an esorex sof file. 
+
+    :param source: SOF file name. 
+
+    These files contain the raw and calibration files for a recipe.  The
+    content of the file is returned as a map with the tag as key and the list
+    of file names as value.
+
+    The result of this function may directly set as :attr:`Recipe.calib` attribute:
+    
+    >>> import cpl
+    >>> myrecipe = cpl.Recipe('muse_bias')
+    >>> myrecipe.calib = cpl.esorex.read_sof('muse_bias.sof')
+
+    Note that the raw data frame is silently ignored wenn setting :attr:`Recipe.calib`.
+    '''
     if isinstance(source, str):
         return load_sof(str.split('\n'))
     elif isinstance(source, (file, list)):
@@ -26,6 +47,24 @@ def load_sof(source):
                          source.__class__.__name__)
 
 def load_rc(source = None):
+    '''Read an esorex configuration file.
+
+    :param source: Configuration file name. If not set, the esorex config file
+                   :file:`~/.esorex/esorex.rc` is used.
+
+    These files contain configuration parameters for esorex or recipes. The
+    content of the file is returned as a map with the (full) parameter name as
+    key and its setting as string value.
+
+    The result of this function may directly set as :attr:`Recipe.param` attribute:
+    
+    >>> import cpl
+    >>> myrecipe = cpl.Recipe('muse_bias')
+    >>> myrecipe.param = cpl.esorex.load_rc('muse_bias.rc')
+
+    Note that unknown parameters are silently ignored wenn setting :attr:`Recipe.param`.
+
+    '''
     if source is None:
         source = file(os.path.expanduser('~/.esorex/esorex.rc'))
     if isinstance(source, str):
@@ -45,8 +84,11 @@ def load_rc(source = None):
                          source.__class__.__name__)
 
 def init(source = None):
-    '''Set the message verbosity and recipe search path from the esorex.rc
-    file.
+    '''Set the message verbosity and recipe search path from the esorex.rc file.
+
+    :param source: Configuration file name. If not set, the esorex config file
+                   :file:`~/.esorex/esorex.rc` is used.
+
     '''
 
     rc = cpl.esorex.load_rc(source)

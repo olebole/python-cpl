@@ -7,17 +7,39 @@ from restricteddict import UnrestrictedDict, RestrictedDict, RestrictedDictEntry
 from log import msg
 
 class FrameConfig(RestrictedDictEntry):
-    '''Attributes:
+    '''Frame configuration. 
 
-    tag: tag name
-    min: minimal number of frames, or None if not specified
-    max: maximal number of frames, or None if not specified
+    Each FrameConfig object stores information about one the data type a
+    recipe can process. They are used for defining the calibration
+    files. However, since this information is not generally provided by CPL
+    recipes, it contains only dummy information, except for the MUSE recipes.
+
+    The objects stores a frame tag, a unique identifier for a certain kind of
+    frame, the minimum and maximum number of frames needed.
+
+    Attributes:
+
+    .. attribute:: tag 
+
+       Category tag name. The tag name is used to distinguish between
+       different types of files. An examples of tag names is 'MASTER_BIAS'
+       which specifies the master bias calibration file(s).
+
+    .. attribute:: min
+
+       Minimal number of frames, or None if not specified. A frame is required
+       if the data member min_count is set to a value greater than 0.
+
+    .. attribute:: max 
+
+       Maximal number of frames, or None if not specified
     '''
     def __init__(self, tag, min_frames = 0, max_frames = 0, parent = None):
         RestrictedDictEntry.__init__(self, parent)
         self.tag = tag
         self.min = min_frames if min_frames > 0 else None
         self.max = max_frames if max_frames > 0 else None
+        self.__doc__ = self._doc()
 
     def extend_range(self, min_frames, max_frames):
         if self.min is not None:
@@ -48,7 +70,7 @@ class FrameConfig(RestrictedDictEntry):
         if not self.min:
             r += ' (optional)'
         return r
-    __doc__ = property(_doc)
+    
 
 class FrameList(object):
     def __init__(self, recipe):

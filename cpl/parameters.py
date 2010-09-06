@@ -1,15 +1,63 @@
 from restricteddict import RestrictedDict, RestrictedDictEntry
 
 class Parameter(RestrictedDictEntry):
-    '''Attributes:
-    
-    name: Parameter name
-    context: Parameter context
-    range: Value range if restricted, or None if not
-    sequence: Allowed values of None if all are allowed
-    default: Default value
-    value: currently set value or None if none was set
-    '''
+    '''Runtime configuration parameter of a recipe. Parameters are designed to
+    handle monitor/control data and they provide a standard way to pass
+    information to the recipe.
+
+    The CPL implementation supports three classes of parameters: a plain
+    value, a value within a given range, or a value as part of an
+    enumeration. When a parameter is created it is created for a particular
+    value type. In the latter two cases, validation is performed whenever the
+    value is set.
+
+    Attributes:
+    .. attribute:: Parameter.value
+
+       The value of the parameter, on None if set to default
+
+    .. attribute:: Parameter.default
+
+       The default value of the parameter (readonly).
+
+    .. attribute:: Parameter.name
+
+      The parameter name (readonly). Parameter names must be unique - they
+      define the identity of a given parameter.
+
+    .. attribute:: Parameter.context
+
+      The parameter context (readonly). The context usually consists of the
+      instrument name and the recipe name, separated by a dot. The context is
+      used to associate parameters together.
+
+    .. attribute:: Parameter.range 
+
+      The numeric range of a parameter, or None if the parameter has no limited
+      range (readonly). 
+
+    .. attribute:: Parameter.sequence
+
+      A list of possible values for the parameter if the parameter are limited to
+      an enumeration of possible values (readonly).
+
+   The following example prints the attributes of one parameter:
+
+   >>> print 'name:    ', muse_scibasic.param.cr.name
+   name:     cr
+   >>> print 'fullname:', muse_scibasic.param.cr.fullname
+   fullname: muse.muse_scibasic.cr
+   >>> print 'context: ', muse_scibasic.param.cr.context
+   context:  muse.muse_scibasic
+   >>> print 'sequence:', muse_scibasic.param.cr.sequence
+   sequence: ['dcr', 'none']
+   >>> print 'range:   ', muse_scibasic.param.cr.range
+   range:    None
+   >>> print 'default: ', muse_scibasic.param.cr.default
+   default:  dcr
+   >>> print 'value:   ', muse_scibasic.param.cr.value
+   value:    None
+   '''
     def __init__(self, name, context = None, default = None, desc = None, 
                  range_ = None, sequence = None, parent = None):
         RestrictedDictEntry.__init__(self, parent)
@@ -31,7 +79,10 @@ class Parameter(RestrictedDictEntry):
         else:
             super(Parameter, self).del_value()
 
-    fullname = property(lambda self: self.context + '.' + self.name)
+    fullname = property(lambda self: self.context + '.' + self.name, 
+                        doc='The parameter name including the context (readonly). '
+                        'The fullname consists of the parameter context and the parameter '
+                        'name, separated by a dot.')
 
     def __str__(self):
         return "%s%s" % (

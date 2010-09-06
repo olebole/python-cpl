@@ -9,8 +9,21 @@ from parameters import ParameterList
 from log import msg
 
 class Recipe(object):
-    '''Attributes:
-    
+    '''Pluggable Data Reduction Module (PDRM) from a ESO pipeline. 
+
+    Recipes are loaded from shared libraries that are provided with the
+    pipeline library of the instrument.
+
+    The libraries are searched in the directories specified by the class
+    attribute :attr:`Recipe.path` or its subdirectories. The search path is automatically
+    set to the esorex path when
+
+    >>> cpl.esorex.init()
+
+    is called.
+
+    Attributes:
+
     name: Recipe name
     filename: Shared library file name
     param: Parameter list
@@ -27,7 +40,25 @@ class Recipe(object):
     def __init__(self, name, filename = None, version = None, 
                  force_list = False, threaded = False):
         '''Try to load a recipe with the specified name in the directory
-        specified by the module variable 'recipe_dir' or its subdirectories.
+        specified by the class attribute :attr:`Recipe.path` or its subdirectories.
+
+        :param name: Name of the recipe. Required. Use cpl.Recipe.list() to get a list of 
+            available recipes. 
+        :type name: str
+        :param filename:   Name of the shared library. Optional. If not set, the serch 
+            path is used to find the library file. 
+        :type filename: str
+        :param version: Version number. Optional. If not set, the newest version is loaded.
+        :type version: int or str
+        :param force_list: Force the result to contain lists of frames even if they contain 
+            only one result frame. Default is False. This may be also set as an attribute 
+            or specified as a parameter when calling the recipe.
+        :type force_list: bool
+        :param threaded: Run the recipe in the background, returning immediately after 
+            calling it. Default is False. This may be also set as an attribute or specified 
+            as a parameter when calling the recipe. 
+        :type threaded: bool
+
         '''
         self._recipe = None
         self.name = name
@@ -47,42 +78,156 @@ class Recipe(object):
         self.threaded = threaded
 
     def reload(self):
-        '''Reload the recipe.
+        '''Reload the recipe. 
+
+        All recipe settings remain unchanged.
         '''
         self._recipe = CPL_recipe.recipe(self.filename, self.name)
 
     author = property(lambda self: self._recipe.author(), 
-                      doc = '(author, email) pair')
+                      doc = 'Pair (author name, author email address) of two strings.')
     description = property(lambda self: self._recipe.description(),
-                           doc = '(synopsis, description) pair')
+                           doc = 'Pair (synopsis, description) of two strings.')
     version = property(lambda self: self._recipe.version(),
-                       doc = '(versionnumber, versionstring) pair')
+                       doc = 'Pair (versionnumber, versionstring) of an integer and a string. '
+                       'The integer will be increased on development progress.')
     tags = property(lambda self: 
-                    [ c[0][0] for c in self._recipe.frameConfig() ])
+                    [ c[0][0] for c in self._recipe.frameConfig() ],
+                    doc = 'Possible tags for the raw input frames, or None '
+                    'if this information is not provided by the recipe.')
 
     def _set_tag(self, tag):
-        if tag in self.tags:
+        if self.tags is None or tag in self.tags:
             self._tag = tag 
         else:
             raise KeyError("Tag '%s' not in %s" % (tag, str(self.tags)))
 
-    tag = property(lambda self: self._tag, _set_tag)
+    tag = property(lambda self: self._tag, _set_tag, 
+                   doc='''Default raw input frame tag. After creation, 
+        it is set to the first tag from the "tags" property and may be changed 
+        to any of these tags. If the recipe does not provide the tag information, 
+        it must be set manually, or the tag name has to be provided when calling 
+        the recipe.''')
 
     def _load_calib(self, source = None):
         if isinstance(source, (str, file)):
             source = esorex.load_sof(source)
         self._calib = RestrictedFrameList(self, source) 
 
-    calib = property(lambda self: self._calib, _load_calib, _load_calib)
+    calib = property(lambda self: self._calib, _load_calib, _load_calib, 
+                     doc = '''This attribute contains the calibration frames
+     for the recipe.  It is iterable and then returns all calibration frames:
+
+     >>> for f in muse_scibasic.calib:
+     ...     print f.tag, f.min, f.max, f.files
+     TRACE_TABLE 1 1 None
+     WAVECAL_TABLE 1 1 None
+     MASTER_BIAS 1 1 master_bias_0.fits
+     MASTER_DARK None 1 None
+     GEOMETRY_TABLE 1 1 None
+     BADPIX_TABLE None None ['badpix_1.fits', 'badpix_2.fits']
+     MASTER_FLAT None 1 None
+
+     Note that only MUSE recipes are able to provide the full list of
+     calibration frames and the minimal/maximal number of calibration
+     frames. For other recipes, only frames that were set by the users are
+     returned here. Their minimum and maximum value will be set to None.
+
+     In order to assing a FITS file to a tag, the file name or the HDU list 
+     is assigned to the calibration attribute:
+
+     >>> muse_scibasic.calib.MASTER_BIAS = 'MASTER_BIAS_0.fits'
+
+     Using a HDU list is useful when it needs to be patched before fed into
+     the recipe. Note that HDULists are stored in temporary files before the
+     recipe is called which may produce some overhead. Also, the CPL then
+     assigns the temporary file names to the 
+
+     >>> master_bias = pyfits.open('master_bias_0.fits')
+     >>> master_bias[0].header['HIERARCH ESO DET CHIP1 OUT1 GAIN'] = 2.5
+     >>> muse_scibasic.calib.MASTER_BIAS = 'master_bias_0.fits'
+
+     To assign more than one frame, put them into a list:
+
+     >>> muse_scibasic.calib.BADPIX_TABLE = [ 'badpix_1.fits', 'badpix_2.fits' ]
+     
+     All calibration frames can be set in one step by assigning a `map` to the
+     parameters. In this case, frame that are not in the map are set are removed from the 
+     list, and unknown frame tags are silently ignored. The key of the map is the tag name; 
+     the values are either a string, or a list of strings, containing the file name(s) or 
+     the pyfits.HDUList objects.
+
+     >>> muse_scibasic.calib = { 'MASTER_BIAS':'master_bias_0.fits', 
+     ...                         'BADPIX_TABLE':[ 'badpix_1.fits', 'badpix_2.fits' ] }
+
+     ''')
 
     def _load_param(self, source = None):
         if isinstance(source, (str, file)):
             source = esorex.load_rc(source)
         self._param = ParameterList(self, source)
 
-    param = property(lambda self: self._param, _load_param, _load_param)
+    param = property(lambda self: self._param, _load_param, _load_param, 
+                     doc = '''This attribute contains all recipe parameters. 
+     It is iteratable and then returns all individual parameters:
+
+     >>> for p in muse_scibasic.param:
+     ...    print p.name, p.value, p.default
+     ...
+     nifu None 99
+     cr None dcr
+     xbox None 15
+     ybox None 40
+     passes None 2
+     thres None 4.5
+     resample None False
+     dlambda None 1.25
+
+     On interactive sessions, all parameter settings can be easily printed by
+     printing the `param` attribute of the recipe:
+
+     >>> print muse_scibasic.param
+      [Parameter('nifu', default=99), Parameter('cr', default=dcr), 
+       Parameter('xbox', default=15), Parameter('ybox', default=40), 
+       Parameter('passes', default=2), Parameter('thres', default=4.5), 
+       Parameter('resample', default=False), Parameter('dlambda', default=1.25)]
+
+     To set the value of a recipe parameter, the value can be assigned to the
+     according attribute:
+
+     >>> muse_scibasic.param.nifu = 1
+
+     The new value is checked against parameter type, and possible value
+     limitations provided by the recipe. In a recipe call, the same parameter can
+     be specified as
+
+     >>> res = muse_scibasic( ..., nifu = 1)
+
+     To reset a value to its default, it is eighter deleted, or set to None. The
+     following two lines:
+
+     >>> muse_scibasic.param.nifu = None
+     >>> del muse_scibasic.param.nifu
+
+     will both reset the parameter to its default value. 
+
+     All parameters can be set in one step by assigning a `map` to the
+     parameters. In this case, all values that are not in the map are reset to
+     default, and unknown parameter names are ignored. The keys of the map may
+     contain contain the name or the fullname with context:
+
+     >>> muse_scibasic.param = { 'nifu':1, 'xbox':11, 'resample':True }
+
+     ''')
 
     def output(self, tag = None):
+        '''Return the list of output frame tags.
+
+        If the recipe does not provide this information, an exception is raised.
+        
+        :param tag: Input (raw) frame tag. Defaults to the Recipe.tar attribute if not 
+            specified. 
+        '''
         if tag is None:
             tag = self.tag
         for c in self._recipe.frameConfig():
@@ -92,11 +237,17 @@ class Recipe(object):
     def __call__(self, *data, **ndata):
         '''Call the recipes execution with a certain input frame.
         
-        Parameters
-        data:       Data input frames, using the default tag.
-        tag = data: Data with a specific tag.
-              
-        data may be a single HDUlist, a single file name, or a list of them.
+        :param data:       Data input frames, using the default tag.
+        :param tag = data: Data with a specific tag.
+        :type data: pyfits.HDUlist or str or a list of them.
+        :param force_list: overwrite the "force_list" attribute of the recipe (optional).
+        :type force_list: bool
+        :param threaded: overwrite the "threaded" attribute of the recipe (optional).
+        :type threaded: bool
+        :param CPL parameter name = value: overwrite the according CPL parameter of the recipe 
+                                   (optional). 
+        :param Calibration tag name = value: overwrite the calibration frame list for this tag 
+                                     (optional).
 
         '''
         recipe_dir = self.output_dir if self.output_dir \
@@ -164,14 +315,15 @@ class Recipe(object):
     def list():
         '''Return a list of recipes.
         
-        Searches for all recipes in in the directory specified by the module
-        variable 'recipe_dir' or its subdirectories.
+        Searches for all recipes in in the directory specified by the class
+        attribute :attr:`Recipe.path` or its subdirectories. 
         '''
-        plugins = list()
+        plugins = { }
         for f in Recipe.get_libs():
             plugin_f = CPL_recipe.list(f)
             if plugin_f:
-                plugins += [ p[0] for p in plugin_f ] 
+                for p in plugin_f:
+                    plugins.setdefault(p[0], list()).append(p[2])
         return plugins
     list = staticmethod(list)
 
