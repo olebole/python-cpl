@@ -25,10 +25,11 @@ class Logger(object):
         '''Open a logfile with the specified name. 
 
         :param name: Log file name
-        :type name: str
-        :param level: Log level, like :attr:`level`
+        :type name: :class:`str`
+        :param level: Log level. Any of [ 'debug', 'info', 'warn', 'error', 'off' ]
+        :type level: :class:`str`
 
-        :note: that this is possible only once due to limitations of the CPL.
+        .. note:: This is possible only once due to limitations of the CPL.
         ''' 
         CPL_recipe.set_log_file(name)
         CPL_recipe.set_log_level(Logger.verbosity.index(level))
@@ -51,7 +52,9 @@ class Logger(object):
         '''Put a 'debug' message to the log.
 
         :param msg: Message to put
-        :type msg: str
+        :type msg: :class:`str`
+        :param caller: Name of the function generating the message. 
+        :type caller: :class:`str`
         '''
         self.log("debug", msg, caller)
 
@@ -59,7 +62,9 @@ class Logger(object):
         '''Put an 'info' message to the log.
 
         :param msg: Message to put
-        :type msg: str
+        :type msg: :class:`str`
+        :param caller: Name of the function generating the message. 
+        :type caller: :class:`str`
         '''
         self.log("info", msg, caller)
 
@@ -67,7 +72,9 @@ class Logger(object):
         '''Put a 'warn' message to the log.
 
         :param msg: Message to put
-        :type msg: str
+        :type msg: :class:`str`
+        :param caller: Name of the function generating the message. 
+        :type caller: :class:`str`
         '''
         self.log("warn", msg, caller)
 
@@ -75,7 +82,9 @@ class Logger(object):
         '''Put an 'error' message to the log.
 
         :param msg: Message to put
-        :type msg: str
+        :type msg: :class:`str`
+        :param caller: Name of the function generating the message. 
+        :type caller: :class:`str`
         '''
         self.log("error", msg, caller)
 

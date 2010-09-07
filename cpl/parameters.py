@@ -1,9 +1,9 @@
 from restricteddict import RestrictedDict, RestrictedDictEntry
 
 class Parameter(RestrictedDictEntry):
-    '''Runtime configuration parameter of a recipe. Parameters are designed to
-    handle monitor/control data and they provide a standard way to pass
-    information to the recipe.
+    '''Runtime configuration parameter of a recipe. 
+    Parameters are designed to handle monitor/control data and they provide a
+    standard way to pass information to the recipe.
 
     The CPL implementation supports three classes of parameters: a plain
     value, a value within a given range, or a value as part of an
@@ -12,9 +12,10 @@ class Parameter(RestrictedDictEntry):
     value is set.
 
     Attributes:
+
     .. attribute:: Parameter.value
 
-       The value of the parameter, on None if set to default
+       The value of the parameter, or :attr:`None` if set to default
 
     .. attribute:: Parameter.default
 
@@ -22,7 +23,7 @@ class Parameter(RestrictedDictEntry):
 
     .. attribute:: Parameter.name
 
-      The parameter name (readonly). Parameter names must be unique - they
+      The parameter name (readonly). Parameter names are unique. They
       define the identity of a given parameter.
 
     .. attribute:: Parameter.context
@@ -33,31 +34,31 @@ class Parameter(RestrictedDictEntry):
 
     .. attribute:: Parameter.range 
 
-      The numeric range of a parameter, or None if the parameter has no limited
+      The numeric range of a parameter, or :attr:`None` if the parameter has no limited
       range (readonly). 
 
     .. attribute:: Parameter.sequence
 
-      A list of possible values for the parameter if the parameter are limited to
+      A :class:`list` of possible values for the parameter if the parameter are limited to
       an enumeration of possible values (readonly).
 
-   The following example prints the attributes of one parameter:
+    The following example prints the attributes of one parameter:
 
-   >>> print 'name:    ', muse_scibasic.param.cr.name
-   name:     cr
-   >>> print 'fullname:', muse_scibasic.param.cr.fullname
-   fullname: muse.muse_scibasic.cr
-   >>> print 'context: ', muse_scibasic.param.cr.context
-   context:  muse.muse_scibasic
-   >>> print 'sequence:', muse_scibasic.param.cr.sequence
-   sequence: ['dcr', 'none']
-   >>> print 'range:   ', muse_scibasic.param.cr.range
-   range:    None
-   >>> print 'default: ', muse_scibasic.param.cr.default
-   default:  dcr
-   >>> print 'value:   ', muse_scibasic.param.cr.value
-   value:    None
-   '''
+    >>> print 'name:    ', muse_scibasic.param.cr.name
+    name:     cr
+    >>> print 'fullname:', muse_scibasic.param.cr.fullname
+    fullname: muse.muse_scibasic.cr
+    >>> print 'context: ', muse_scibasic.param.cr.context
+    context:  muse.muse_scibasic
+    >>> print 'sequence:', muse_scibasic.param.cr.sequence
+    sequence: ['dcr', 'none']
+    >>> print 'range:   ', muse_scibasic.param.cr.range
+    range:    None
+    >>> print 'default: ', muse_scibasic.param.cr.default
+    default:  dcr
+    >>> print 'value:   ', muse_scibasic.param.cr.value
+    value:    None
+    '''
     def __init__(self, name, context = None, default = None, desc = None, 
                  range_ = None, sequence = None, parent = None):
         RestrictedDictEntry.__init__(self, parent)

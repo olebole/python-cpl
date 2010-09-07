@@ -9,8 +9,8 @@ from log import msg
 class FrameConfig(RestrictedDictEntry):
     '''Frame configuration. 
 
-    Each FrameConfig object stores information about one the data type a
-    recipe can process. They are used for defining the calibration
+    Each :class:`FrameConfig` object stores information about one the data
+    type a recipe can process. They are used for defining the calibration
     files. However, since this information is not generally provided by CPL
     recipes, it contains only dummy information, except for the MUSE recipes.
 
@@ -27,12 +27,12 @@ class FrameConfig(RestrictedDictEntry):
 
     .. attribute:: min
 
-       Minimal number of frames, or None if not specified. A frame is required
-       if the data member min_count is set to a value greater than 0.
+       Minimal number of frames, or :attr:`None` if not specified. A frame is required
+       if the  :attr:`min` is set to a value greater than 0.
 
     .. attribute:: max 
 
-       Maximal number of frames, or None if not specified
+       Maximal number of frames, or :attr:`None` if not specified
     '''
     def __init__(self, tag, min_frames = 0, max_frames = 0, parent = None):
         RestrictedDictEntry.__init__(self, parent)
@@ -144,13 +144,13 @@ class UnrestrictedFrameList(UnrestrictedDict, FrameList):
 def mkabspath(frames, tmpdir):
     '''Convert all filenames in the frames list into absolute paths.
 
-    Pyfits HDU lists will be converted to temporary files located in the 
+    :class:`pyfits.HDUList`s will be converted to temporary files located in the 
     temporary directory tmpdir.
 
     The replacement is done in-place. The function will return the list of
     temporary files.
 
-    param frames: List of (frame, tag) tuples with frame being either a file 
+    param frames: :class:`list` of (frame, tag) tuples with frame being either a file 
                   name or a HDU list.
     param tmpdir: directory where the temporary files are being created.
     '''

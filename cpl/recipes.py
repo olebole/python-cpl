@@ -42,22 +42,23 @@ class Recipe(object):
         '''Try to load a recipe with the specified name in the directory
         specified by the class attribute :attr:`Recipe.path` or its subdirectories.
 
-        :param name: Name of the recipe. Required. Use cpl.Recipe.list() to get a list of 
-            available recipes. 
-        :type name: str
-        :param filename:   Name of the shared library. Optional. If not set, the serch 
-            path is used to find the library file. 
-        :type filename: str
+        :param name: Name of the recipe. Required. Use
+            :func:`cpl.Recipe.list()` to get a list of available recipes.
+        :type name: :class:`str`
+
+        :param filename:   Name of the shared library. Optional. If not set, 
+            :attr:`Recipe.path` is searched for the library file. 
+        :type filename: :class:`str`
         :param version: Version number. Optional. If not set, the newest version is loaded.
-        :type version: int or str
+        :type version: :class:`int` or :class:`str`
         :param force_list: Force the result to contain lists of frames even if they contain 
-            only one result frame. Default is False. This may be also set as an attribute 
-            or specified as a parameter when calling the recipe.
-        :type force_list: bool
+            only one result frame. Default is :attr:`False`. This may be also set as an 
+            attribute  or specified as a parameter when calling the recipe.
+        :type force_list: :class:`bool`
         :param threaded: Run the recipe in the background, returning immediately after 
-            calling it. Default is False. This may be also set as an attribute or specified 
-            as a parameter when calling the recipe. 
-        :type threaded: bool
+            calling it. Default is :attr:`False`. This may be also set as an attribute or 
+            specified as a parameter when calling the recipe. 
+        :type threaded: :class:`bool`
 
         '''
         self._recipe = None
@@ -93,7 +94,7 @@ class Recipe(object):
                        'The integer will be increased on development progress.')
     tags = property(lambda self: 
                     [ c[0][0] for c in self._recipe.frameConfig() ],
-                    doc = 'Possible tags for the raw input frames, or None '
+                    doc = 'Possible tags for the raw input frames, or :attr:`None` '
                     'if this information is not provided by the recipe.')
 
     def _set_tag(self, tag):
@@ -128,18 +129,19 @@ class Recipe(object):
      BADPIX_TABLE None None ['badpix_1.fits', 'badpix_2.fits']
      MASTER_FLAT None 1 None
 
-     Note that only MUSE recipes are able to provide the full list of
-     calibration frames and the minimal/maximal number of calibration
-     frames. For other recipes, only frames that were set by the users are
-     returned here. Their minimum and maximum value will be set to None.
+     .. note:: Only MUSE recipes are able to provide the full list of
+        calibration frames and the minimal/maximal number of calibration
+        frames. For other recipes, only frames that were set by the users are
+        returned here. Their minimum and maximum value will be set to
+        :attr:`None`.
 
-     In order to assing a FITS file to a tag, the file name or the HDU list 
-     is assigned to the calibration attribute:
+     In order to assing a FITS file to a tag, the file name or the
+     :class:`pyfits.HDUList` is assigned to the calibration attribute:
 
      >>> muse_scibasic.calib.MASTER_BIAS = 'MASTER_BIAS_0.fits'
 
      Using a HDU list is useful when it needs to be patched before fed into
-     the recipe. Note that HDULists are stored in temporary files before the
+     the recipe. Note that HDU lists are stored in temporary files before the
      recipe is called which may produce some overhead. Also, the CPL then
      assigns the temporary file names to the 
 
@@ -151,11 +153,11 @@ class Recipe(object):
 
      >>> muse_scibasic.calib.BADPIX_TABLE = [ 'badpix_1.fits', 'badpix_2.fits' ]
      
-     All calibration frames can be set in one step by assigning a `map` to the
+     All calibration frames can be set in one step by assigning a :class:`map` to the
      parameters. In this case, frame that are not in the map are set are removed from the 
      list, and unknown frame tags are silently ignored. The key of the map is the tag name; 
      the values are either a string, or a list of strings, containing the file name(s) or 
-     the pyfits.HDUList objects.
+     the :class:`pyfits.HDUList` objects.
 
      >>> muse_scibasic.calib = { 'MASTER_BIAS':'master_bias_0.fits', 
      ...                         'BADPIX_TABLE':[ 'badpix_1.fits', 'badpix_2.fits' ] }
@@ -184,7 +186,7 @@ class Recipe(object):
      dlambda None 1.25
 
      On interactive sessions, all parameter settings can be easily printed by
-     printing the `param` attribute of the recipe:
+     printing the :attr:`param` attribute of the recipe:
 
      >>> print muse_scibasic.param
       [Parameter('nifu', default=99), Parameter('cr', default=dcr), 
@@ -203,7 +205,7 @@ class Recipe(object):
 
      >>> res = muse_scibasic( ..., nifu = 1)
 
-     To reset a value to its default, it is eighter deleted, or set to None. The
+     To reset a value to its default, it is eighter deleted, or set to :attr:`None`. The
      following two lines:
 
      >>> muse_scibasic.param.nifu = None
@@ -211,7 +213,7 @@ class Recipe(object):
 
      will both reset the parameter to its default value. 
 
-     All parameters can be set in one step by assigning a `map` to the
+     All parameters can be set in one step by assigning a :class:`map` to the
      parameters. In this case, all values that are not in the map are reset to
      default, and unknown parameter names are ignored. The keys of the map may
      contain contain the name or the fullname with context:
@@ -225,8 +227,9 @@ class Recipe(object):
 
         If the recipe does not provide this information, an exception is raised.
         
-        :param tag: Input (raw) frame tag. Defaults to the Recipe.tar attribute if not 
-            specified. 
+        :param tag: Input (raw) frame tag. Defaults to the :attr:`Recipe.tar` attribute if 
+            not specified. 
+        :type tag: :class:`str`
         '''
         if tag is None:
             tag = self.tag
@@ -239,16 +242,16 @@ class Recipe(object):
         
         :param data:       Data input frames, using the default tag.
         :param tag = data: Data with a specific tag.
-        :type data: pyfits.HDUlist or str or a list of them.
-        :param force_list: overwrite the "force_list" attribute of the recipe (optional).
-        :type force_list: bool
-        :param threaded: overwrite the "threaded" attribute of the recipe (optional).
-        :type threaded: bool
+        :type data: :class:`pyfits.HDUlist` or :class:`str` or a :class:`list` of them.
+        :param force_list: overwrite the :attr:`force_list` attribute (optional).
+        :type force_list: :class:`bool`
+        :param threaded: overwrite the :attr:`threaded` attribute (optional).
+        :type threaded: :class:`bool`
         :param CPL parameter name = value: overwrite the according CPL parameter of the recipe 
                                    (optional). 
         :param Calibration tag name = value: overwrite the calibration frame list for this tag 
                                      (optional).
-
+        
         '''
         recipe_dir = self.output_dir if self.output_dir \
             else tempfile.mkdtemp(dir = self.temp_dir, 
