@@ -251,7 +251,14 @@ class Recipe(object):
                                    (optional). 
         :param Calibration tag name = value: overwrite the calibration frame list for this tag 
                                      (optional).
-        
+        :return: The object with the return frames as :class:`pyfits.HDUList` objects
+        :rtype: :class:`cpl.Result`
+        :raise:  IOError If the temporary directory could not be built or the files could not be 
+                read/written.
+        :raise:  CPLError If the recipe returns an error or crashed.
+
+        .. note:: If the recipe is executed in the background (``threaded = True``) and an exception occurs,
+             this exception is raised whenever result fields are accessed.
         '''
         recipe_dir = self.output_dir if self.output_dir \
             else tempfile.mkdtemp(dir = self.temp_dir, 

@@ -5,7 +5,7 @@ import sys
 
 from recipes import Recipe
 from parameters import Parameter
-from frames import FrameConfig
+from frames import FrameConfig, Result
 from log import msg
 
 msg.domain = os.path.basename(sys.argv[0])
