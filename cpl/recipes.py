@@ -295,7 +295,7 @@ class Recipe(object):
 
         return self._exec(recipe_dir, parlist, framelist, force_list, tmpfiles) \
             if not threaded else \
-            Thread(self, recipe_dir, parlist, framelist, force_list, tmpfiles)
+            Threaded(self._exec, recipe_dir, parlist, framelist, force_list, tmpfiles)
 
     def _exec(self, recipe_dir, parlist, framelist, force_list, tmpfiles):
         try:
@@ -334,7 +334,7 @@ class Recipe(object):
             if plugin_f:
                 for p in plugin_f:
                     plugins.setdefault(p[0], list()).append(p[2])
-        return plugins
+        return list(plugins.items())
     list = staticmethod(list)
 
     def get_recipefilename(name, version = None):
@@ -365,21 +365,33 @@ class Recipe(object):
     get_libs = staticmethod(get_libs)
 
 
-class Thread(threading.Thread):
-    '''Threading interface. 
+class Threaded(threading.Thread):
+    '''Simple threading interface. 
 
+    Creating this object will start the execution of func(*args, **nargs).
+    It returns an object that has the same attribute as the function return
+    value, if the function execution was completed.
+
+    Accessing any of the attributes will cause a wait until the function
+    execution is ready. Note that the attribute delegation will work only for
+    attributes (not for methods), and it will not work for attributes defined
+    by the threading.Thread interface.
+
+    If the function returns an exception, this exception is thrown by any
+    attempt to access an attribute.
     '''
-    def __init__(self, recipe, *args):
+    def __init__(self, func, *args, **nargs):
         threading.Thread.__init__(self)
-        self._recipe = recipe
+        self._func = func
         self._args = args
+        self._nargs = nargs
         self._res = None
         self._exception = None
         self.start()
         
     def run(self):
         try:
-            self._res = self._recipe._exec(*self._args)
+            self._res = self._func(*self._args, **self._nargs)
         except Exception as exception:
             self._exception = exception
 
