@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <sys/wait.h>
+#include <sys/times.h>
 #include <Python.h>
 #include <cpl.h>
 
@@ -631,7 +632,7 @@ static PyObject *
 exec_build_retval(void *ptr) {
     long ret_code = ((long *)ptr)[1];
     long error_line = ((long *)ptr)[2];
-    long index = 3 * sizeof(long);
+    long index = 6 * sizeof(long);
     const char *error_msg = ptr + index;
     index += strlen(error_msg) + 1;
     const char *error_file = ptr + index;
@@ -649,17 +650,28 @@ exec_build_retval(void *ptr) {
 	index += strlen(file) + 1;
 	PyList_Append(frames, Py_BuildValue("ss", tag, file));
     }
-    return Py_BuildValue("OO", frames, error);
+    double user_time = ((long *)ptr)[3] * 1e-6;
+    double sys_time = ((long *)ptr)[4] * 1e-6;
+    int memcheck = ((long *)ptr)[5];
+    PyObject *stats = Py_BuildValue("ffi", user_time, sys_time, memcheck);
+
+    return Py_BuildValue("OOO", frames, error, stats);
 }
 
 static void *
-exec_serialize_retval(cpl_frameset *frames, int retval) {
+exec_serialize_retval(cpl_frameset *frames, int retval, 
+		      const struct tms *tms_clock) {
     int n_frames = cpl_frameset_get_size(frames);
     int i_frame;
-    void *ptr = cpl_malloc(3 * sizeof(long));
-    ((long *)ptr)[0] = 3 * sizeof(long);
+    void *ptr = cpl_malloc(6 * sizeof(long));
+    ((long *)ptr)[0] = 6 * sizeof(long);
     ((long *)ptr)[1] = retval;
     ((long *)ptr)[2] = cpl_error_get_line();
+    ((long *)ptr)[3] = 1000000L * (tms_clock->tms_utime + tms_clock->tms_cutime) 
+	/ sysconf(_SC_CLK_TCK);
+    ((long *)ptr)[4] = 1000000L * (tms_clock->tms_stime + tms_clock->tms_cstime)
+	/ sysconf(_SC_CLK_TCK);
+    ((long *)ptr)[5] = cpl_memory_is_empty();
     const char *error_msg = cpl_error_get_message();
     ptr = cpl_realloc(ptr, ((long *)ptr)[0] + strlen(error_msg) + 1);
     strcpy(ptr + ((long *)ptr)[0], error_msg);
@@ -732,15 +744,22 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     
     if (childpid == 0) {
 	close(fd[0]);
-	// TODO: re-establish Ctrl-C handling
 	int retval;
+	struct tms clock_end;
 	if (chdir(dirname) == 0) {
+	    struct tms clock_start;
+	    times(&clock_start);
 	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
+	    times(&clock_end);
+	    clock_end.tms_utime -= clock_start.tms_utime;
+	    clock_end.tms_stime -= clock_start.tms_stime;
+	    clock_end.tms_cutime -= clock_start.tms_cutime;
+	    clock_end.tms_cstime -= clock_start.tms_cstime;
 	} else {
 	    retval = CPL_ERROR_FILE_NOT_CREATED;
 	    cpl_error_set(__func__, retval);
 	}
-	void *ptr = exec_serialize_retval(recipe->frames, retval);
+	void *ptr = exec_serialize_retval(recipe->frames, retval, &clock_end);
 	long n_bytes = write(fd[1], ptr, ((long *)ptr)[0]);
 	close(fd[1]);
 	exit(n_bytes != ((long *)ptr)[0]);

@@ -188,13 +188,21 @@ class Result(object):
             if delete:
                 os.remove(os.path.join(dir, frame))
             tag = tag
-            if tag not in self.__dict__:                
+            if tag not in self.__dict__:
                 self.__dict__[tag] = [ hdu ] if force_list else hdu
                 self.tags.add(tag)
             elif isinstance(self.__dict__[tag], pyfits.HDUList):
                 self.__dict__[tag] = [ self.__dict__[tag], hdu ]
             else:
                 self.__dict__[tag].append(hdu)
+        self.stat = Stat(res[2])
+
+class Stat(object):
+    def __init__(self, stat):
+        self.user_time = stat[0]
+        self.sys_time = stat[1]
+        self.memory_is_empty = { -1:None, 0:False, 1:True }[stat[2]]
+
 
 class CplError(Exception):
     def __init__(self, code, txt, filename, line, function):
