@@ -1,10 +1,12 @@
 import os
 import tempfile
 
+import pyfits
 import CPL_recipe
 import esorex
 import threading
-from frames import RestrictedFrameList, UnrestrictedFrameList, Result, mkabspath
+from frames import RestrictedFrameList, UnrestrictedFrameList, Result
+from frames import mkabspath, mkframelist
 from parameters import ParameterList
 from log import msg
 
@@ -15,11 +17,8 @@ class Recipe(object):
     pipeline library of the instrument.
 
     The libraries are searched in the directories specified by the class
-    attribute :attr:`Recipe.path` or its subdirectories. The search path is automatically
-    set to the esorex path when
-
-    >>> cpl.esorex.init()
-
+    attribute :attr:`Recipe.path` or its subdirectories. The search path is
+    automatically set to the esorex path when :func:`cpl.esorex.init()`
     is called.
 
     Attributes:
@@ -37,10 +36,10 @@ class Recipe(object):
 
     path = [ '.' ]
 
-    def __init__(self, name, filename = None, version = None, 
-                 force_list = False, threaded = False):
+    def __init__(self, name, filename = None, version = None, threaded = False):
         '''Try to load a recipe with the specified name in the directory
-        specified by the class attribute :attr:`Recipe.path` or its subdirectories.
+        specified by the class attribute :attr:`Recipe.path` or its 
+        subdirectories.
 
         :param name: Name of the recipe. Required. Use
             :func:`cpl.Recipe.list()` to get a list of available recipes.
@@ -49,15 +48,13 @@ class Recipe(object):
         :param filename:   Name of the shared library. Optional. If not set, 
             :attr:`Recipe.path` is searched for the library file. 
         :type filename: :class:`str`
-        :param version: Version number. Optional. If not set, the newest version is loaded.
+        :param version: Version number. Optional. If not set, the newest 
+            version is loaded.
         :type version: :class:`int` or :class:`str`
-        :param force_list: Force the result to contain lists of frames even if they contain 
-            only one result frame. Default is :attr:`False`. This may be also set as an 
-            attribute  or specified as a parameter when calling the recipe.
-        :type force_list: :class:`bool`
-        :param threaded: Run the recipe in the background, returning immediately after 
-            calling it. Default is :attr:`False`. This may be also set as an attribute or 
-            specified as a parameter when calling the recipe. 
+        :param threaded: Run the recipe in the background, returning 
+            immediately after calling it. Default is :attr:`False`. This may 
+            be also set as an attribute or specified as a parameter when 
+            calling the recipe. 
         :type threaded: :class:`bool`
 
         '''
@@ -75,7 +72,6 @@ class Recipe(object):
         self.tag = self.tags[0]
         self.output_dir = None
         self.temp_dir = '.'
-        self.force_list = force_list
         self.threaded = threaded
 
     def reload(self):
@@ -86,16 +82,19 @@ class Recipe(object):
         self._recipe = CPL_recipe.recipe(self.filename, self.name)
 
     author = property(lambda self: self._recipe.author(), 
-                      doc = 'Pair (author name, author email address) of two strings.')
+                      doc = 'Pair (author name, author email address) '
+                      'of two strings.')
     description = property(lambda self: self._recipe.description(),
                            doc = 'Pair (synopsis, description) of two strings.')
     version = property(lambda self: self._recipe.version(),
-                       doc = 'Pair (versionnumber, versionstring) of an integer and a string. '
+                       doc = 'Pair (versionnumber, versionstring) '
+                       'of an integer and a string. '
                        'The integer will be increased on development progress.')
     tags = property(lambda self: 
                     [ c[0][0] for c in self._recipe.frameConfig() ],
-                    doc = 'Possible tags for the raw input frames, or :attr:`None` '
-                    'if this information is not provided by the recipe.')
+                    doc = 'Possible tags for the raw input frames, or '
+                    ':attr:`None` if this information is not provided '
+                    'by the recipe.')
 
     def _set_tag(self, tag):
         if self.tags is None or tag in self.tags:
@@ -104,11 +103,11 @@ class Recipe(object):
             raise KeyError("Tag '%s' not in %s" % (tag, str(self.tags)))
 
     tag = property(lambda self: self._tag, _set_tag, 
-                   doc='''Default raw input frame tag. After creation, 
-        it is set to the first tag from the "tags" property and may be changed 
-        to any of these tags. If the recipe does not provide the tag information, 
-        it must be set manually, or the tag name has to be provided when calling 
-        the recipe.''')
+                   doc='''Default raw input frame tag. After creation, it is
+        set to the first tag from the "tags" property and may be changed to
+        any of these tags. If the recipe does not provide the tag information,
+        it must be set manually, or the tag name has to be provided when
+        calling the recipe.''')
 
     def _load_calib(self, source = None):
         if isinstance(source, (str, file)):
@@ -153,11 +152,12 @@ class Recipe(object):
 
      >>> muse_scibasic.calib.BADPIX_TABLE = [ 'badpix_1.fits', 'badpix_2.fits' ]
      
-     All calibration frames can be set in one step by assigning a :class:`map` to the
-     parameters. In this case, frame that are not in the map are set are removed from the 
-     list, and unknown frame tags are silently ignored. The key of the map is the tag name; 
-     the values are either a string, or a list of strings, containing the file name(s) or 
-     the :class:`pyfits.HDUList` objects.
+     All calibration frames can be set in one step by assigning a :class:`dict`
+     to the parameters. In this case, frame that are not in the map are set
+     are removed from the list, and unknown frame tags are silently
+     ignored. The key of the map is the tag name; the values are either a
+     string, or a list of strings, containing the file name(s) or the
+     :class:`pyfits.HDUList` objects.
 
      >>> muse_scibasic.calib = { 'MASTER_BIAS':'master_bias_0.fits', 
      ...                         'BADPIX_TABLE':[ 'badpix_1.fits', 'badpix_2.fits' ] }
@@ -200,20 +200,20 @@ class Recipe(object):
      >>> muse_scibasic.param.nifu = 1
 
      The new value is checked against parameter type, and possible value
-     limitations provided by the recipe. In a recipe call, the same parameter can
-     be specified as
+     limitations provided by the recipe. In a recipe call, the same parameter
+     can be specified as
 
      >>> res = muse_scibasic( ..., nifu = 1)
 
-     To reset a value to its default, it is eighter deleted, or set to :attr:`None`. The
-     following two lines:
+     To reset a value to its default, it is eighter deleted, or set to
+     :attr:`None`. The following two lines:
 
      >>> muse_scibasic.param.nifu = None
      >>> del muse_scibasic.param.nifu
 
      will both reset the parameter to its default value. 
 
-     All parameters can be set in one step by assigning a :class:`map` to the
+     All parameters can be set in one step by assigning a :class:`dict` to the
      parameters. In this case, all values that are not in the map are reset to
      default, and unknown parameter names are ignored. The keys of the map may
      contain contain the name or the fullname with context:
@@ -227,8 +227,8 @@ class Recipe(object):
 
         If the recipe does not provide this information, an exception is raised.
         
-        :param tag: Input (raw) frame tag. Defaults to the :attr:`Recipe.tar` attribute if 
-            not specified. 
+        :param tag: Input (raw) frame tag. Defaults to the :attr:`Recipe.tar` 
+            attribute if not specified. 
         :type tag: :class:`str`
         '''
         if tag is None:
@@ -241,71 +241,96 @@ class Recipe(object):
         '''Call the recipes execution with a certain input frame.
         
         :param data:       Data input frames, using the default tag.
+        :type data: :class:`pyfits.HDUlist` or :class:`str` or a :class:`list` 
+            of them.
+        :param tag: Overwrite the :attr:`tag` attribute (optional).
+        :type tag: :class:`str`
         :param tag = data: Data with a specific tag.
-        :type data: :class:`pyfits.HDUlist` or :class:`str` or a :class:`list` of them.
-        :param force_list: overwrite the :attr:`force_list` attribute (optional).
-        :type force_list: :class:`bool`
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
         :type threaded: :class:`bool`
-        :param CPL parameter name = value: overwrite the according CPL parameter of the recipe 
-                                   (optional). 
-        :param Calibration tag name = value: overwrite the calibration frame list for this tag 
-                                     (optional).
-        :return: The object with the return frames as :class:`pyfits.HDUList` objects
+        :param CPL parameter name = value: overwrite the according CPL 
+            parameter of the recipe (optional). 
+        :param Calibration tag name = value: overwrite the calibration frame 
+            list for this tag (optional).
+        :return: The object with the return frames as :class:`pyfits.HDUList` 
+            objects
         :rtype: :class:`cpl.Result`
-        :raise:  IOError If the temporary directory could not be built or the files could not be 
-                read/written.
+        :raise:  IOError If the temporary directory could not be built or the 
+                files could not be read/written.
         :raise:  CPLError If the recipe returns an error or crashed.
 
-        .. note:: If the recipe is executed in the background (``threaded = True``) and an exception occurs,
-             this exception is raised whenever result fields are accessed.
+        .. note:: If the recipe is executed in the background 
+            (``threaded = True``) and an exception occurs, this exception is 
+            raised whenever result fields are accessed.
         '''
         recipe_dir = self.output_dir if self.output_dir \
             else tempfile.mkdtemp(dir = self.temp_dir, 
                                   prefix = self.name + "-") if self.temp_dir \
             else os.getcwd()
-        parlist = self.param._aslist(**ndata)
-        framelist = self.calib._aslist(*data, **ndata)
-        force_list = ndata.get('force_list', self.force_list)
         threaded = ndata.get('threaded', self.threaded)
-        tmpfiles = list()
+        tag = ndata.get('tag', self.tag)
+        parlist = self.param._aslist(**ndata)
+        raw_frames = self._get_raw_frames(tag, *data, **ndata)
+        if len(raw_frames) < 1:
+            raise Error('No raw frames specified.')
+        if len(raw_frames) > 1:
+            raise Error('More than one raw frame tag specified: %s', 
+                        str(raw_frames.keys()))
+        input_len = -1 if isinstance(raw_frames.values()[0], pyfits.HDUList) \
+            else len(raw_frames.values()[0]) \
+            if isinstance(raw_frames.values()[0], list) else -1
+        calib_frames = self.calib._asdict(tag, *data, **ndata)
+        framelist = mkframelist(raw_frames) + mkframelist(calib_frames)
         try:
             if (not os.access(recipe_dir, os.F_OK)):
                 os.makedirs(recipe_dir)
             tmpfiles = mkabspath(framelist, recipe_dir)
             msg.info("Executing %s (version %s, CPL version %s)" 
                      % (self.name, self.version[1], CPL_recipe.version()))
-            msg.indent_more()
-            if parlist:
-                msg.info("parameters:")
-                msg.indent_more()
-                for name, value in parlist:
-                    msg.info("%s = %s" % (name, str(value)))
-                msg.indent_less()
-            if framelist:
-                msg.info("frames:")
-                msg.indent_more()
-                for tag, file in framelist:
-                    msg.info("%s = %s" % (tag, file))
-                msg.indent_less()
-                msg.indent_less()
         except:
             self._cleanup(recipe_dir, tmpfiles)
             raise
-
-        return self._exec(recipe_dir, parlist, framelist, force_list, tmpfiles) \
+        return self._exec(recipe_dir, parlist, framelist, input_len, 
+                          tmpfiles) \
             if not threaded else \
-            Threaded(self._exec, recipe_dir, parlist, framelist, force_list, tmpfiles)
+            Threaded(self._exec, recipe_dir, parlist, framelist, input_len, 
+                     tmpfiles)
 
-    def _exec(self, recipe_dir, parlist, framelist, force_list, tmpfiles):
+    def _exec(self, recipe_dir, parlist, framelist, input_len, tmpfiles):
         try:
             r = Result(self._recipe.frameConfig(), recipe_dir,
                        self._recipe.run(recipe_dir, parlist, framelist),
                        (self.temp_dir and not self.output_dir),
-                       force_list)
+                       input_len)
             return r
         finally:
             self._cleanup(recipe_dir, tmpfiles)
+
+    def _get_raw_frames(self, tag, *data, **ndata):
+        '''Return the input frames.
+
+        Returns a :class:`dict` with the tag as key and the input frame(s) as
+        values. Note that more than one input tag is not allowed here.
+        '''
+        m = { }
+        for f in data:
+            if self.tag not in m:
+                m[tag] = f
+            elif isinstance(m[tag], list) \
+                    and not isinstance(m[tag], pyfits.HDUList):
+                m[tag].append(f)
+            else:
+                m[tag] = [ m[tag], f ]
+        for tag, f in ndata.items():
+            if tag in self.tags:
+                if tag not in m:
+                    m[tag] = f
+                elif isinstance(m[tag], list) \
+                        and not isinstance(m[tag], pyfits.HDUList):
+                    m[tag].append(f)
+                else:
+                    m[tag] = [ m[tag], f ]
+        return m
 
     def _cleanup(self, recipe_dir, tmpfiles):
             for f in tmpfiles:

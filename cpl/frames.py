@@ -27,8 +27,8 @@ class FrameConfig(RestrictedDictEntry):
 
     .. attribute:: min
 
-       Minimal number of frames, or :attr:`None` if not specified. A frame is required
-       if the  :attr:`min` is set to a value greater than 0.
+       Minimal number of frames, or :attr:`None` if not specified. A frame is
+       required if the :attr:`min` is set to a value greater than 0.
 
     .. attribute:: max 
 
@@ -87,34 +87,11 @@ class FrameList(object):
         return r        
     __doc__ = property(_doc)
 
-    def _gettag(self, name):
-        try:
-            return self[name].tag
-        except AttributeError:
-            for t in self._recipe.tags:
-                if name == t:
-                    return t
-        return None
-
-    def _aslist(self, *data, **ndata):
-        frames = [ (f.tag, f.value) 
-                   for f in self
-                   if f.value and (ndata is None or f.tag not in ndata)
-                   ] 
-        if data:
-            frames += [ ( self._recipe.tag, tdata ) for tdata in data ]
-        if ndata:
-            frames += [ ( self._gettag(name), tdata )
-                        for name, tdata in ndata.items() 
-                        if self._gettag(name)]
-
-        framelist = list()
-        for f in frames:
-            if isinstance(f[1], list) and not isinstance(f[1], pyfits.HDUList):
-                framelist += [ (f[0], frame) for frame in f[1] ]
-            else:
-                framelist.append((f[0], f[1]))
-        return framelist
+    def _asdict(self, *data, **ndata):
+        frames = dict()
+        for f in self:
+            frames[f.tag] = ndata[f.tag] if f.tag in ndata else f.value
+        return frames
 
 class RestrictedFrameList(RestrictedDict, FrameList):
     def __init__(self, recipe, other = None):
@@ -150,8 +127,9 @@ def mkabspath(frames, tmpdir):
     The replacement is done in-place. The function will return the list of
     temporary files.
 
-    param frames: :class:`list` of (frame, tag) tuples with frame being either a file 
-                  name or a HDU list.
+    param frames: :class:`list` of (tag, frame) tuples with frame being either
+                  a file name or a HDU list.
+
     param tmpdir: directory where the temporary files are being created.
     '''
     
@@ -169,8 +147,47 @@ def mkabspath(frames, tmpdir):
             frames[i] = ( frame[0], os.path.abspath(frame[1]) )
     return tmpfiles
 
+def mkframelist(framedict):
+    '''Convert a dictionary with frames into a frame list where each frame
+    gets its own entry in the form (tag, frame)
+    '''
+    framelist = list()
+    for tag, f in framedict.iteritems():
+        if isinstance(f, list) and not isinstance(f, pyfits.HDUList):
+            framelist += [ (tag, frame) for frame in f ]
+        elif f is not None:
+            framelist.append((tag, f))
+    return framelist
+
 class Result(object):
-    def __init__(self, recipedefs, dir, res, delete = True, force_list = False):
+    def __init__(self, recipedefs, dir, res, delete = True, input_len = 0):
+        '''Build an object containing all result frames.
+
+        Calling :meth:`cpl.Recipe.__call__` returns an object that contains
+        all result ('production') frames in attributes. All results for one
+        tag are summarized in one attribute of the same name. 
+
+        The attribute content is either a :class:`pyfits.HDUList` or a
+        class:`list` of HDU lists, depending on the recipe and the call: If
+        the recipe produces one out put frame of a tag per input file, the
+        attribute contains a list if the recipe was called with a list, and if
+        the recipe was called with a single input frame, the result attribute
+        will also contain a single input frame. If the recipe combines all
+        input frames to one output frame, a single :class:`pyfits.HDUList` es
+        returned, independent of the input parameters. 
+
+        .. todo:: This behaviour is made on some heuristics based on the
+           number and type of the input frames. The heuristics will go wrong
+           if there is only one input frame, specified as a list, but the
+           recipe tries to summarize the input. In this case, the attribute
+           will contain a list where a single :class:`pyfits.HDUList` was
+           expected. To solve this problem, the "MASTER" flag has to be
+           forwarded from the (MUSE) recipe which means that it should be
+           exported by the recipe -- this is a major change since it probably
+           leads into a replacement of CPLs recipeconfig module by something
+           more sophisticated. And this is not usable for non-MUSE recipes
+           anyway. So, we will skip this to probably some distant future.
+        '''
         self.dir = dir
         if res[0]:
             msg.info("Result frames:" )
@@ -189,7 +206,7 @@ class Result(object):
                 os.remove(os.path.join(dir, frame))
             tag = tag
             if tag not in self.__dict__:
-                self.__dict__[tag] = [ hdu ] if force_list else hdu
+                self.__dict__[tag] = hdu if input_len != 1 else [ hdu ]
                 self.tags.add(tag)
             elif isinstance(self.__dict__[tag], pyfits.HDUList):
                 self.__dict__[tag] = [ self.__dict__[tag], hdu ]
