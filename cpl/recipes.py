@@ -298,19 +298,18 @@ class Recipe(object):
 
     def _exec(self, recipe_dir, parlist, framelist, input_len, tmpfiles):
         try:
-            r = Result(self._recipe.frameConfig(), recipe_dir,
-                       self._recipe.run(recipe_dir, parlist, framelist),
-                       (self.temp_dir and not self.output_dir),
-                       input_len)
-            return r
+            return Result(self._recipe.frameConfig(), recipe_dir,
+                          self._recipe.run(recipe_dir, parlist, framelist),
+                          (self.temp_dir and not self.output_dir),
+                          input_len)
         finally:
             self._cleanup(recipe_dir, tmpfiles)
 
     def _get_raw_frames(self, tag, *data, **ndata):
         '''Return the input frames.
 
-        Returns a :class:`dict` with the tag as key and the input frame(s) as
-        values. Note that more than one input tag is not allowed here.
+        Returns a :class:`list` with (tag, the input frame(s)) pairs. Note
+        that more than one input tag is not allowed here.
         '''
         m = { }
         for f in data:

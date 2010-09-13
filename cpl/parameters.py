@@ -34,13 +34,13 @@ class Parameter(RestrictedDictEntry):
 
     .. attribute:: Parameter.range 
 
-      The numeric range of a parameter, or :attr:`None` if the parameter has no limited
-      range (readonly). 
+      The numeric range of a parameter, or :attr:`None` if the parameter has
+      no limited range (readonly).
 
     .. attribute:: Parameter.sequence
 
-      A :class:`list` of possible values for the parameter if the parameter are limited to
-      an enumeration of possible values (readonly).
+      A :class:`list` of possible values for the parameter if the parameter
+      are limited to an enumeration of possible values (readonly).
 
     The following example prints the attributes of one parameter:
 

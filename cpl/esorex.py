@@ -19,7 +19,8 @@ def load_sof(source):
     content of the file is returned as a map with the tag as key and the list
     of file names as value.
 
-    The result of this function may directly set as :attr:`Recipe.calib` attribute::
+    The result of this function may directly set as :attr:`Recipe.calib`
+    attribute::
     
       import cpl
       myrecipe = cpl.Recipe('muse_bias')
@@ -63,13 +64,15 @@ def load_rc(source = None):
     content of the file is returned as a map with the (full) parameter name as
     key and its setting as string value.
 
-    The result of this function may directly set as :attr:`Recipe.param` attribute::
+    The result of this function may directly set as :attr:`Recipe.param`
+    attribute::
     
       import cpl
       myrecipe = cpl.Recipe('muse_bias')
       myrecipe.param = cpl.esorex.load_rc('muse_bias.rc')
 
-    .. note:: Unknown parameters are silently ignored wenn setting :attr:`Recipe.param`.
+    .. note:: Unknown parameters are silently ignored wenn setting
+    :attr:`Recipe.param`.
 
     '''
     if source is None:
@@ -91,7 +94,8 @@ def load_rc(source = None):
                          source.__class__.__name__)
 
 def init(source = None):
-    '''Set the message verbosity and recipe search path from the :file:`esorex.rc` file.
+    '''Set the message verbosity and recipe search path from the
+    :file:`esorex.rc` file.
 
     :param source: Configuration file name. If not set, the esorex config file
         :file:`~/.esorex/esorex.rc` is used.
