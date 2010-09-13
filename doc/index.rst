@@ -24,7 +24,7 @@ second was to provide a software kit of medium-level tools, which allows
 astronomical data-reduction tasks to be built rapidly.
 
 .. toctree::
-   :maxdepth: 2
+   :numbered:
 
    install
    tutorial
@@ -36,6 +36,10 @@ astronomical data-reduction tasks to be built rapidly.
    msg
    esorex
    restrictions
+
+You can also `download a PDF version
+<http://github.com/downloads/olebole/python-cpl/python-cpl.pdf>` of the user
+manual.
 
 Feedback
 ========
