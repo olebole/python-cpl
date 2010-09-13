@@ -6,7 +6,7 @@ import CPL_recipe
 import esorex
 import threading
 from frames import RestrictedFrameList, UnrestrictedFrameList, Result
-from frames import mkabspath, mkframelist
+from frames import mkabspath, expandframelist
 from parameters import ParameterList
 from log import msg
 
@@ -275,12 +275,11 @@ class Recipe(object):
             raise Error('No raw frames specified.')
         if len(raw_frames) > 1:
             raise Error('More than one raw frame tag specified: %s', 
-                        str(raw_frames.keys()))
-        input_len = -1 if isinstance(raw_frames.values()[0], pyfits.HDUList) \
-            else len(raw_frames.values()[0]) \
-            if isinstance(raw_frames.values()[0], list) else -1
-        calib_frames = self.calib._asdict(tag, *data, **ndata)
-        framelist = mkframelist(raw_frames) + mkframelist(calib_frames)
+                        str(raw_frames))
+        input_len = -1 if isinstance(raw_frames[0][1], pyfits.HDUList) else \
+            len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
+        calib_frames = self.calib._aslist(tag, **ndata)
+        framelist = expandframelist(raw_frames + calib_frames)
         try:
             if (not os.access(recipe_dir, os.F_OK)):
                 os.makedirs(recipe_dir)
@@ -329,7 +328,7 @@ class Recipe(object):
                     m[tag].append(f)
                 else:
                     m[tag] = [ m[tag], f ]
-        return m
+        return list(m.iteritems())
 
     def _cleanup(self, recipe_dir, tmpfiles):
             for f in tmpfiles:
@@ -352,12 +351,12 @@ class Recipe(object):
         Searches for all recipes in in the directory specified by the class
         attribute :attr:`Recipe.path` or its subdirectories. 
         '''
-        plugins = { }
+        plugins = defaultdict(list)
         for f in Recipe.get_libs():
             plugin_f = CPL_recipe.list(f)
             if plugin_f:
                 for p in plugin_f:
-                    plugins.setdefault(p[0], list()).append(p[2])
+                    plugins[p[0]].append(p[2])
         return list(plugins.items())
     list = staticmethod(list)
 

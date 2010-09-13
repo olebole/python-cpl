@@ -3,10 +3,9 @@ import sys
 import tempfile
 import pyfits
 
-from restricteddict import UnrestrictedDict, RestrictedDict, RestrictedDictEntry
 from log import msg
 
-class FrameConfig(RestrictedDictEntry):
+class FrameConfig(object):
     '''Frame configuration. 
 
     Each :class:`FrameConfig` object stores information about one the data
@@ -34,11 +33,11 @@ class FrameConfig(RestrictedDictEntry):
 
        Maximal number of frames, or :attr:`None` if not specified
     '''
-    def __init__(self, tag, min_frames = 0, max_frames = 0, parent = None):
-        RestrictedDictEntry.__init__(self, parent)
+    def __init__(self, tag, min_frames = 0, max_frames = 0, frames = None):
         self.tag = tag
         self.min = min_frames if min_frames > 0 else None
         self.max = max_frames if max_frames > 0 else None
+        self.frames = frames
         self.__doc__ = self._doc()
 
     def extend_range(self, min_frames, max_frames):
@@ -49,12 +48,16 @@ class FrameConfig(RestrictedDictEntry):
             self.max = max(self.max, max_frames) if max_frames is not None \
                 else None
 
+    def set_range(self, min_frames, max_frames):
+        self.min = min_frames
+        self.max = max_frames
+
     def __str__(self):
-        return str(self.value)
+        return str(self.frames)
 
     def __repr__(self):
-        return "FrameDef('%s', value=%s)" % (
-            self.tag, self.value.__repr__())
+        return "FrameDef('%s', frames=%s)" % (
+            self.tag, self.frames.__repr__())
 
     def _doc(self):
         if self.max == 1:
@@ -73,11 +76,81 @@ class FrameConfig(RestrictedDictEntry):
     
 
 class FrameList(object):
-    def __init__(self, recipe):
+    def __init__(self, recipe, other = None):
         self._recipe = recipe
+        if isinstance(other, self.__class__):
+            self._values = dict((o.tag, FrameConfig(o.tag, o.min, o.max, frames=o.frames)) 
+                                for o in other)
+        elif isinstance(other, dict):
+            self._values = dict((o[0], FrameConfig(o[0], frames=o[1])) 
+                                for o in other.items())
+        elif other:
+            self._values = dict((o[0], FrameConfig(o[0], frames=o[1])) for o in other)
+        else:
+            self._values = dict()
 
-    def _key(self, p):
-        return p if isinstance(p, str) else p.tag
+    def _cpl_dict(self):
+        cpl_frameconfigs = self._recipe._recipe.frameConfig()
+        if cpl_frameconfigs is None:
+            return None
+        s = dict()
+        for configs in cpl_frameconfigs:
+            c_cfg = configs[1]
+            for f in c_cfg:
+                if s.containskey(f[0]):
+                    s[f[0]].extend_range(f[1], f[2])
+                elif self._values.containskey(k[0]):
+                    s[f[0]] = self._values[f[0]]
+                    s[f[0]].set_range(f[1], f[2])
+                else:
+                    s[f[0]] = FrameConfig(f[0], f[1], f[2])
+                    self._values[f[0]] = s[f[0]]
+        return s
+
+    def _get_dict(self):
+        return self._cpl_dict() or self._values
+
+    _dict = property(_get_dict)
+
+    def __iter__(self):
+        return self._dict.itervalues()
+
+    def __getitem__(self, key):
+        return self._dict[key]
+
+    def __setitem__(self, key, value):
+        d = self._cpl_dict()
+        if d is not None:
+            d[key].frames = value
+        else:
+            self.setdefault(key, FrameConfig(key)).frames = value
+
+    def __delitem__(self, key):
+        del self._dict[key].frames
+
+    def __contains__(self, key):
+        return self._dict.contains(key)
+
+    def __len__(self):
+        return len(self._dict)
+        
+    def __getattr__(self, key):
+        return self[key]
+
+    def __setattr__(self, key, value):
+        if key.startswith('_'):
+            super(object, self).__setattr__(key, value)
+        else:
+            self[key] = value
+
+    def __delattr__(self, key):
+        del self[key]
+
+    def __dir__(self):
+        return [ self._key(p) for p in self ]
+
+    def __repr__(self):
+        return list(self).__repr__()
 
     def _doc(self):
         r = 'Frames for recipe %s.\n\nAttributes:\n' % (
@@ -87,42 +160,18 @@ class FrameList(object):
         return r        
     __doc__ = property(_doc)
 
-    def _asdict(self, *data, **ndata):
+    def _aslist(self, **ndata):
         frames = dict()
         for f in self:
-            frames[f.tag] = ndata[f.tag] if f.tag in ndata else f.value
-        return frames
+            frames[f.tag] = ndata[f.tag] if f.tag in ndata else f.frames
+        return list(frames.iterkeys())
 
-class RestrictedFrameList(RestrictedDict, FrameList):
-    def __init__(self, recipe, other = None):
-        RestrictedDict.__init__(self, other)
-        FrameList.__init__(self, recipe)
-
-    def __iter__(self):
-        s = dict()
-        for configs in self._recipe._recipe.frameConfig():
-            c_cfg = configs[1]
-            for f in c_cfg:
-                fc = s.setdefault(f[0], 
-                                  FrameConfig(f[0], f[1], f[2], self))
-                fc.extend_range(f[1], f[2])
-        return s.itervalues()
-
-class UnrestrictedFrameList(UnrestrictedDict, FrameList):
-    def __init__(self, recipe, other = None):
-        UnrestrictedDict.__init__(self, other)
-        FrameList.__init__(self, recipe)
-
-    def _createentry(self, key):
-        f = FrameConfig(key, 0, 0, self)
-        print 'creating entry %s -> %s' %(key, f)
-        return f
 
 def mkabspath(frames, tmpdir):
     '''Convert all filenames in the frames list into absolute paths.
 
-    :class:`pyfits.HDUList`s will be converted to temporary files located in the 
-    temporary directory tmpdir.
+    :class:`pyfits.HDUList`s will be converted to temporary files located in
+    the temporary directory tmpdir.
 
     The replacement is done in-place. The function will return the list of
     temporary files.
@@ -146,13 +195,13 @@ def mkabspath(frames, tmpdir):
         else:
             frames[i] = ( frame[0], os.path.abspath(frame[1]) )
     return tmpfiles
-
-def mkframelist(framedict):
+-
+def expandframelist(frames):
     '''Convert a dictionary with frames into a frame list where each frame
     gets its own entry in the form (tag, frame)
     '''
     framelist = list()
-    for tag, f in framedict.iteritems():
+    for tag, f in frames:
         if isinstance(f, list) and not isinstance(f, pyfits.HDUList):
             framelist += [ (tag, frame) for frame in f ]
         elif f is not None:
