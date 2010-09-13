@@ -521,8 +521,8 @@ CPL_recipe_get_frameconfig(CPL_recipe *self) {
 	return NULL;
     }
     if (self->recipeconfig == NULL) {
-	PyErr_SetString(PyExc_IOError, "No recipe frame configuration");
-	return NULL;
+	Py_INCREF(Py_None);
+	return Py_None;
     }
     PyObject *res = PyList_New(0);
     char **tags = cpl_recipeconfig_get_tags(self->recipeconfig);
