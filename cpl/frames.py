@@ -97,9 +97,9 @@ class FrameList(object):
         for configs in cpl_frameconfigs:
             c_cfg = configs[1]
             for f in c_cfg:
-                if s.containskey(f[0]):
+                if f[0] in s:
                     s[f[0]].extend_range(f[1], f[2])
-                elif self._values.containskey(k[0]):
+                elif f[0] in self._values:
                     s[f[0]] = self._values[f[0]]
                     s[f[0]].set_range(f[1], f[2])
                 else:
@@ -113,33 +113,33 @@ class FrameList(object):
     _dict = property(_get_dict)
 
     def __iter__(self):
-        return self._dict.itervalues()
+        return self._get_dict().itervalues()
 
     def __getitem__(self, key):
-        return self._dict[key]
+        return self._get_dict()[key]
 
     def __setitem__(self, key, value):
         d = self._cpl_dict()
         if d is not None:
             d[key].frames = value
         else:
-            self.setdefault(key, FrameConfig(key)).frames = value
+            self._values.setdefault(key, FrameConfig(key)).frames = value
 
     def __delitem__(self, key):
-        del self._dict[key].frames
+        del self._get_dict()[key].frames
 
     def __contains__(self, key):
-        return self._dict.contains(key)
+        return key in self._get_dict()
 
     def __len__(self):
-        return len(self._dict)
+        return len(self._get_dict())
         
     def __getattr__(self, key):
         return self[key]
 
     def __setattr__(self, key, value):
         if key.startswith('_'):
-            super(object, self).__setattr__(key, value)
+            super(FrameList, self).__setattr__(key, value)
         else:
             self[key] = value
 
@@ -147,7 +147,7 @@ class FrameList(object):
         del self[key]
 
     def __dir__(self):
-        return [ self._key(p) for p in self ]
+        return self._get_dict().keys()
 
     def __repr__(self):
         return list(self).__repr__()
@@ -164,8 +164,7 @@ class FrameList(object):
         frames = dict()
         for f in self:
             frames[f.tag] = ndata[f.tag] if f.tag in ndata else f.frames
-        return list(frames.iterkeys())
-
+        return list(frames.iteritems())
 
 def mkabspath(frames, tmpdir):
     '''Convert all filenames in the frames list into absolute paths.
@@ -195,7 +194,7 @@ def mkabspath(frames, tmpdir):
         else:
             frames[i] = ( frame[0], os.path.abspath(frame[1]) )
     return tmpfiles
--
+
 def expandframelist(frames):
     '''Convert a dictionary with frames into a frame list where each frame
     gets its own entry in the form (tag, frame)

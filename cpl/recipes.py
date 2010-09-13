@@ -1,11 +1,12 @@
 import os
 import tempfile
+import threading
+import collections
 
 import pyfits
 import CPL_recipe
 import esorex
-import threading
-from frames import RestrictedFrameList, UnrestrictedFrameList, Result
+from frames import FrameList, Result
 from frames import mkabspath, expandframelist
 from parameters import ParameterList
 from log import msg
@@ -68,8 +69,9 @@ class Recipe(object):
             raise IOError('wrong version %s (requested %s) for %s in %s' %
                           (str(self.version), str(version), name, filename))
         self._param = ParameterList(self)
-        self._calib = RestrictedFrameList(self)
-        self.tag = self.tags[0]
+        self._calib = FrameList(self)
+        self._tags = None
+        self.tag = self.tags[0] if self.tags else None
         self.output_dir = None
         self.temp_dir = '.'
         self.threaded = threaded
@@ -90,8 +92,18 @@ class Recipe(object):
                        doc = 'Pair (versionnumber, versionstring) '
                        'of an integer and a string. '
                        'The integer will be increased on development progress.')
-    tags = property(lambda self: 
-                    [ c[0][0] for c in self._recipe.frameConfig() ],
+
+    def _get_tags(self):
+        frameconfig = self._recipe.frameConfig()
+        return [ c[0][0] for c in frameconfig ] if frameconfig else self._tags
+
+    def _set_tags(self, tags):
+        if self._recipe.frameConfig():
+            raise AttributeError('Tags are immutable')
+        else:
+            self._tags = tags
+
+    tags = property(_get_tags,
                     doc = 'Possible tags for the raw input frames, or '
                     ':attr:`None` if this information is not provided '
                     'by the recipe.')
@@ -112,7 +124,7 @@ class Recipe(object):
     def _load_calib(self, source = None):
         if isinstance(source, (str, file)):
             source = esorex.load_sof(source)
-        self._calib = RestrictedFrameList(self, source) 
+        self._calib = FrameList(self, source) 
 
     calib = property(lambda self: self._calib, _load_calib, _load_calib, 
                      doc = '''This attribute contains the calibration frames
@@ -263,22 +275,24 @@ class Recipe(object):
             (``threaded = True``) and an exception occurs, this exception is 
             raised whenever result fields are accessed.
         '''
-        recipe_dir = self.output_dir if self.output_dir \
-            else tempfile.mkdtemp(dir = self.temp_dir, 
-                                  prefix = self.name + "-") if self.temp_dir \
-            else os.getcwd()
+        recipe_dir = self.output_dir or ( 
+            tempfile.mkdtemp(dir = self.temp_dir, 
+                             prefix = self.name + "-") 
+            if self.temp_dir else os.getcwd())
         threaded = ndata.get('threaded', self.threaded)
         tag = ndata.get('tag', self.tag)
+        if tag is None:
+            raise TypeError('No input tag specified')
         parlist = self.param._aslist(**ndata)
         raw_frames = self._get_raw_frames(tag, *data, **ndata)
         if len(raw_frames) < 1:
-            raise Error('No raw frames specified.')
+            raise TypeError('No raw frames specified.')
         if len(raw_frames) > 1:
-            raise Error('More than one raw frame tag specified: %s', 
-                        str(raw_frames))
+            raise TypeError('More than one raw frame tag specified: %s', 
+                            str(raw_frames))
         input_len = -1 if isinstance(raw_frames[0][1], pyfits.HDUList) else \
             len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
-        calib_frames = self.calib._aslist(tag, **ndata)
+        calib_frames = self.calib._aslist(**ndata)
         framelist = expandframelist(raw_frames + calib_frames)
         try:
             if (not os.access(recipe_dir, os.F_OK)):
@@ -319,15 +333,16 @@ class Recipe(object):
                 m[tag].append(f)
             else:
                 m[tag] = [ m[tag], f ]
-        for tag, f in ndata.items():
-            if tag in self.tags:
-                if tag not in m:
-                    m[tag] = f
-                elif isinstance(m[tag], list) \
-                        and not isinstance(m[tag], pyfits.HDUList):
-                    m[tag].append(f)
-                else:
-                    m[tag] = [ m[tag], f ]
+        if self.tags is not None:
+            for tag, f in ndata.items():
+                if tag in self.tags:
+                    if tag not in m:
+                        m[tag] = f
+                    elif isinstance(m[tag], list) \
+                            and not isinstance(m[tag], pyfits.HDUList):
+                        m[tag].append(f)
+                    else:
+                        m[tag] = [ m[tag], f ]
         return list(m.iteritems())
 
     def _cleanup(self, recipe_dir, tmpfiles):
@@ -351,7 +366,7 @@ class Recipe(object):
         Searches for all recipes in in the directory specified by the class
         attribute :attr:`Recipe.path` or its subdirectories. 
         '''
-        plugins = defaultdict(list)
+        plugins = collections.defaultdict(list)
         for f in Recipe.get_libs():
             plugin_f = CPL_recipe.list(f)
             if plugin_f:
