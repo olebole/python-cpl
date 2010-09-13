@@ -269,7 +269,9 @@ class Stat(object):
         self.memory_is_empty = { -1:None, 0:False, 1:True }[stat[2]]
 
 
-class CplError(Exception):
+class CplError(StandardError):
+    '''This indicates an error from the CPL execution.
+    '''
     def __init__(self, code, txt, filename, line, function):
         msg.error("%s:%i in %s(): %s" % (filename, line, function, txt))
         self.code = code
