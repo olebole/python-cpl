@@ -1,0 +1,108 @@
+#*******************************************************************************
+# E.S.O. - VLT project
+#
+# "@(#) $Id: Makefile.purify.in,v 1.1 2007/10/15 15:15:29 cguirao Exp $"
+#
+# Makefile of Pipeline subsystem.
+#
+# who       when        what
+# --------  ----------  ----------------------------------------------
+#
+
+
+ifdef MAKE_PURE
+  ENABLE_PURIFY=on
+  ENABLE_PURECOV=on
+  ENABLE_PURE=on
+endif
+
+ifdef MAKE_PUREGUI
+  ENABLE_PURIFY=on
+  ENABLE_PURECOV=on
+endif
+
+ifdef MAKE_PURIFY
+  ENABLE_PURIFY=on
+endif
+
+ifdef MAKE_PURECOV
+  ENABLE_PURECOV=on
+endif
+
+#           -user-path="../test:../src:src:test" \
+
+
+ifdef ENABLE_PURIFY
+  PURIFY = purify \
+           -always-use-cache-dir \
+           -g++=yes \
+           -log-file=./.purifydir/MemoryReport \
+           -linker=$(GNU_ROOT)/bin/ld \
+           -append-logfile=yes \
+           -messages=batch \
+           -view-file=./.purifydir/purify-%v.pv \
+           -chain-length=100
+
+else
+  PURIFY =
+endif
+
+ifdef MAKE_PUREGUI
+  PURIFY = purify \
+           -always-use-cache-dir \
+           -user-path="../test:../src:src:test" \
+           -g++=yes \
+           -linker=$(GNU_ROOT)/bin/ld
+endif
+
+ifdef ENABLE_PURECOV
+  PURECOV = purecov \
+	    -always-use-cache-dir \
+	    -counts-file=./.purifydir/purecov-%v.pcv
+  ifdef MAKE_PUREGUI
+    PURECOV = purecov -always-use-cache-dir
+  endif
+else
+  PURECOV =
+endif 
+
+ifdef ENABLE_PURIFY
+   CCLD = "$(PURIFY)" $(CC)
+endif
+
+ifdef ENABLE_PURECOV
+   CCLD = "$(PURECOV)" $(CC)
+endif
+
+ifdef ENABLE_PURE
+   CCLD = "$(PURIFY) $(PURECOV)" $(CC)
+endif
+
+
+pureReport:
+	@ purecov -export=.purifydir/CoverageReport .purifydir/*.pcv
+	@ echo "== Purify coverage report in '.purifydir/CoverageReport'."
+
+pureGUI:
+	@ ls purecov*.pcv > /dev/null 2>&1; if [ $$? = "0" ]; then purecov -view purecov*.pcv &; fi
+	@ ls purify*.pv > /dev/null 2>&1; if [ $$? = "0" ]; then \
+	for member in `ls purify*.pv`; \
+	do purify -view $$member &  \
+	done \
+	fi
+
+check-am: make_links
+
+make_links:
+ifeq ($(ENABLE_PURIFY),on)
+	-@if  [ ! -d .purifydir ]; then mkdir .purifydir ; fi
+endif
+
+ifeq ($(ENABLE_PURECOV),on)
+	-@if  [ ! -d .purifydir ]; then mkdir .purifydir ;fi
+endif
+
+clean-am: pureClean
+
+pureClean:
+	-@ rm -rf .purifydir/*
