@@ -4,13 +4,6 @@ Installation
 Released version
 ----------------
 
-There is still no released package available :-) We have plans to build the
-following packages:
-
-* Python egg <http://peak.telecommunity.com/DevCenter/EasyInstall>
-* Ubuntu package <https://launchpad.net/~olebole/+archive/astro>
-* Tar source ball
-
 To install and run this package, you need the following prequisites:
 
 * CPL 5 <http://www.eso.org/sci/data-processing/software/cpl/>
@@ -18,8 +11,15 @@ To install and run this package, you need the following prequisites:
 * Python 2.6 <http://www.python.org/>
 * pyfits <http://www.pyfits.org/>
 
-These packages are checked when used the binary installation. However, for the
-source file you need to install them on your own.
+We still dont have released packages. However, you may download the source
+code of the alpha version from `here <python-cpl.tar.gz>`_.
+
+On Ubuntu, a precompiled package is available. Installing it will
+automatically check and resolve the dependencies. Go to
+<https://launchpad.net/~olebole/+archive/astro> for details.
+
+At some later stage, we plan to create a "Python egg"
+<http://peak.telecommunity.com/DevCenter/EasyInstall>  for easy installation.
 
 Developer version
 -----------------
