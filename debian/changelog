@@ -1,3 +1,9 @@
+python-cpl (0.1.0-4) lucid; urgency=low
+
+  * Add Python-dev to the build dependencies
+
+ -- Ole Streicher <python-cpl@liska.ath.cx>  Tue, 14 Sep 2010 17:09:00 +0200
+
 python-cpl (0.1.0-3) lucid; urgency=low
 
   * Use pycentral instead of pysupport to get rid of pyversion

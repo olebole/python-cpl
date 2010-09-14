@@ -2,7 +2,7 @@ Source: python-cpl
 Section: science
 Priority: extra
 Maintainer: Ole Streicher <launchpad-cpl@ole.ath.cx>
-Build-Depends: debhelper (>= 7), python-central (>= 0.5.6), cdbs, libcpl-dev (>= 5.1.0)
+Build-Depends: debhelper (>= 7), python-central (>= 0.5.6), cdbs, python-dev, libcpl-dev (>= 5.1.0)
 Standards-Version: 0.1.0
 XS-Python-Version: all
 Homepage: http://www.aip.de/~oles/python-cpl/index.html
