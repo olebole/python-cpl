@@ -5,7 +5,7 @@ module1 = Extension('cpl.CPL_recipe',
                     sources = ['cpl/CPL_recipe.c'])
 
 setup (name = 'cpl',
-       version = '0.0.0',
+       version = '0.1.0',
        author = 'Ole Streicher',
        author_email = 'ole@aip.de',
        description = 'Python interface for the Common Pipeline Library',
