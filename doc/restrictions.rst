@@ -47,12 +47,3 @@ exception of those contributed by ESO) implement a central frameconfig
 registry which allows to access this meta information from the Python
 interface.
 
-The situation here is quite unsatisfying. ESO states that 
-
-- the CPL is single-purpose for the standard non-interactive recipe processing, 
-
-- further usability (especially interactive use and debugging) is not on their
-  scope, and
-
-- they have no interest in supporting Python.
-
