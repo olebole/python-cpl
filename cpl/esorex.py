@@ -72,7 +72,7 @@ def load_rc(source = None):
       myrecipe.param = cpl.esorex.load_rc('muse_bias.rc')
 
     .. note:: Unknown parameters are silently ignored wenn setting
-    :attr:`Recipe.param`.
+              :attr:`Recipe.param`.
 
     '''
     if source is None:
