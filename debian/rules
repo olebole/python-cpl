@@ -9,5 +9,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-%:
-	dh  $@
+DEB_PYTHON_SYSTEM=pysupport
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/python-distutils.mk
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
