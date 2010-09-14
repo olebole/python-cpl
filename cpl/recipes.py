@@ -282,13 +282,13 @@ class Recipe(object):
         threaded = ndata.get('threaded', self.threaded)
         tag = ndata.get('tag', self.tag)
         if tag is None:
-            raise TypeError('No input tag specified')
+            raise ValueError('No input tag specified')
         parlist = self.param._aslist(**ndata)
         raw_frames = self._get_raw_frames(tag, *data, **ndata)
         if len(raw_frames) < 1:
-            raise TypeError('No raw frames specified.')
+            raise ValueError('No raw frames specified.')
         if len(raw_frames) > 1:
-            raise TypeError('More than one raw frame tag specified: %s', 
+            raise ValueError('More than one raw frame tag specified: %s', 
                             str(raw_frames))
         input_len = -1 if isinstance(raw_frames[0][1], pyfits.HDUList) else \
             len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
