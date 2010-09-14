@@ -354,10 +354,10 @@ static int rrrecipe(cpl_frameset            * frameset,
     qclist = cpl_propertylist_new();
 
     cpl_propertylist_append_double(qclist, "ESO QC QCPARAM", qc_param);
-    
+
     /* HOW TO SAVE A DFS-COMPLIANT PRODUCT TO DISK  */
-    if (cpl_dfs_save_image(frameset, parlist, frameset, image,
-                           CPL_BPP_IEEE_FLOAT, "rrrecipe",
+    if (cpl_dfs_save_image(frameset, NULL, parlist, frameset, NULL, image,
+                           CPL_BPP_IEEE_FLOAT, 
                            RRRECIPE_XXX_PROCATG, qclist, NULL,
                            PACKAGE "/" PACKAGE_VERSION,
                            "rrrecipe.fits")) {
