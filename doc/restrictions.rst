@@ -21,6 +21,8 @@ All other interfaces will have the following restrictions:
    manually. The standard recipe interface does not provide a way to
    distinguish between raw input and calibration files.
 
+#. The ``TAG=frame`` options in the recipe call cannot be used.
+
 #. The :attr:`cpl.Recipe.tags` attribute is set to None.
 
 #. The :attr:`cpl.Recipe.tag` attribute is not initially set. If this attribute is
@@ -49,7 +51,8 @@ The situation here is quite unsatisfying. ESO states that
 
 - the CPL is single-purpose for the standard non-interactive recipe processing, 
 
-- further usability (especially interactive use and debugging) is not on their scope, and 
+- further usability (especially interactive use and debugging) is not on their
+  scope, and
 
 - they have no interest in supporting Python.
 

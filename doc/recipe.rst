@@ -95,8 +95,8 @@ from :attr:`Recipe.tag` is used if the recipe provides it.
 .. autoattribute:: Recipe.calib
 .. seealso:: :class:`cpl.FrameConfig`
 
-Recipe execution
-----------------
+Recipe invocation
+-----------------
 
 .. automethod:: Recipe.__call__
 

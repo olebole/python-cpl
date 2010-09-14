@@ -239,7 +239,7 @@ class Recipe(object):
 
         If the recipe does not provide this information, an exception is raised.
         
-        :param tag: Input (raw) frame tag. Defaults to the :attr:`Recipe.tar` 
+        :param tag: Input (raw) frame tag. Defaults to the :attr:`Recipe.tag` 
             attribute if not specified. 
         :type tag: :class:`str`
         '''
@@ -257,19 +257,25 @@ class Recipe(object):
             of them.
         :param tag: Overwrite the :attr:`tag` attribute (optional).
         :type tag: :class:`str`
-        :param tag = data: Data with a specific tag.
+        :param tag = data: Data with a specific tag (only for MUSE recipes, 
+                           or if :attr:`Recipe.tags` is set manually).
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
         :type threaded: :class:`bool`
         :param CPL parameter name = value: overwrite the according CPL 
             parameter of the recipe (optional). 
         :param Calibration tag name = value: overwrite the calibration frame 
-            list for this tag (optional).
+            list for this tag (optional, only for MUSE recipes or to overwrite 
+            settings in :attr:`Recipe.calib`).
         :return: The object with the return frames as :class:`pyfits.HDUList` 
             objects
         :rtype: :class:`cpl.Result`
-        :raise:  IOError If the temporary directory could not be built or the 
-                files could not be read/written.
-        :raise:  CPLError If the recipe returns an error or crashed.
+        :raise: :class:`exceptions.ValueError` If the invocation parameters 
+                are incorrect.
+        :raise: :class:`exceptions.IOError` If the temporary directory could 
+                not be built, the recipe could not start or the files could not 
+                be read/written. This error is also raised if the recipe crashed
+                by a segementation fault or similar.
+        :raise: :class:`cpl.CplError` If the recipe returns an error.
 
         .. note:: If the recipe is executed in the background 
             (``threaded = True``) and an exception occurs, this exception is 
