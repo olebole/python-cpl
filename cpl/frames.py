@@ -270,7 +270,34 @@ class Stat(object):
 
 
 class CplError(StandardError):
-    '''This indicates an error from the CPL execution.
+    '''Error message from the recipe.
+
+    If the CPL recipe invocation returns an error, it is converted into a
+    :class:`cpl.CplError` exception and no frames are returned. Also, the
+    error is notified in the log file.
+
+    The exception is raised on recipe invocation, or when accessing the result
+    frames if the recipe was started in background (:attr:`cpl.Recipe.threaded` set to 
+    :attr:`True`).
+
+    Attributes:
+
+    .. attribute:: code
+
+       The CPL error code returned from the recipe.
+
+    .. attribute:: msg
+
+       The supplied error message. 
+    
+    .. attribute:: filename
+
+       The source file name where the error occurred.
+
+    .. attribute:: line
+
+       The line number where the error occurred.
+
     '''
     def __init__(self, code, txt, filename, line, function):
         msg.error("%s:%i in %s(): %s" % (filename, line, function, txt))
