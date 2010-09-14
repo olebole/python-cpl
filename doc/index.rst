@@ -21,11 +21,10 @@ Pipeline Library was not designed as a general purpose image processing
 library, but rather to address two primary requirements. The first of these
 was to provide an interface to the VLT pipeline runtime- environment. The
 second was to provide a software kit of medium-level tools, which allows
-astronomical data-reduction tasks to be built rapidly." 
+astronomical data-reduction tasks to be built rapidly."
 [`ESO <http://www.eso.org/sci/data-processing/software/cpl/introduction.html>`_]
 
-A PDF version of the user manual can be downloaded from
-`here <http://github.com/downloads/olebole/python-cpl/python-cpl.pdf>`_.
+A PDF version of the user manual can be downloaded from `here <python-cpl.pdf>`_.
 
 .. toctree::
    :numbered:
@@ -37,6 +36,7 @@ A PDF version of the user manual can be downloaded from
    param
    frames
    result
+   error
    msg
    esorex
    restrictions
