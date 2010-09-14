@@ -1,0 +1,14 @@
+Source: python-cpl
+Section: science
+Priority: extra
+Maintainer: Ole Streicher <launchpad-cpl@ole.ath.cx>
+Build-Depends: debhelper (>= 7), autotools-dev, libcpl-dev (>= 5.1.0), libcfitsio3-dev, libwcs-dev
+Standards-Version: 0.1.0
+Homepage: http://www.aip.de/~oles/python-cpl/index.html
+
+Package: python-cpl
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcpl (>= 5.1.0), libcfitsio3, libwcs, python
+Description: This is a non-official python module to access CPL recipes. 
+       It is not meant as part of the CPL or the MUSE pipeline software, but
+       may be useful for testing and analysis.
