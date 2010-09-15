@@ -188,6 +188,10 @@ def mkabspath(frames, tmpdir):
                                     suffix = '.fits', dir = tmpdir)
             os.close(tmpf[0])
             filename = os.path.abspath(tmpf[1])
+            try:
+                os.remove(filename)
+            except:
+                pass
             frames[i] = ( frame[0], filename )
             tmpfiles.append(filename)
             frame[1].writeto(filename)
