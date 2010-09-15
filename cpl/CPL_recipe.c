@@ -412,8 +412,11 @@ getParameter(cpl_parameter *param) {
 	    deflt = Py_BuildValue("d", cpl_parameter_get_default_double(param));
 	    break;
 	case CPL_TYPE_STRING:
-	    deflt = Py_BuildValue("s", cpl_parameter_get_default_string(param));
+	{
+	    const char *d = cpl_parameter_get_default_string(param);
+	    deflt = Py_BuildValue("s", (d != NULL)? d : "");
 	    break;
+	}
 	default:
 	    break;
     }
