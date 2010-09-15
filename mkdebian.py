@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import tarfile
+from cpl.version import __version__ as cpl_version
 
 basedir = 'debian_build'
 module = 'cpl'
@@ -10,7 +11,7 @@ module = 'cpl'
 os.mkdir(basedir)
 os.mkdir(os.path.join(basedir, module))
 os.mkdir(os.path.join(basedir, 'debian'))
-tar = tarfile.open('python-cpl.tar.gz', mode='w:gz')
+tar = tarfile.open('python-cpl-%s.tar.gz' % cpl_version, mode='w:gz')
 
 shutil.copy('setup.py', basedir)
 tar.add('setup.py')
@@ -31,4 +32,4 @@ os.chdir(basedir)
 subprocess.call(['dpkg-buildpackage', '-S'])
 
 os.chdir('..')
-#subprocess.call(['dput', 'ppa:olebole/astro', 'python-cpl_0.1.0-3_source.changes'])
+#subprocess.call(['dput', 'ppa:olebole/astro', 'python-cpl_%s-3_source.changes' % cpl_version])
