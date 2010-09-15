@@ -154,14 +154,14 @@ static int rrrecipe_create(cpl_plugin * plugin)
 
     /* Fill the parameters list */
     /* --stropt */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.str_option", 
+    p = cpl_parameter_new_value("iiinstrument.rrrecipe.stropt", 
             CPL_TYPE_STRING, "the string option", "iiinstrument.rrrecipe",NULL);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "stropt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --boolopt */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.bool_option", 
+    p = cpl_parameter_new_value("iiinstrument.rrrecipe.boolopt", 
             CPL_TYPE_BOOL, "a flag", "iiinstrument.rrrecipe", TRUE);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "boolopt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
@@ -290,12 +290,12 @@ static int rrrecipe(cpl_frameset            * frameset,
     /* HOW TO RETRIEVE INPUT PARAMETERS */
     /* --stropt */
     param = cpl_parameterlist_find_const(parlist,
-                                         "iiinstrument.rrrecipe.str_option");
+                                         "iiinstrument.rrrecipe.stropt");
     str_option = cpl_parameter_get_string(param);
 
     /* --boolopt */
     param = cpl_parameterlist_find_const(parlist,
-                                         "iiinstrument.rrrecipe.bool_option");
+                                         "iiinstrument.rrrecipe.boolopt");
     bool_option = cpl_parameter_get_bool(param);
   
     if (!cpl_errorstate_is_equal(prestate)) {
@@ -354,6 +354,11 @@ static int rrrecipe(cpl_frameset            * frameset,
     qclist = cpl_propertylist_new();
 
     cpl_propertylist_append_double(qclist, "ESO QC QCPARAM", qc_param);
+    cpl_propertylist_append_string(qclist, "ESO PRO CATG", RRRECIPE_XXX_PROCATG);
+    if (str_option != NULL) {
+	cpl_propertylist_append_string(qclist, "ESO QC STROPT", str_option);
+    }
+    cpl_propertylist_append_string(qclist, "ESO QC BOOLOPT", (bool_option)? "TRUE":"FALSE");
 
     /* HOW TO SAVE A DFS-COMPLIANT PRODUCT TO DISK  */
     if (cpl_dfs_save_image(frameset, NULL, parlist, frameset, NULL, image,
