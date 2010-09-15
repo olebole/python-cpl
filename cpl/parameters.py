@@ -126,12 +126,14 @@ class ParameterList(RestrictedDict):
 
 
     def _aslist(self, **ndata):
-        parlist = [ ( param.fullname, param.value ) 
-                    for param in self
-                    if param.value is not None 
-                    and (ndata is None or param.name not in ndata) ]
+        parlist = dict([ ( param.fullname, param.value ) 
+                         for param in self
+                         if param.value is not None 
+                         and (ndata is None or param.name not in ndata) ])
         if ndata:
-            parlist += [ (self[name].fullname, tdata)
-                         for name, tdata in ndata.items() 
-                         if name in self ]
-        return parlist
+            for name, tdata in ndata.items():
+                if name.startswith('param_'):
+                    pname = name.split('_', 1)[1]
+                    if pname in self:
+                        parlist[self[pname].fullname] = tdata
+        return list(parlist.iteritems())

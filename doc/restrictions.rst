@@ -15,13 +15,11 @@ All other interfaces will have the following restrictions:
    recipe. Anything that is set here will be forwarded to the recipe.
 
 #. In the esorex support, directly assigning the recipe calibration files from
-   the SOF file with :literal:`recipe.calib = cpl.esorex.read_sof('{file}')`
+   the SOF file with :literal:`recipe.calib = cpl.esorex.read_sof('file')`
    will also put the raw input file into :attr:`Recipe.calib` unless
    :attr:`cpl.Recipe.tags` and/or :attr:`cpl.Recipe.tag` are set
    manually. The standard recipe interface does not provide a way to
    distinguish between raw input and calibration files.
-
-#. The ``TAG=frame`` options in the recipe call cannot be used.
 
 #. The :attr:`cpl.Recipe.tags` attribute is set to None.
 

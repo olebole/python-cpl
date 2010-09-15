@@ -215,7 +215,7 @@ class Recipe(object):
      limitations provided by the recipe. In a recipe call, the same parameter
      can be specified as
 
-     >>> res = muse_scibasic( ..., nifu = 1)
+     >>> res = muse_scibasic( ..., param_nifu = 1)
 
      To reset a value to its default, it is eighter deleted, or set to
      :attr:`None`. The following two lines:
@@ -257,15 +257,13 @@ class Recipe(object):
             of them.
         :param tag: Overwrite the :attr:`tag` attribute (optional).
         :type tag: :class:`str`
-        :param tag = data: Data with a specific tag (only for MUSE recipes, 
-                           or if :attr:`Recipe.tags` is set manually).
+        :param raw_name = data: Data with a specific tag 'name'.
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
         :type threaded: :class:`bool`
-        :param CPL parameter name = value: overwrite the according CPL 
+        :param param_name = value: overwrite the according CPL 
             parameter of the recipe (optional). 
-        :param Calibration tag name = value: overwrite the calibration frame 
-            list for this tag (optional, only for MUSE recipes or to overwrite 
-            settings in :attr:`Recipe.calib`).
+        :param calib_name = value: overwrite the calibration frame 
+            list for this tag.
         :return: The object with the return frames as :class:`pyfits.HDUList` 
             objects
         :rtype: :class:`cpl.Result`
@@ -281,16 +279,14 @@ class Recipe(object):
             (``threaded = True``) and an exception occurs, this exception is 
             raised whenever result fields are accessed.
         '''
+        tmpfiles = []
         recipe_dir = self.output_dir or ( 
             tempfile.mkdtemp(dir = self.temp_dir, 
                              prefix = self.name + "-") 
             if self.temp_dir else os.getcwd())
         threaded = ndata.get('threaded', self.threaded)
-        tag = ndata.get('tag', self.tag)
-        if tag is None:
-            raise ValueError('No input tag specified')
         parlist = self.param._aslist(**ndata)
-        raw_frames = self._get_raw_frames(tag, *data, **ndata)
+        raw_frames = self._get_raw_frames(*data, **ndata)
         if len(raw_frames) < 1:
             raise ValueError('No raw frames specified.')
         if len(raw_frames) > 1:
@@ -324,31 +320,33 @@ class Recipe(object):
         finally:
             self._cleanup(recipe_dir, tmpfiles)
 
-    def _get_raw_frames(self, tag, *data, **ndata):
+    def _get_raw_frames(self, *data, **ndata):
         '''Return the input frames.
 
         Returns a :class:`list` with (tag, the input frame(s)) pairs. Note
         that more than one input tag is not allowed here.
         '''
         m = { }
-        for f in data:
-            if self.tag not in m:
-                m[tag] = f
-            elif isinstance(m[tag], list) \
-                    and not isinstance(m[tag], pyfits.HDUList):
-                m[tag].append(f)
-            else:
-                m[tag] = [ m[tag], f ]
-        if self.tags is not None:
-            for tag, f in ndata.items():
-                if tag in self.tags:
-                    if tag not in m:
-                        m[tag] = f
-                    elif isinstance(m[tag], list) \
-                            and not isinstance(m[tag], pyfits.HDUList):
-                        m[tag].append(f)
-                    else:
-                        m[tag] = [ m[tag], f ]
+        tag = ndata.get('tag', self.tag)
+        if tag is None:
+            if data:
+                raise ValueError('No raw input tag')
+        else:
+            for f in data:
+                if self.tag not in m:
+                    m[tag] = f
+                elif isinstance(m[tag], list) \
+                        and not isinstance(m[tag], pyfits.HDUList):
+                    m[tag].append(f)
+                else:
+                    m[tag] = [ m[tag], f ]
+
+        if ndata is not None:
+            for name, tdata in ndata.items():
+                if name.startswith('raw_'):
+                    tag = name.split('_', 1)[1]
+                    m[tag] = tdata
+
         return list(m.iteritems())
 
     def _cleanup(self, recipe_dir, tmpfiles):

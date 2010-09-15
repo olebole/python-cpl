@@ -107,8 +107,8 @@ Set calibration frame with :class:`pyfits.HDUList`:
 >>> wavecal = pyfits.open('WAVECAL_TABLE-01_flat.fits')
 >>> muse_scibasic.calib.WAVECAL_TABLE = wavecal
 
-To set more than one file for a tag, put the file names and/or :class:`pyfits.HDUList` objects into a
-list.
+To set more than one file for a tag, put the file names and/or
+:class:`pyfits.HDUList` objects into a list.
 
 Run the recipe with the default (first) raw data tag:
 
@@ -116,13 +116,14 @@ Run the recipe with the default (first) raw data tag:
 
 Run the recipe with a nondefault tag (use raw data tag as argument name):
 
->>> res = muse_scibasic(SKY = 'sky_newmoon_no_noise_1.fits')
+>>> res = muse_scibasic(raw_SKY = 'sky_newmoon_no_noise_1.fits')
 
 Run the recipe with alternative parameter or calibration tag setting (use
-parameter names or calibration tags as argument names)
+parameter names or calibration tags as keyword parameters)
 
->>> res =  muse_scibasic('Scene_fusion_1.fits', nifu = 2, MASTER_FLAT = None,
-...                      WAVECAL_TABLE = 'WAVECAL_TABLE_noflat.fits')
+>>> res =  muse_scibasic('Scene_fusion_1.fits', param_nifu = 2, 
+...                      calib_MASTER_FLAT = None,
+...                      calib_WAVECAL_TABLE = 'WAVECAL_TABLE_noflat.fits')
 
 The results of a calibration run are :class:`pyfits.HDUList` objects.  To save them
 (use output tags as attributes):

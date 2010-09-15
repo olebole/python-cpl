@@ -163,7 +163,12 @@ class FrameList(object):
     def _aslist(self, **ndata):
         frames = dict()
         for f in self:
-            frames[f.tag] = ndata[f.tag] if f.tag in ndata else f.frames
+            frames[f.tag] = f.frames
+        if ndata:
+            for name, tdata in ndata.items():
+                if name.startswith('calib_'):
+                    tag = name.split('_', 1)[1]
+                    frames[tag] = tdata
         return list(frames.iteritems())
 
 def mkabspath(frames, tmpdir):
