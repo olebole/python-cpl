@@ -23,8 +23,9 @@ All other interfaces will have the following restrictions:
 
 #. The :attr:`cpl.Recipe.tags` attribute is set to None.
 
-#. The :attr:`cpl.Recipe.tag` attribute is not initially set. If this attribute is
-   not set manually, the tag is required when executing the attribute.
+#. The :attr:`cpl.Recipe.tag` attribute is not initially set. If this
+   attribute is not set manually, the tag is required when executing the
+   attribute.
 
 #. The method :meth:`cpl.Recipe.output` raises an exception.
 
