@@ -9,13 +9,14 @@ class TestRecipe(unittest.TestCase):
         cpl.Recipe.path = '.'
         cpl.msg.level = 'off'
 
+        size = (1024, 1024)
         self.raw_frame = pyfits.HDUList([
-                pyfits.PrimaryHDU(numpy.random.random((100, 100)))])
+                pyfits.PrimaryHDU(numpy.random.random(size))])
         self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
         self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', 
                                         'RRRECIPE_DOCATG_RAW')
         self.flat_frame = pyfits.HDUList([
-                pyfits.PrimaryHDU(numpy.random.random((100, 100)))])
+                pyfits.PrimaryHDU(numpy.random.random(size))])
 
     def test_Recipe_list(self):
         l = cpl.Recipe.list()
@@ -81,6 +82,7 @@ class TestRecipe(unittest.TestCase):
                   calib_FLAT = self.flat_frame)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        self.assertTrue(abs(self.raw_frame[0].data - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
 
         # Set calibration frame in recipe, use raw tag keyword
         rrr.calib.FLAT = self.flat_frame
@@ -158,6 +160,8 @@ class TestRecipe(unittest.TestCase):
                              'i%i' % i)
             # check if we have the correct input frame
             self.assertEqual(res.THE_PRO_CATG_VALUE[0].header['HIERARCH ESO RAW1 NR'], i)
+            # check that the data were moved correctly
+            self.assertTrue(abs(self.raw_frame[0].data - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
             
             
 if __name__ == '__main__':
