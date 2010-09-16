@@ -1,3 +1,9 @@
+python-cpl (0.2.0-1) lucid; urgency=low
+
+  * Many bugfixes, parameter and tag names in Recipe.__call_ are now prefixed.
+
+ -- Ole Streicher <python-cpl@liska.ath.cx>  Tue, 16 Sep 2010 16:00:00 +0200
+
 python-cpl (0.1.0-4) lucid; urgency=low
 
   * Add Python-dev to the build dependencies

@@ -7,7 +7,7 @@ module1 = Extension('cpl.CPL_recipe',
 setup (name = 'cpl',
        version = '0.1.0',
        author = 'Ole Streicher',
-       author_email = 'ole@aip.de',
+       author_email = 'python-cpl@liska.ath.cx',
        description = 'Python interface for the Common Pipeline Library',
        long_description = \
            '''Non-official library to access CPL modules via Python. 
