@@ -12,7 +12,7 @@ import cpl
 def load_sof(source):
     '''Read an esorex sof file. 
 
-    :param source: SOF file name. 
+    :param source: SOF file object or string with sof file content.
     :type source: :class:`str` or :class:`file`
 
     These files contain the raw and calibration files for a recipe.  The
@@ -24,7 +24,7 @@ def load_sof(source):
     
       import cpl
       myrecipe = cpl.Recipe('muse_bias')
-      myrecipe.calib = cpl.esorex.read_sof('muse_bias.sof')
+      myrecipe.calib = cpl.esorex.read_sof(file('muse_bias.sof'))
 
     .. note:: The raw data frame is silently ignored wenn setting
       :attr:`Recipe.calib` for MUSE recipes. Other recipes ignore ths raw data
@@ -57,7 +57,8 @@ def load_sof(source):
 def load_rc(source = None):
     '''Read an esorex configuration file.
 
-    :param source: Configuration file name. If not set, the esorex config file
+    :param source: Configuration file object, or string with file content. 
+                   If not set, the esorex config file
                    :file:`~/.esorex/esorex.rc` is used.
     :type source: :class:`str` or :class:`file`
 
@@ -98,8 +99,8 @@ def init(source = None):
     '''Set the message verbosity and recipe search path from the
     :file:`esorex.rc` file.
 
-    :param source: Configuration file name. If not set, the esorex config file
-        :file:`~/.esorex/esorex.rc` is used.
+    :param source: Configuration file object, or string with file content. 
+        If not set, the esorex config file :file:`~/.esorex/esorex.rc` is used.
     :type source: :class:`str` or :class:`file`
     '''
 
