@@ -154,16 +154,45 @@ static int rrrecipe_create(cpl_plugin * plugin)
 
     /* Fill the parameters list */
     /* --stropt */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.stropt", 
+    p = cpl_parameter_new_value("iiinstrument.rrrecipe.string_option", 
             CPL_TYPE_STRING, "the string option", "iiinstrument.rrrecipe",NULL);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "stropt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --boolopt */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.boolopt", 
+    p = cpl_parameter_new_value("iiinstrument.rrrecipe.bool_option", 
             CPL_TYPE_BOOL, "a flag", "iiinstrument.rrrecipe", TRUE);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "boolopt");
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
+    cpl_parameterlist_append(recipe->parameters, p);
+ 
+    /* --floatopt */
+    p = cpl_parameter_new_value("iiinstrument.rrrecipe.float_option", 
+            CPL_TYPE_DOUBLE, "a flag", "iiinstrument.rrrecipe", 0.1);
+    cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "floatopt");
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
+    cpl_parameterlist_append(recipe->parameters, p);
+ 
+    /* --inttopt */
+    p = cpl_parameter_new_value("iiinstrument.rrrecipe.int_option", 
+            CPL_TYPE_INT, "a flag", "iiinstrument.rrrecipe", 2);
+    cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "intopt");
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
+    cpl_parameterlist_append(recipe->parameters, p);
+ 
+    /* --enumopt */
+    p = cpl_parameter_new_enum("iiinstrument.rrrecipe.enum_option", 
+            CPL_TYPE_STRING, "the string option", "iiinstrument.rrrecipe",
+			       "first", 3, "first", "second", "third");
+    cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "enumopt");
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
+    cpl_parameterlist_append(recipe->parameters, p);
+
+    /* --rangeopt */
+    p = cpl_parameter_new_range("iiinstrument.rrrecipe.range_option", 
+	    CPL_TYPE_DOUBLE, "a flag", "iiinstrument.rrrecipe", 0.1, -0.5, 0.5);
+    cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "rangeopt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
  
@@ -274,8 +303,6 @@ static int rrrecipe(cpl_frameset            * frameset,
                     const cpl_parameterlist * parlist)
 {
     const cpl_parameter *   param;
-    const char          *   str_option;
-    int                     bool_option;
     const cpl_frame     *   rawframe;
     const cpl_frame     *   flat;
     double                  qc_param;
@@ -290,14 +317,34 @@ static int rrrecipe(cpl_frameset            * frameset,
     /* HOW TO RETRIEVE INPUT PARAMETERS */
     /* --stropt */
     param = cpl_parameterlist_find_const(parlist,
-                                         "iiinstrument.rrrecipe.stropt");
-    str_option = cpl_parameter_get_string(param);
+                                         "iiinstrument.rrrecipe.string_option");
+    const char *str_option = cpl_parameter_get_string(param);
 
     /* --boolopt */
     param = cpl_parameterlist_find_const(parlist,
-                                         "iiinstrument.rrrecipe.boolopt");
-    bool_option = cpl_parameter_get_bool(param);
+                                         "iiinstrument.rrrecipe.bool_option");
+    int bool_option = cpl_parameter_get_bool(param);
   
+    /* --floatopt */
+    param = cpl_parameterlist_find_const(parlist,
+                                         "iiinstrument.rrrecipe.float_option");
+    double float_option = cpl_parameter_get_double(param);
+  
+    /* --intopt */
+    param = cpl_parameterlist_find_const(parlist,
+                                         "iiinstrument.rrrecipe.int_option");
+    int int_option = cpl_parameter_get_int(param);
+  
+    /* --enumopt */
+    param = cpl_parameterlist_find_const(parlist,
+                                         "iiinstrument.rrrecipe.enum_option");
+    const char *enum_option = cpl_parameter_get_string(param);
+
+    /* --floatopt */
+    param = cpl_parameterlist_find_const(parlist,
+                                         "iiinstrument.rrrecipe.range_option");
+    double range_option = cpl_parameter_get_double(param);
+
     if (!cpl_errorstate_is_equal(prestate)) {
         return (int)cpl_error_set_message(cpl_func, cpl_error_get_code(),
                                           "Could not retrieve the input "
@@ -344,7 +391,8 @@ static int rrrecipe(cpl_frameset            * frameset,
     
     /* NOW PERFORMING THE DATA REDUCTION */
     /* Let's just load an image for the example */
-    image = cpl_image_load(cpl_frame_get_filename(rawframe), CPL_TYPE_FLOAT, 0, 0);
+    image = cpl_image_load(cpl_frame_get_filename(rawframe), 
+			   CPL_TYPE_FLOAT, 0, 0);
     if (image == NULL) {
         return (int)cpl_error_set_message(cpl_func, cpl_error_get_code(),
                                      "Could not load the image");
@@ -357,8 +405,19 @@ static int rrrecipe(cpl_frameset            * frameset,
     cpl_propertylist_append_string(qclist, "ESO PRO CATG", RRRECIPE_XXX_PROCATG);
     if (str_option != NULL) {
 	cpl_propertylist_append_string(qclist, "ESO QC STROPT", str_option);
+    } else {
+	cpl_propertylist_append_string(qclist, "ESO QC STROPT", "(null)");
     }
-    cpl_propertylist_append_string(qclist, "ESO QC BOOLOPT", (bool_option)? "TRUE":"FALSE");
+
+    cpl_propertylist_append_bool(qclist, "ESO QC BOOLOPT", bool_option);
+    cpl_propertylist_append_double(qclist, "ESO QC FLOATOPT", float_option);
+    cpl_propertylist_append_int(qclist, "ESO QC INTOPT", int_option);
+    if (enum_option != NULL) {
+	cpl_propertylist_append_string(qclist, "ESO QC ENUMOPT", enum_option);
+    } else {
+	cpl_propertylist_append_string(qclist, "ESO QC ENUMOPT", "(null)");
+    }
+    cpl_propertylist_append_double(qclist, "ESO QC RANGEOPT", range_option);
 
     /* HOW TO SAVE A DFS-COMPLIANT PRODUCT TO DISK  */
     if (cpl_dfs_save_image(frameset, NULL, parlist, frameset, NULL, image,

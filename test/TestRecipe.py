@@ -40,7 +40,7 @@ class TestRecipe(unittest.TestCase):
         self.assertTrue(isinstance(rrr.param.stropt, cpl.Parameter))
         self.assertEqual(rrr.param.stropt.name, 'stropt')
         self.assertEqual(rrr.param.stropt.context, 'iiinstrument.rrrecipe')
-        self.assertEqual(rrr.param.stropt.default, '')
+        self.assertEqual(rrr.param.stropt.default, None)
         self.assertEqual(rrr.param.stropt.value, None)
         self.assertEqual(rrr.param.stropt.range, None)
         self.assertEqual(rrr.param.stropt.sequence, None)
@@ -59,10 +59,56 @@ class TestRecipe(unittest.TestCase):
         del rrr.param.boolopt 
         self.assertEqual(rrr.param.boolopt.value, None)
         
+        # Check the float parameter
+        self.assertTrue(isinstance(rrr.param.floatopt, cpl.Parameter))
+        self.assertEqual(rrr.param.floatopt.name, 'floatopt')
+        self.assertEqual(rrr.param.floatopt.default, 0.1)
+        self.assertEqual(rrr.param.floatopt.value, None)
+        rrr.param.floatopt = 1.1
+        self.assertEqual(rrr.param.floatopt.value, 1.1)
+        del rrr.param.floatopt 
+        self.assertEqual(rrr.param.floatopt.value, None)
+
+        # Check the int parameter
+        self.assertTrue(isinstance(rrr.param.intopt, cpl.Parameter))
+        self.assertEqual(rrr.param.intopt.name, 'intopt')
+        self.assertEqual(rrr.param.intopt.default, 2)
+        self.assertEqual(rrr.param.intopt.value, None)
+        rrr.param.intopt = -1
+        self.assertEqual(rrr.param.intopt.value, -1)
+        del rrr.param.intopt 
+        self.assertEqual(rrr.param.intopt.value, None)
+
+        # Check the enum parameter
+        self.assertTrue(isinstance(rrr.param.enumopt, cpl.Parameter))
+        self.assertEqual(rrr.param.enumopt.name, 'enumopt')
+        self.assertEqual(rrr.param.enumopt.default, 'first')
+        self.assertEqual(rrr.param.enumopt.value, None)
+        rrr.param.enumopt = 'second'
+        self.assertEqual(rrr.param.enumopt.value, 'second')
+        del rrr.param.enumopt 
+        self.assertEqual(rrr.param.enumopt.value, None)
+        def setenumoptinvalid():
+            rrr.param.enumopt = 'invalid'
+        self.assertRaises(ValueError, setenumoptinvalid)
+
+        # Check the range parameter
+        self.assertTrue(isinstance(rrr.param.rangeopt, cpl.Parameter))
+        self.assertEqual(rrr.param.rangeopt.name, 'rangeopt')
+        self.assertEqual(rrr.param.rangeopt.default, 0.1)
+        self.assertEqual(rrr.param.rangeopt.value, None)
+        rrr.param.rangeopt = 0.4
+        self.assertEqual(rrr.param.rangeopt.value, 0.4)
+        del rrr.param.rangeopt 
+        self.assertEqual(rrr.param.rangeopt.value, None)
+        def setrangeoptinvalid():
+            rrr.param.rangeopt = 1.5
+        self.assertRaises(ValueError, setrangeoptinvalid)
+
         # Check that we can access the param as a dict
-        # Note: comparing the params directly fails since 
-        # the parameter is re-created on each call (to be changed some time)
-        self.assertEqual(rrr.param.boolopt.name, rrr.param['boolopt'].name)
+        self.assertEqual(rrr.param.boolopt, rrr.param['boolopt'])
+        self.assertEqual(rrr.param.boolopt, 
+                         rrr.param['iiinstrument.rrrecipe.bool_option'])
 
         # check that we can iterate over the params
         for p in rrr.param:
@@ -71,6 +117,28 @@ class TestRecipe(unittest.TestCase):
         self.assertEqual(len(pars), len(rrr.param))
         self.assertTrue('stropt' in pars)
         self.assertTrue('boolopt' in pars)
+
+        # Check that we can assign a dictionary with the short names
+        rrr.param = { 'stropt':'dmore', 'boolopt':True }
+        self.assertEqual(rrr.param.boolopt.value, True)
+        self.assertEqual(rrr.param.stropt.value, 'dmore')
+
+        # Check that we can assign a dictionary with the short names and string
+        rrr.param = { 'stropt':'dmore', 'boolopt':'False' }
+        self.assertEqual(rrr.param.boolopt.value, False)
+
+        # Check that we can assign a dictionary with the long names
+        rrr.param = { 'iiinstrument.rrrecipe.string_option':'dless', 
+                      'iiinstrument.rrrecipe.float_option':1.5, 
+                      'iiinstrument.rrrecipe.bool_option':True }
+        self.assertEqual(rrr.param.stropt.value, 'dless')
+        self.assertEqual(rrr.param.floatopt.value, 1.5)
+        self.assertEqual(rrr.param.boolopt.value, True)
+
+        # check that we can delete all params
+        del rrr.param
+        self.assertEqual(rrr.param.stropt.value, None)
+        self.assertEqual(rrr.param.boolopt.value, None)
 
     def test_Recipe_exec_frames(self):
         '''test the frame handling during execution.'''
@@ -82,7 +150,8 @@ class TestRecipe(unittest.TestCase):
                   calib_FLAT = self.flat_frame)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
-        self.assertTrue(abs(self.raw_frame[0].data - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
+        self.assertTrue(abs(self.raw_frame[0].data 
+                            - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
 
         # Set calibration frame in recipe, use raw tag keyword
         rrr.calib.FLAT = self.flat_frame
@@ -136,6 +205,20 @@ class TestRecipe(unittest.TestCase):
         res = rrr(self.raw_frame, param_stropt = 'less').THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'less')
 
+        # Test all other parameter types
+        rrr.param.boolopt = False
+        rrr.param.intopt = 123
+        rrr.param.floatopt = -0.25
+        rrr.param.enumopt = 'third'
+        rrr.param.rangeopt = 0.125
+        res = rrr(self.raw_frame).THE_PRO_CATG_VALUE
+        self.assertEqual(res[0].header['HIERARCH ESO QC BOOLOPT'], False)
+        self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'], 123)
+        self.assertEqual(res[0].header['HIERARCH ESO QC FLOATOPT'], -0.25)
+        self.assertEqual(res[0].header['HIERARCH ESO QC ENUMOPT'], 'third')
+        self.assertEqual(res[0].header['HIERARCH ESO QC RANGEOPT'], 0.125)
+        
+
     def test_Recipe_error(self):
         '''test the error handling'''
         rrr = cpl.Recipe('rrrecipe')
@@ -151,18 +234,39 @@ class TestRecipe(unittest.TestCase):
         for i in range(20):
             # mark each frame so that we can see their order
             self.raw_frame[0].header.update('HIERARCH ESO RAW1 NR', i)
-            results.append(rrr(self.raw_frame, param_stropt = 'i%i' % i))
+            results.append(rrr(self.raw_frame, param_intopt = i))
         for i, res in enumerate(results):
             # check if we got the correct type
             self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
             # check if we have the correct parameter
-            self.assertEqual(res.THE_PRO_CATG_VALUE[0].header['HIERARCH ESO QC STROPT'],
-                             'i%i' % i)
+            self.assertEqual(res.THE_PRO_CATG_VALUE[0].header[
+                    'HIERARCH ESO QC INTOPT'], i)
             # check if we have the correct input frame
-            self.assertEqual(res.THE_PRO_CATG_VALUE[0].header['HIERARCH ESO RAW1 NR'], i)
+            self.assertEqual(res.THE_PRO_CATG_VALUE[0].header[
+                    'HIERARCH ESO RAW1 NR'], i)
             # check that the data were moved correctly
-            self.assertTrue(abs(self.raw_frame[0].data - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
-            
+            self.assertTrue(abs(self.raw_frame[0].data 
+                                - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
+
+    def test_Esorex(self):
+        orig_level = cpl.msg.level
+        orig_path = cpl.Recipe.path
+        # test if we can convert a recipe's rc file
+        rcfile = '# environment variable lambda_low.\n' \
+        'muse.muse_sky.lambda_low=4.65e+03\n' \
+        'muse.muse_sky.lambda_high=9.3e+03\n'
+        self.assertEqual(cpl.esorex.load_rc(rcfile), 
+                         { 'muse.muse_sky.lambda_low': '4.65e+03',
+                           'muse.muse_sky.lambda_high': '9.3e+03'})
+        
+        # test if we can init from an esorex.rc file
+        rcfile = 'esorex.caller.recipe-dir=/some/dir\n' \
+        'esorex.caller.msg-level=debug'
+        cpl.esorex.init(rcfile)
+        self.assertEqual(cpl.msg.level, 'debug')
+        self.assertEqual(cpl.Recipe.path, ['/some/dir'])
+        cpl.msg.level = orig_level
+        cpl.Recipe.path = orig_path
             
 if __name__ == '__main__':
     unittest.main()
