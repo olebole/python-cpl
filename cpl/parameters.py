@@ -1,6 +1,5 @@
-from restricteddict import RestrictedDict, RestrictedDictEntry
 
-class Parameter(RestrictedDictEntry):
+class Parameter(object):
     '''Runtime configuration parameter of a recipe. 
     Parameters are designed to handle monitor/control data and they provide a
     standard way to pass information to the recipe.
@@ -32,6 +31,11 @@ class Parameter(RestrictedDictEntry):
       instrument name and the recipe name, separated by a dot. The context is
       used to associate parameters together.
 
+    .. attribute: Parameter.fullname
+      The parameter name including the context (readonly).
+      The fullname usually consists of the parameter context and the parameter
+      name, separated by a dot.
+
     .. attribute:: Parameter.range 
 
       The numeric range of a parameter, or :attr:`None` if the parameter has
@@ -59,31 +63,43 @@ class Parameter(RestrictedDictEntry):
     >>> print 'value:   ', muse_scibasic.param.cr.value
     value:    None
     '''
-    def __init__(self, name, context = None, default = None, desc = None, 
-                 range_ = None, sequence = None, parent = None):
-        RestrictedDictEntry.__init__(self, parent)
+    def __init__(self, name, context = None, fullname = None, default = None, 
+                 desc = None, range_ = None, sequence = None, type = None):
         self.name = name
+        self._value = None
+        self._set_attributes(context, fullname, default, desc, range_, sequence,
+                             type)
+
+    def _set_attributes(self, context = None, fullname = None, default = None, 
+                        desc = None, range_ = None, sequence = None, 
+                        type = None):
         self.context = context
         self.range = range_
         self.sequence = sequence
         self.default = default
+        self.fullname = fullname
+        self.type = type or default.__class__
         self.__doc__ = "%s (%s)" % (desc, default.__class__.__name__)
 
-    def set_value(self, value):
-        if value is not None:
-            value = self.default.__class__(value) 
+    def _set_value(self, value):
+        if value is not None and self.type is not None.__class__:
+            if self.type is bool and isinstance(value, str):
+                d = {'true':True, 'false':False, 'yes':True, 'no':False}
+                value = d.get(value.lower(), value)
+            value = self.type(value) 
             if self.sequence and value not in self.sequence:
                 raise ValueError("'%s' is not in %s" % (value, self.sequence))
             if self.range and not (self.range[0] <= value <= self.range[-1]):
                 raise ValueError("'%s' is not in range %s" % (value, self.range))
-            super(Parameter, self).set_value(value)
-        else:
-            super(Parameter, self).del_value()
+        self._value = value
 
-    fullname = property(lambda self: self.context + '.' + self.name, 
-                        doc='The parameter name including the context (readonly). '
-                        'The fullname consists of the parameter context and the parameter '
-                        'name, separated by a dot.')
+    def _get_value(self):
+        return self._value
+
+    def _del_value(self):
+        self._value = None
+
+    value = property(_get_value, _set_value, _del_value)
 
     def __str__(self):
         return "%s%s" % (
@@ -96,17 +112,72 @@ class Parameter(RestrictedDictEntry):
             "value" if self.value is not None else "default",
             self.value if self.value is not None else self.default)
 
-class ParameterList(RestrictedDict):
-    def __init__(self, recipe, other = None):
-        RestrictedDict.__init__(self, other)
-        self._recipe = recipe
 
-    def _key(self, p):
-        return p.rsplit('.', 1)[-1] if isinstance(p, str) else p.name
+class ParameterList(object):
+    def __init__(self, recipe, other = None):
+        self._recipe = recipe
+        self._values = dict()
+        if isinstance(other, self.__class__):
+            self._set_items((o.name, o.value) for o in other)
+        elif isinstance(other, dict):
+            self._set_items(other.iteritems())
+        elif other:
+            self._set_items(other)
+
+    def _set_items(self, l):
+        for o in l:
+            if o[1] is not None:
+                try:
+                    self[o[0]] = o[1]
+                except:
+                    pass
+
+    def _cpl_dict(self):
+        cpl_params = self._recipe._recipe.params()
+        if cpl_params is None:
+            return None
+        s = dict()
+        for pd in cpl_params:
+            (name, context, fullname, desc, _range, sequence, deflt, type) = pd
+            if name in s:
+                continue
+            elif name in self._values:
+                s[name] = self._values[name]
+                s[name]._set_attributes(context, fullname, deflt, 
+                                        desc, _range, sequence, type)
+            else:
+                s[name] = Parameter(name, context, fullname, deflt, 
+                                    desc, _range, sequence, type)
+                self._values[name] = s[name]
+        return s
+
+    def _get_dict(self):
+        return self._cpl_dict() or self._values
+
+    _dict = property(_get_dict)
+
+    def _get_dict_full(self):
+        return dict(self._get_dict().items() 
+                    + [ (p.fullname, p) for p in self._get_dict().values()
+                        if p.fullname ])
 
     def __iter__(self):
-        return [ Parameter(pd[0], pd[1], pd[5], pd[2], pd[3], pd[4], self)
-                 for pd in self._recipe._recipe.params() ].__iter__()
+        return self._get_dict().itervalues()
+
+    def __getitem__(self, key):
+        return self._get_dict_full()[key]
+
+    def __setitem__(self, key, value):
+        d = self._cpl_dict()
+        if d is not None:
+            d = dict(d.items() + 
+                     [ (p.fullname, p) for p in d.values() if p.fullname] )
+            d[key].value = value
+        else:
+            self._values.setdefault(key, Parameter(key)).value = value
+
+    def __delitem__(self, key):
+        del self._get_dict_full()[key].value
 
     def __str__(self):
         r = ''
@@ -115,6 +186,30 @@ class ParameterList(RestrictedDict):
                 r += ' --%s=%s' % (s.name, str(s.value))
         return r
     
+    def __contains__(self, key):
+        return key in self._get_dict_full()
+
+    def __len__(self):
+        return len(self._get_dict())
+        
+    def __getattr__(self, key):
+        return self[key]
+
+    def __setattr__(self, key, value):
+        if key.startswith('_'):
+            super(ParameterList, self).__setattr__(key, value)
+        else:
+            self[key] = value
+
+    def __delattr__(self, key):
+        del self[key]
+
+    def __dir__(self):
+        return self._get_dict().keys()
+
+    def __repr__(self):
+        return list(self).__repr__()
+
     def _doc(self):
         r = 'Parameter list for recipe %s.\n\nAttributes:\n' % (
             self._recipe.name)
@@ -122,8 +217,8 @@ class ParameterList(RestrictedDict):
             r += ' %s: %s (default: %s)\n' % (
                 s.name, s.__doc__, str(s.default))
         return r        
-    __doc__ = property(_doc)
 
+    __doc__ = property(_doc)
 
     def _aslist(self, **ndata):
         parlist = dict([ ( param.fullname, param.value ) 
@@ -137,3 +232,4 @@ class ParameterList(RestrictedDict):
                     if pname in self:
                         parlist[self[pname].fullname] = tdata
         return list(parlist.iteritems())
+

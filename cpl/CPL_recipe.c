@@ -349,6 +349,7 @@ getParameter(cpl_parameter *param) {
     cpl_parameter_class class = cpl_parameter_get_class(param);
     const char *name = cpl_parameter_get_alias(param, 
 					       CPL_PARAMETER_MODE_CLI);
+    const char *fullname = cpl_parameter_get_name(param);
     const char *context = cpl_parameter_get_context(param);
     const char *help = cpl_parameter_get_help(param);
     PyObject *range = Py_None;
@@ -401,29 +402,33 @@ getParameter(cpl_parameter *param) {
     }
     Py_INCREF(sequence);
     PyObject *deflt = Py_None;
+    PyObject *ptype = Py_None;
     switch (type) {
 	case CPL_TYPE_BOOL:
+	    ptype = (PyObject *)&PyBool_Type;
 	    deflt = (cpl_parameter_get_default_bool(param))?Py_True:Py_False;
 	    break;
 	case CPL_TYPE_INT:
+	    ptype = (PyObject *)&PyInt_Type;
 	    deflt = Py_BuildValue("i", cpl_parameter_get_default_int(param));
 	    break;
 	case CPL_TYPE_DOUBLE:
+	    ptype = (PyObject *)&PyFloat_Type;
 	    deflt = Py_BuildValue("d", cpl_parameter_get_default_double(param));
 	    break;
 	case CPL_TYPE_STRING:
-	{
-	    const char *d = cpl_parameter_get_default_string(param);
-	    deflt = Py_BuildValue("s", (d != NULL)? d : "");
+	    ptype = (PyObject *)&PyString_Type;
+	    deflt = Py_BuildValue("s", cpl_parameter_get_default_string(param));
 	    break;
-	}
 	default:
 	    break;
     }
     Py_INCREF(deflt);
-    PyObject *par = Py_BuildValue("sssNNN", 
-				  name, context, help,
-				  range, sequence, deflt);
+    Py_INCREF(ptype);
+
+    PyObject *par = Py_BuildValue("ssssNNNN", 
+				  name, context, fullname, help,
+				  range, sequence, deflt, ptype);
     Py_INCREF(par);
     return par;
 }
