@@ -63,12 +63,9 @@ class Parameter(object):
     >>> print 'value:   ', muse_scibasic.param.cr.value
     value:    None
     '''
-    def __init__(self, name, context = None, fullname = None, default = None, 
-                 desc = None, range_ = None, sequence = None, type = None):
+    def __init__(self, name):
         self.name = name
         self._value = None
-        self._set_attributes(context, fullname, default, desc, range_, sequence,
-                             type)
 
     def _set_attributes(self, context = None, fullname = None, default = None, 
                         desc = None, range_ = None, sequence = None, 
@@ -141,14 +138,10 @@ class ParameterList(object):
             (name, context, fullname, desc, _range, sequence, deflt, type) = pd
             if name in s:
                 continue
-            elif name in self._values:
-                s[name] = self._values[name]
+            else:
+                s[name] = self._values.setdefault(name, Parameter(name))
                 s[name]._set_attributes(context, fullname, deflt, 
                                         desc, _range, sequence, type)
-            else:
-                s[name] = Parameter(name, context, fullname, deflt, 
-                                    desc, _range, sequence, type)
-                self._values[name] = s[name]
         return s
 
     def _get_dict(self):
