@@ -34,14 +34,15 @@ def load_sof(source):
 
     '''
     if isinstance(source, str):
-        return load_sof(str.split('\n'))
+        return load_sof(source.split('\n'))
     elif isinstance(source, (file, list)):
         res = dict()
         for line in source:
-            if line.startswith('#'):
+            if not line or line.startswith('#'):
                 continue
-            fn = line.split()[0]
-            key = line.split()[1]
+            ls = line.split()
+            fn = ls[0]
+            key = ls[1]
             if key not in  res:
                 res[key] = fn
             elif isinstance(res[key], list):

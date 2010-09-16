@@ -140,6 +140,16 @@ class TestRecipe(unittest.TestCase):
         self.assertEqual(rrr.param.stropt.value, None)
         self.assertEqual(rrr.param.boolopt.value, None)
 
+    def test_Recipe_calib(self):
+        '''test the calib frame list'''
+        rrr = cpl.Recipe('rrrecipe')
+
+        rrr.calib.FLAT = 'flat.fits'
+        self.assertEqual(rrr.calib.FLAT.frames, 'flat.fits')
+        
+        rrr.calib = { 'FLAT':'flat2.fits' }
+        self.assertEqual(rrr.calib.FLAT.frames, 'flat2.fits')
+
     def test_Recipe_exec_frames(self):
         '''test the frame handling during execution.'''
         rrr = cpl.Recipe('rrrecipe')
@@ -249,8 +259,20 @@ class TestRecipe(unittest.TestCase):
                                 - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
 
     def test_Esorex(self):
-        orig_level = cpl.msg.level
-        orig_path = cpl.Recipe.path
+        # Test if we can read a SOF file
+        soffile = 'geometry_table1.fits GEOMETRY_TABLE\n' \
+            'geometry_table2.fits GEOMETRY_TABLE\n' \
+            'MASTER_BIAS-01.fits MASTER_BIAS\n' \
+            'MASTER_FLAT-01.fits MASTER_FLAT\n' \
+            '#sky_fullmoon_1.fits          SKY\n' \
+            'sky_fullmoon_2.fits          SKY\n'
+        self.assertEqual(cpl.esorex.load_sof(soffile),
+                         { 'GEOMETRY_TABLE': ['geometry_table1.fits',
+                                              'geometry_table2.fits' ],
+                           'MASTER_BIAS': 'MASTER_BIAS-01.fits',
+                           'MASTER_FLAT': 'MASTER_FLAT-01.fits',
+                           'SKY': 'sky_fullmoon_2.fits' })
+                           
         # test if we can convert a recipe's rc file
         rcfile = '# environment variable lambda_low.\n' \
         'muse.muse_sky.lambda_low=4.65e+03\n' \
@@ -260,6 +282,8 @@ class TestRecipe(unittest.TestCase):
                            'muse.muse_sky.lambda_high': '9.3e+03'})
         
         # test if we can init from an esorex.rc file
+        orig_level = cpl.msg.level
+        orig_path = cpl.Recipe.path
         rcfile = 'esorex.caller.recipe-dir=/some/dir\n' \
         'esorex.caller.msg-level=debug'
         cpl.esorex.init(rcfile)

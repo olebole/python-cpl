@@ -78,16 +78,21 @@ class FrameConfig(object):
 class FrameList(object):
     def __init__(self, recipe, other = None):
         self._recipe = recipe
+        self._values = dict()
         if isinstance(other, self.__class__):
-            self._values = dict((o.tag, FrameConfig(o.tag, o.min, o.max, frames=o.frames)) 
-                                for o in other)
+            self._set_items((o.name, o.value) for o in other)
         elif isinstance(other, dict):
-            self._values = dict((o[0], FrameConfig(o[0], frames=o[1])) 
-                                for o in other.items())
+            self._set_items(other.iteritems())
         elif other:
-            self._values = dict((o[0], FrameConfig(o[0], frames=o[1])) for o in other)
-        else:
-            self._values = dict()
+            self._set_items(other)
+
+    def _set_items(self, l):
+        for o in l:
+            if o[1] is not None:
+                try:
+                    self[o[0]] = o[1]
+                except:
+                    pass
 
     def _cpl_dict(self):
         cpl_frameconfigs = self._recipe._recipe.frameConfig()
