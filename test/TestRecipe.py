@@ -3,47 +3,48 @@ import numpy
 import pyfits
 import cpl
 
-def common_init():
-    cpl.Recipe.path = '.'
-    cpl.msg.level = 'off'
-
-class RecipeStatic(unittest.TestCase):
+class CplTestCase(unittest.TestCase):
     def setUp(self):
-        common_init()
+        cpl.Recipe.path = '.'
+        cpl.msg.level = 'off'
 
-    def test_Recipe_list(self):
+class RecipeTestCase(CplTestCase):
+    def setUp(self):
+        CplTestCase.setUp(self)
+        self.recipe = cpl.Recipe('rrrecipe')
+
+class RecipeStatic(CplTestCase):
+    def test_list(self):
+        '''List available recipes'''
         l = cpl.Recipe.list()
         self.assertTrue(isinstance(l, list))
         self.assertEqual(len(l), 1)
         self.assertEqual(l[0], ('rrrecipe', ['0.0.1']))
 
-class RecipeCommon(unittest.TestCase):
-    def setUp(self):
-        common_init()
-        self.recipe = cpl.Recipe('rrrecipe')
-
-    def test_Recipe_name(self):
+class RecipeCommon(RecipeTestCase):
+    def test_name(self):
+        '''Recipe name'''
         self.assertEqual(self.recipe.name, 'rrrecipe')
 
-    def test_Recipe_author(self):
+    def test_author(self):
+        '''Author attribute'''
         self.assertEqual(self.recipe.author, 
                          ('Firstname Lastname', 'flastname@eso.org'))
 
-    def test_Recipe_description(self):
+    def test_description(self):
+        '''Synopsis and description'''
         self.assertTrue(isinstance(self.recipe.description[0], str))
         self.assertTrue(len(self.recipe.description[0]) > 0)
         self.assertTrue(isinstance(self.recipe.description[1], str))
         self.assertTrue(len(self.recipe.description[1]) > 0)
 
-class RecipeParams(unittest.TestCase):
-    def setUp(self):
-        common_init()
-        self.recipe = cpl.Recipe('rrrecipe')
-
-    def test_Recipe_param_string(self):
+class RecipeParams(RecipeTestCase):
+    def test_str(self):
+        '''String parameter'''
         self.assertTrue(isinstance(self.recipe.param.stropt, cpl.Parameter))
         self.assertEqual(self.recipe.param.stropt.name, 'stropt')
-        self.assertEqual(self.recipe.param.stropt.context, 'iiinstrument.rrrecipe')
+        self.assertEqual(self.recipe.param.stropt.context, 
+                         'iiinstrument.rrrecipe')
         self.assertEqual(self.recipe.param.stropt.default, None)
         self.assertEqual(self.recipe.param.stropt.value, None)
         self.assertEqual(self.recipe.param.stropt.range, None)
@@ -53,7 +54,8 @@ class RecipeParams(unittest.TestCase):
         del self.recipe.param.stropt 
         self.assertEqual(self.recipe.param.stropt.value, None)
 
-    def test_Recipe_param_bool(self):
+    def test_bool(self):
+        '''Boolean parameter'''
         self.assertTrue(isinstance(self.recipe.param.boolopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.boolopt.name, 'boolopt')
         self.assertEqual(self.recipe.param.boolopt.default, True)
@@ -63,7 +65,8 @@ class RecipeParams(unittest.TestCase):
         del self.recipe.param.boolopt 
         self.assertEqual(self.recipe.param.boolopt.value, None)
         
-    def test_Recipe_param_float(self):
+    def test_float(self):
+        '''Float parameter'''
         self.assertTrue(isinstance(self.recipe.param.floatopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.floatopt.name, 'floatopt')
         self.assertEqual(self.recipe.param.floatopt.default, 0.1)
@@ -73,7 +76,8 @@ class RecipeParams(unittest.TestCase):
         del self.recipe.param.floatopt 
         self.assertEqual(self.recipe.param.floatopt.value, None)
 
-    def test_Recipe_param_int(self):
+    def test_int(self):
+        '''Integer parameter'''
         self.assertTrue(isinstance(self.recipe.param.intopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.intopt.name, 'intopt')
         self.assertEqual(self.recipe.param.intopt.default, 2)
@@ -83,7 +87,8 @@ class RecipeParams(unittest.TestCase):
         del self.recipe.param.intopt 
         self.assertEqual(self.recipe.param.intopt.value, None)
 
-    def test_Recipe_param_enum(self):
+    def test_enum(self):
+        '''Enumeration (string) parameter'''
         self.assertTrue(isinstance(self.recipe.param.enumopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.enumopt.name, 'enumopt')
         self.assertEqual(self.recipe.param.enumopt.default, 'first')
@@ -96,7 +101,8 @@ class RecipeParams(unittest.TestCase):
             self.recipe.param.enumopt = 'invalid'
         self.assertRaises(ValueError, setenumoptinvalid)
 
-    def test_Recipe_param_range(self):
+    def test_range(self):
+        '''Range (float) parameter'''
         self.assertTrue(isinstance(self.recipe.param.rangeopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.rangeopt.name, 'rangeopt')
         self.assertEqual(self.recipe.param.rangeopt.default, 0.1)
@@ -109,12 +115,15 @@ class RecipeParams(unittest.TestCase):
             self.recipe.param.rangeopt = 1.5
         self.assertRaises(ValueError, setrangeoptinvalid)
 
-    def test_Recipe_param_as_dict(self):
-        self.assertEqual(self.recipe.param.boolopt, self.recipe.param['boolopt'])
+    def test_as_dict(self):
+        '''Use the parameter list as a dictionary'''
+        self.assertEqual(self.recipe.param.boolopt, 
+                         self.recipe.param['boolopt'])
         self.assertEqual(self.recipe.param.boolopt, 
                          self.recipe.param['iiinstrument.rrrecipe.bool_option'])
 
-    def test_Recipe_param_iterate(self):
+    def test_iterate(self):
+        '''Iteration over all parameters'''
         for p in self.recipe.param:
             self.assertTrue(isinstance(p, cpl.Parameter))
         pars = [p.name for p in self.recipe.param]
@@ -122,7 +131,8 @@ class RecipeParams(unittest.TestCase):
         self.assertTrue('stropt' in pars)
         self.assertTrue('boolopt' in pars)
 
-    def test_Recipe_param_set_dict(self):
+    def test_set_dict(self):
+        '''Assign a dictionary to the parameter list'''
         self.recipe.param = { 'stropt':'dmore', 'boolopt':True }
         self.assertEqual(self.recipe.param.boolopt.value, True)
         self.assertEqual(self.recipe.param.stropt.value, 'dmore')
@@ -139,28 +149,62 @@ class RecipeParams(unittest.TestCase):
         self.assertEqual(self.recipe.param.floatopt.value, 1.5)
         self.assertEqual(self.recipe.param.boolopt.value, True)
 
-    def test_Recipe_param_delete(self):
+    def test_delete(self):
+        '''Delete all parameter values to reset to default'''
+        self.recipe.param.boolopt.value = True
+        self.recipe.param.stropt.value = 'something'
         del self.recipe.param
         self.assertEqual(self.recipe.param.stropt.value, None)
         self.assertEqual(self.recipe.param.boolopt.value, None)
 
-class RecipeCalib(unittest.TestCase):
-    def setUp(self):
-        common_init()
-        self.recipe = cpl.Recipe('rrrecipe')
+    def test_dir(self):
+        '''[TAB] completition. 
+        This requires to have   the __dir__() method working.
+        '''
+        self.assertEqual(self.recipe.param.__dir__(), 
+                         [ p.name for p in self.recipe.param ])
 
-    def test_Recipe_calib_set(self):
+class RecipeCalib(RecipeTestCase):
+    def test_set(self):
+        '''Set a calibration frame'''
         self.recipe.calib.FLAT = 'flat.fits'
         self.assertEqual(self.recipe.calib.FLAT.frames, 'flat.fits')
         
-    def test_Recipe_calib_set_dict(self):
+    def test_set_dict(self):
+        '''Assign a dictionary to the calibration frame list'''
         self.recipe.calib = { 'FLAT':'flat2.fits' }
         self.assertEqual(self.recipe.calib.FLAT.frames, 'flat2.fits')
 
+    def test_del(self):
+        '''Delete a calibration frame set'''
+        self.recipe.calib.FLAT = 'flat.fits'
+        del self.recipe.calib.FLAT
+        try: 
+            f = self.recipe.calib.FLAT.frames
+        except:
+            f = None
+        self.assertEqual(f, None)
 
-class TestRecipeExec(unittest.TestCase):
+    def test_del_all(self):
+        '''Delete all calibration frame sets'''
+        self.recipe.calib.FLAT = 'flat.fits'
+        del self.recipe.calib
+        try: 
+            f = self.recipe.calib.FLAT.frames
+        except:
+            f = None
+        self.assertEqual(f, None)
+
+    def test_dir(self):
+        '''[TAB] completition. 
+        This requires to have   the __dir__() method working.
+        '''
+        self.assertEqual(self.recipe.calib.__dir__(), 
+                         [ f.tag for f in self.recipe.calib ])
+
+class TestRecipeExec(CplTestCase):
     def setUp(self):
-        common_init()
+        CplTestCase.setUp(self)
         size = (1024, 1024)
         self.raw_frame = pyfits.HDUList([
                 pyfits.PrimaryHDU(numpy.random.random(size))])
@@ -170,8 +214,8 @@ class TestRecipeExec(unittest.TestCase):
         self.flat_frame = pyfits.HDUList([
                 pyfits.PrimaryHDU(numpy.random.random(size))])
 
-    def test_Recipe_exec_frames(self):
-        '''test the frame handling during execution.'''
+    def test_frames(self):
+        '''Raw and calibration frame handling.'''
         rrr = cpl.Recipe('rrrecipe')
         rrr.temp_dir = '/tmp'
 
@@ -215,8 +259,8 @@ class TestRecipeExec(unittest.TestCase):
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 
-    def test_Recipe_exec_param(self):
-        '''test the parameter handling during execution.'''
+    def test_param(self):
+        '''Parameter handling'''
         rrr = cpl.Recipe('rrrecipe', threaded = True)
         rrr.temp_dir = '/tmp'
         rrr.tag = 'RRRECIPE_DOCATG_RAW'
@@ -249,14 +293,15 @@ class TestRecipeExec(unittest.TestCase):
         self.assertEqual(res[0].header['HIERARCH ESO QC RANGEOPT'], 0.125)
         
 
-    def test_Recipe_error(self):
-        '''test the error handling'''
+    def test_error(self):
+        '''Error handling'''
         rrr = cpl.Recipe('rrrecipe')
         rrr.temp_dir = '/tmp'
         rrr.tag = 'some_unknown_tag'
         self.assertRaises(cpl.CplError, rrr, self.raw_frame)
 
-    def test_Recipe_parallel(self):
+    def test_parallel(self):
+        '''Parallel execution'''
         rrr = cpl.Recipe('rrrecipe', threaded = True)
         rrr.temp_dir = '/tmp'
         rrr.tag = 'RRRECIPE_DOCATG_RAW'
@@ -278,13 +323,9 @@ class TestRecipeExec(unittest.TestCase):
             self.assertTrue(abs(self.raw_frame[0].data 
                                 - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
 
-class RecipeCalib(unittest.TestCase):
-
-    def setUp(self):
-        common_init()
-
-    def test_Esorex_sof(self):
-        # Test if we can read a SOF file
+class RecipeEsorex(CplTestCase):
+    def test_read_sof(self):
+        '''Read a SOF file'''
         soffile = 'geometry_table1.fits GEOMETRY_TABLE\n' \
             'geometry_table2.fits GEOMETRY_TABLE\n' \
             'MASTER_BIAS-01.fits MASTER_BIAS\n' \
@@ -298,8 +339,8 @@ class RecipeCalib(unittest.TestCase):
                            'MASTER_FLAT': 'MASTER_FLAT-01.fits',
                            'SKY': 'sky_fullmoon_2.fits' })
                            
-    def test_Esorex_rc(self):
-        # test if we can convert a recipe's rc file
+    def test_read_rc(self):
+        '''Read an EsoRec .rc file'''
         rcfile = '# environment variable lambda_low.\n' \
         'muse.muse_sky.lambda_low=4.65e+03\n' \
         'muse.muse_sky.lambda_high=9.3e+03\n'
@@ -307,8 +348,8 @@ class RecipeCalib(unittest.TestCase):
                          { 'muse.muse_sky.lambda_low': '4.65e+03',
                            'muse.muse_sky.lambda_high': '9.3e+03'})
         
-    def test_Esorex_init(self):
-        # test if we can init from an esorex.rc file
+    def test_esorex_init(self):
+        '''Init CPL from an esorex.rc file'''
         rcfile = 'esorex.caller.recipe-dir=/some/dir\n' \
         'esorex.caller.msg-level=debug'
         cpl.esorex.init(rcfile)
