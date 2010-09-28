@@ -92,6 +92,8 @@ class Recipe(object):
                        doc = 'Pair (versionnumber, versionstring) '
                        'of an integer and a string. '
                        'The integer will be increased on development progress.')
+    copyright = property(lambda self: self._recipe.copyright(),
+                         doc = 'Copyright string.')
 
     def _get_tags(self):
         frameconfig = self._recipe.frameConfig()

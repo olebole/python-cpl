@@ -495,6 +495,7 @@ CPL_recipe_get_description(CPL_recipe *self) {
 			 cpl_plugin_get_synopsis(self->plugin),
 			 cpl_plugin_get_description(self->plugin));
 }
+
 #define CPL_recipe_get_version_doc                                            \
     "Get the version as integer and string.\n\n"                              \
     "Returns a pair where the first entry is the version number as integer\n" \
@@ -509,6 +510,19 @@ CPL_recipe_get_version(CPL_recipe *self) {
     return Py_BuildValue("is", 
 			 cpl_plugin_get_version(self->plugin),
 			 cpl_plugin_get_version_string(self->plugin));
+}
+
+#define CPL_recipe_get_copyright_doc                                          \
+    "Get the license and copyright information."
+
+static PyObject *
+CPL_recipe_get_copyright(CPL_recipe *self) {
+    if (self->plugin == NULL) {
+	PyErr_SetString(PyExc_IOError, "NULL recipe");
+	return NULL;
+    }
+    return Py_BuildValue("s", 
+			 cpl_plugin_get_copyright(self->plugin));
 }
 
 #define CPL_recipe_get_frameconfig_doc                                        \
@@ -806,6 +820,8 @@ static PyMethodDef CPL_recipe_methods[] = {
      CPL_recipe_get_version_doc},
     {"description",  (PyCFunction)CPL_recipe_get_description, METH_NOARGS,
      CPL_recipe_get_description_doc},
+    {"copyright",  (PyCFunction)CPL_recipe_get_copyright, METH_NOARGS,
+     CPL_recipe_get_copyright_doc},
     {"frameConfig",  (PyCFunction)CPL_recipe_get_frameconfig, METH_NOARGS,
      CPL_recipe_get_frameconfig_doc},
     {"run",  (PyCFunction)CPL_recipe_exec, METH_VARARGS,

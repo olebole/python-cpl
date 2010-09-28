@@ -38,6 +38,11 @@ class RecipeCommon(RecipeTestCase):
         self.assertTrue(isinstance(self.recipe.description[1], str))
         self.assertTrue(len(self.recipe.description[1]) > 0)
 
+    def test_copyright(self):
+        '''Copyright'''
+        self.assertTrue(isinstance(self.recipe.copyright, str))
+        self.assertTrue(len(self.recipe.copyright) > 0)
+
 class RecipeParams(RecipeTestCase):
     def test_str(self):
         '''String parameter'''
