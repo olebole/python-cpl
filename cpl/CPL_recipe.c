@@ -1,8 +1,8 @@
+#include <Python.h>
 #include <unistd.h>
 #include <dlfcn.h>
 #include <sys/wait.h>
 #include <sys/times.h>
-#include <Python.h>
 #include <cpl.h>
 
 #define CPL_version_doc \
@@ -45,6 +45,7 @@ CPL_list(PyObject *self, PyObject *args) {
     for (plugin = cpl_pluginlist_get_first(list);
 	 plugin != NULL;
 	 plugin = cpl_pluginlist_get_next(list)) {
+	cpl_error_reset();
 	cpl_plugin_get_init(plugin)(plugin);
 	PyList_Append(res, Py_BuildValue("sis", 
 					 cpl_plugin_get_name(plugin),
@@ -53,6 +54,7 @@ CPL_list(PyObject *self, PyObject *args) {
 	cpl_plugin_get_deinit(plugin)(plugin);
     }
     cpl_pluginlist_delete(list);
+    cpl_error_reset();
     dlclose(handle);
     return res;
 }
@@ -323,6 +325,7 @@ CPL_recipe_init(CPL_recipe *self, PyObject *args, PyObject *kwds) {
 	PyErr_SetString(PyExc_IOError, error);
 	return -1;
     }
+    cpl_error_reset();
     self->pluginlist = cpl_pluginlist_new();
     (*cpl_plugin_get_info)(self->pluginlist);
     self->plugin = cpl_pluginlist_find(self->pluginlist, recipe);
@@ -749,6 +752,7 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	PyErr_SetString(PyExc_IOError, "NULL recipe");
 	return NULL;
     }
+    cpl_error_reset();
     cpl_recipe *recipe = (cpl_recipe *)self->plugin;
     cpl_frameset_delete(recipe->frames);
     recipe->frames = get_frames(soflist);
