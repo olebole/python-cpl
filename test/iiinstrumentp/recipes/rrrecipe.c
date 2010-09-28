@@ -196,6 +196,13 @@ static int rrrecipe_create(cpl_plugin * plugin)
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
  
+    /* --dot.opt */
+    p = cpl_parameter_new_value("iiinstrument.rrrecipe.dotted.opt", 
+	    CPL_TYPE_INT, "a flag", "iiinstrument.rrrecipe", 0);
+    cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "dot.opt");
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
+    cpl_parameterlist_append(recipe->parameters, p);
+ 
     return 0;
 }
 

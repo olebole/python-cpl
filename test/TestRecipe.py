@@ -122,6 +122,13 @@ class RecipeParams(RecipeTestCase):
         self.assertEqual(self.recipe.param.boolopt, 
                          self.recipe.param['iiinstrument.rrrecipe.bool_option'])
 
+    def test_dotted_par(self):
+        '''Use a parameter that has a dot in its alias'''
+        self.assertEqual(self.recipe.param.dot_opt, 
+                         self.recipe.param['dot.opt'])
+        self.assertEqual(self.recipe.param.dot_opt, 
+                         self.recipe.param['iiinstrument.rrrecipe.dotted.opt'])
+
     def test_iterate(self):
         '''Iteration over all parameters'''
         for p in self.recipe.param:
@@ -162,7 +169,7 @@ class RecipeParams(RecipeTestCase):
         This requires to have   the __dir__() method working.
         '''
         self.assertEqual(self.recipe.param.__dir__(), 
-                         [ p.name for p in self.recipe.param ])
+                         [ p.name.replace('.','_') for p in self.recipe.param ])
 
 class RecipeCalib(RecipeTestCase):
     def test_set(self):
