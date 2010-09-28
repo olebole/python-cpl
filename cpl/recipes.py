@@ -212,12 +212,12 @@ class Recipe(object):
      >>> muse_scibasic.param.nifu = 1
 
      The new value is checked against parameter type, and possible value
-     limitations provided by the recipe. In a recipe call, the same parameter
-     can be specified as
+     limitations provided by the recipe. Dots in parameter names are converted
+     to underscores. In a recipe call, the same parameter can be specified as
 
      >>> res = muse_scibasic( ..., param_nifu = 1)
 
-     To reset a value to its default, it is eighter deleted, or set to
+     To reset a value to its default, it is either deleted, or set to
      :attr:`None`. The following two lines:
 
      >>> muse_scibasic.param.nifu = None

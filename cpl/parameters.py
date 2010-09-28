@@ -136,12 +136,13 @@ class ParameterList(object):
         s = dict()
         for pd in cpl_params:
             (name, context, fullname, desc, _range, sequence, deflt, type) = pd
-            if name in s:
+            pname = name.replace('.', '_')
+            if pname in s:
                 continue
             else:
-                s[name] = self._values.setdefault(name, Parameter(name))
-                s[name]._set_attributes(context, fullname, deflt, 
-                                        desc, _range, sequence, type)
+                s[pname] = self._values.setdefault(name, Parameter(name))
+                s[pname]._set_attributes(context, fullname, deflt, 
+                                         desc, _range, sequence, type)
         return s
 
     def _get_dict(self):
@@ -152,7 +153,9 @@ class ParameterList(object):
     def _get_dict_full(self):
         return dict(self._get_dict().items() 
                     + [ (p.fullname, p) for p in self._get_dict().values()
-                        if p.fullname ])
+                        if p.fullname ]
+                    + [ (p.name, p) for p in self._get_dict().values()
+                        if p.name.find('.') >= 0])
 
     def __iter__(self):
         return self._get_dict().itervalues()
@@ -163,8 +166,9 @@ class ParameterList(object):
     def __setitem__(self, key, value):
         d = self._cpl_dict()
         if d is not None:
-            d = dict(d.items() + 
-                     [ (p.fullname, p) for p in d.values() if p.fullname] )
+            d = dict(d.items() +
+                     [ (p.fullname, p) for p in d.values() if p.fullname] +
+                     [ (p.name, p) for p in d.values() if p.name.find('.') >= 0])
             d[key].value = value
         else:
             self._values.setdefault(key, Parameter(key)).value = value
