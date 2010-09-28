@@ -214,12 +214,14 @@ class TestRecipeExec(CplTestCase):
         CplTestCase.setUp(self)
         size = (1024, 1024)
         self.raw_frame = pyfits.HDUList([
-                pyfits.PrimaryHDU(numpy.random.random(size))])
+                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
+                                                               size))])
         self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
         self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', 
                                         'RRRECIPE_DOCATG_RAW')
         self.flat_frame = pyfits.HDUList([
-                pyfits.PrimaryHDU(numpy.random.random(size))])
+                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
+                                                               size))])
 
     def test_frames(self):
         '''Raw and calibration frame handling.'''
@@ -232,7 +234,7 @@ class TestRecipeExec(CplTestCase):
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
         self.assertTrue(abs(self.raw_frame[0].data 
-                            - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
+                            - res.THE_PRO_CATG_VALUE[0].data).max() == 0)
 
         # Set calibration frame in recipe, use raw tag keyword
         rrr.calib.FLAT = self.flat_frame
