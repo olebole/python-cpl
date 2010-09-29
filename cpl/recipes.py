@@ -83,19 +83,30 @@ class Recipe(object):
         '''
         self._recipe = CPL_recipe.recipe(self.filename, self.name)
 
-    author = property(lambda self: self._recipe.author(), 
-                      doc = 'Pair (author name, author email address) '
-                      'of two strings.')
-    description = property(lambda self: self._recipe.description(),
-                           doc = 'Pair (synopsis, description) of two strings.')
-    version = property(lambda self: self._recipe.version(),
-                       doc = 'Pair (versionnumber, versionstring) '
-                       'of an integer and a string. '
-                       'The integer will be increased on development progress.')
-    copyright = property(lambda self: self._recipe.copyright(),
-                         doc = 'Copyright string.')
+    @property
+    def author(self):
+        '''Pair (author name, author email address) of two strings.'''
+        return self._recipe.author()
 
-    def _get_tags(self):
+    @property
+    def description(self):
+        '''Pair (synopsis, description) of two strings.'''
+        return self._recipe.description()
+
+    @property
+    def version(self):
+        '''Pair (versionnumber, versionstring) of an integer and a string. 
+        The integer will be increased on development progress.'''
+        return self._recipe.version()
+
+    @property
+    def copyright(self):
+        '''Copyright string'''
+        return self._recipe.copyright()
+
+    def tags(self):
+        '''Possible tags for the raw input frames, or ':attr:`None` if this
+        information is not provided by the recipe.'''
         frameconfig = self._recipe.frameConfig()
         return [ c[0][0] for c in frameconfig ] if frameconfig else self._tags
 
@@ -105,10 +116,15 @@ class Recipe(object):
         else:
             self._tags = tags
 
-    tags = property(_get_tags,
-                    doc = 'Possible tags for the raw input frames, or '
-                    ':attr:`None` if this information is not provided '
-                    'by the recipe.')
+    tags = property(tags, _set_tags, doc=tags.__doc__)
+
+    def tag(self):
+        '''Default raw input frame tag. After creation, it is set to the first
+        tag from the "tags" property and may be changed to any of these
+        tags. If the recipe does not provide the tag information, it must be
+        set manually, or the tag name has to be provided when calling the
+        recipe.'''
+        return self._tag
 
     def _set_tag(self, tag):
         if self.tags is None or tag in self.tags:
@@ -116,125 +132,125 @@ class Recipe(object):
         else:
             raise KeyError("Tag '%s' not in %s" % (tag, str(self.tags)))
 
-    tag = property(lambda self: self._tag, _set_tag, 
-                   doc='''Default raw input frame tag. After creation, it is
-        set to the first tag from the "tags" property and may be changed to
-        any of these tags. If the recipe does not provide the tag information,
-        it must be set manually, or the tag name has to be provided when
-        calling the recipe.''')
+    tag = property(tag, _set_tag, doc=tag.__doc__)
+
+    def calib(self):
+        '''This attribute contains the calibration frames
+        for the recipe.  It is iterable and then returns all calibration frames:
+        
+        >>> for f in muse_scibasic.calib:
+        ...     print f.tag, f.min, f.max, f.files
+        TRACE_TABLE 1 1 None
+        WAVECAL_TABLE 1 1 None
+        MASTER_BIAS 1 1 master_bias_0.fits
+        MASTER_DARK None 1 None
+        GEOMETRY_TABLE 1 1 None
+        BADPIX_TABLE None None ['badpix_1.fits', 'badpix_2.fits']
+        MASTER_FLAT None 1 None
+
+        .. note:: Only MUSE recipes are able to provide the full list of
+           calibration frames and the minimal/maximal number of calibration
+           frames. For other recipes, only frames that were set by the users are
+           returned here. Their minimum and maximum value will be set to
+           :attr:`None`.
+
+        In order to assing a FITS file to a tag, the file name or the
+        :class:`pyfits.HDUList` is assigned to the calibration attribute:
+
+        >>> muse_scibasic.calib.MASTER_BIAS = 'MASTER_BIAS_0.fits'
+
+        Using a HDU list is useful when it needs to be patched before fed into
+        the recipe. Note that HDU lists are stored in temporary files before the
+        recipe is called which may produce some overhead. Also, the CPL then
+        assigns the temporary file names to the 
+
+        >>> master_bias = pyfits.open('master_bias_0.fits')
+        >>> master_bias[0].header['HIERARCH ESO DET CHIP1 OUT1 GAIN'] = 2.5
+        >>> muse_scibasic.calib.MASTER_BIAS = 'master_bias_0.fits'
+
+        To assign more than one frame, put them into a list:
+
+        >>> muse_scibasic.calib.BADPIX_TABLE = [ 'badpix1.fits', 'badpix2.fits' ]
+     
+        All calibration frames can be set in one step by assigning a
+        :class:`dict` to the parameters. In this case, frame that are not in
+        the map are set are removed from the list, and unknown frame tags are
+        silently ignored. The key of the map is the tag name; the values are
+        either a string, or a list of strings, containing the file name(s) or
+        the :class:`pyfits.HDUList` objects.
+
+        >>> muse_scibasic.calib = { 'MASTER_BIAS':'master_bias_0.fits', 
+        ...                'BADPIX_TABLE':[ 'badpix_1.fits', 'badpix_2.fits' ] }
+        '''
+        return self._calib
 
     def _load_calib(self, source = None):
         if isinstance(source, (str, file)):
             source = esorex.load_sof(source)
         self._calib = FrameList(self, source) 
 
-    calib = property(lambda self: self._calib, _load_calib, _load_calib, 
-                     doc = '''This attribute contains the calibration frames
-     for the recipe.  It is iterable and then returns all calibration frames:
+    calib = property(calib, _load_calib, _load_calib, doc = calib.__doc__)
 
-     >>> for f in muse_scibasic.calib:
-     ...     print f.tag, f.min, f.max, f.files
-     TRACE_TABLE 1 1 None
-     WAVECAL_TABLE 1 1 None
-     MASTER_BIAS 1 1 master_bias_0.fits
-     MASTER_DARK None 1 None
-     GEOMETRY_TABLE 1 1 None
-     BADPIX_TABLE None None ['badpix_1.fits', 'badpix_2.fits']
-     MASTER_FLAT None 1 None
+    def param(self):
+        '''This attribute contains all recipe parameters. 
+        It is iteratable and then returns all individual parameters:
 
-     .. note:: Only MUSE recipes are able to provide the full list of
-        calibration frames and the minimal/maximal number of calibration
-        frames. For other recipes, only frames that were set by the users are
-        returned here. Their minimum and maximum value will be set to
-        :attr:`None`.
+        >>> for p in muse_scibasic.param:
+        ...    print p.name, p.value, p.default
+        ...
+        nifu None 99
+        cr None dcr
+        xbox None 15
+        ybox None 40
+        passes None 2
+        thres None 4.5
+        sample None False
+        dlambda None 1.2
 
-     In order to assing a FITS file to a tag, the file name or the
-     :class:`pyfits.HDUList` is assigned to the calibration attribute:
+        On interactive sessions, all parameter settings can be easily printed by
+        printing the :attr:`param` attribute of the recipe:
 
-     >>> muse_scibasic.calib.MASTER_BIAS = 'MASTER_BIAS_0.fits'
+        >>> print muse_scibasic.param
+         [Parameter('nifu', default=99), Parameter('cr', default=dcr), 
+          Parameter('xbox', default=15), Parameter('ybox', default=40), 
+          Parameter('passes', default=2), Parameter('thres', default=4.5), 
+          Parameter('sample', default=False), Parameter('dlambda', default=1.2)]
 
-     Using a HDU list is useful when it needs to be patched before fed into
-     the recipe. Note that HDU lists are stored in temporary files before the
-     recipe is called which may produce some overhead. Also, the CPL then
-     assigns the temporary file names to the 
+        To set the value of a recipe parameter, the value can be assigned to
+        the according attribute:
 
-     >>> master_bias = pyfits.open('master_bias_0.fits')
-     >>> master_bias[0].header['HIERARCH ESO DET CHIP1 OUT1 GAIN'] = 2.5
-     >>> muse_scibasic.calib.MASTER_BIAS = 'master_bias_0.fits'
+        >>> muse_scibasic.param.nifu = 1
 
-     To assign more than one frame, put them into a list:
+        The new value is checked against parameter type, and possible value
+        limitations provided by the recipe. Dots in parameter names are
+        converted to underscores. In a recipe call, the same parameter can be
+        specified as
 
-     >>> muse_scibasic.calib.BADPIX_TABLE = [ 'badpix_1.fits', 'badpix_2.fits' ]
-     
-     All calibration frames can be set in one step by assigning a :class:`dict`
-     to the parameters. In this case, frame that are not in the map are set
-     are removed from the list, and unknown frame tags are silently
-     ignored. The key of the map is the tag name; the values are either a
-     string, or a list of strings, containing the file name(s) or the
-     :class:`pyfits.HDUList` objects.
+        >>> res = muse_scibasic( ..., param_nifu = 1)
 
-     >>> muse_scibasic.calib = { 'MASTER_BIAS':'master_bias_0.fits', 
-     ...                         'BADPIX_TABLE':[ 'badpix_1.fits', 'badpix_2.fits' ] }
+        To reset a value to its default, it is either deleted, or set to
+        :attr:`None`. The following two lines:
 
-     ''')
+        >>> muse_scibasic.param.nifu = None
+        >>> del muse_scibasic.param.nifu
+
+        will both reset the parameter to its default value. 
+
+        All parameters can be set in one step by assigning a :class:`dict` to
+        the parameters. In this case, all values that are not in the map are
+        reset to default, and unknown parameter names are ignored. The keys of
+        the map may contain contain the name or the fullname with context:
+
+        >>> muse_scibasic.param = { 'nifu':1, 'xbox':11, 'resample':True }
+        '''
+        return self._param
 
     def _load_param(self, source = None):
         if isinstance(source, (str, file)):
             source = esorex.load_rc(source)
         self._param = ParameterList(self, source)
 
-    param = property(lambda self: self._param, _load_param, _load_param, 
-                     doc = '''This attribute contains all recipe parameters. 
-     It is iteratable and then returns all individual parameters:
-
-     >>> for p in muse_scibasic.param:
-     ...    print p.name, p.value, p.default
-     ...
-     nifu None 99
-     cr None dcr
-     xbox None 15
-     ybox None 40
-     passes None 2
-     thres None 4.5
-     resample None False
-     dlambda None 1.25
-
-     On interactive sessions, all parameter settings can be easily printed by
-     printing the :attr:`param` attribute of the recipe:
-
-     >>> print muse_scibasic.param
-      [Parameter('nifu', default=99), Parameter('cr', default=dcr), 
-       Parameter('xbox', default=15), Parameter('ybox', default=40), 
-       Parameter('passes', default=2), Parameter('thres', default=4.5), 
-       Parameter('resample', default=False), Parameter('dlambda', default=1.25)]
-
-     To set the value of a recipe parameter, the value can be assigned to the
-     according attribute:
-
-     >>> muse_scibasic.param.nifu = 1
-
-     The new value is checked against parameter type, and possible value
-     limitations provided by the recipe. Dots in parameter names are converted
-     to underscores. In a recipe call, the same parameter can be specified as
-
-     >>> res = muse_scibasic( ..., param_nifu = 1)
-
-     To reset a value to its default, it is either deleted, or set to
-     :attr:`None`. The following two lines:
-
-     >>> muse_scibasic.param.nifu = None
-     >>> del muse_scibasic.param.nifu
-
-     will both reset the parameter to its default value. 
-
-     All parameters can be set in one step by assigning a :class:`dict` to the
-     parameters. In this case, all values that are not in the map are reset to
-     default, and unknown parameter names are ignored. The keys of the map may
-     contain contain the name or the fullname with context:
-
-     >>> muse_scibasic.param = { 'nifu':1, 'xbox':11, 'resample':True }
-
-     ''')
+    param = property(param, _load_param, _load_param, doc = param.__doc__)
 
     def output(self, tag = None):
         '''Return the list of output frame tags.
@@ -360,8 +376,28 @@ class Recipe(object):
                 except:
                     pass
 
-    __doc__ = property(lambda self: 
-                       self.description[0] + '\n\n' + self.description[1])
+    @property
+    def __doc__(self):
+        s = '%s\n\n%s\n\n' % (self.description[0], self.description[1])
+        
+        r = 'Parameters:\n' 
+        maxlen = max(len(p.name) for p in self.param)
+        for p in self.param:
+            r += ' %s: %s (default: %s)\n' % (
+                p.name.rjust(maxlen), p.__doc__, str(p.default))
+        r += '\n'
+        if self._recipe.frameConfig() is not None:
+            c = 'Calibration frames: %s\n\n' % str([f.tag for f in self.calib])
+        else:
+            c = ''
+        if self.tags is not None:
+            t = 'Raw and product frames:\n'
+            maxlen = max(len(f) for f in self.tags)
+            for f in self.tags:
+                t += ' %s --> %s\n' % (f.rjust(maxlen), str(self.output(f)))
+        else:
+            t = ''
+        return s + r + c + t + '\n\n'
 
     def __repr__(self):
         return "Recipe('%s')" % self.name

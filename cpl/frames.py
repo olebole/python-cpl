@@ -94,6 +94,7 @@ class FrameList(object):
                 except:
                     pass
 
+    @property
     def _cpl_dict(self):
         cpl_frameconfigs = self._recipe._recipe.frameConfig()
         if cpl_frameconfigs is None:
@@ -112,32 +113,31 @@ class FrameList(object):
                     self._values[f[0]] = s[f[0]]
         return s
 
-    def _get_dict(self):
-        return self._cpl_dict() or self._values
-
-    _dict = property(_get_dict)
+    @property
+    def _dict(self):
+        return self._cpl_dict or self._values
 
     def __iter__(self):
-        return self._get_dict().itervalues()
+        return self._dict.itervalues()
 
     def __getitem__(self, key):
-        return self._get_dict()[key]
+        return self._dict[key]
 
     def __setitem__(self, key, value):
-        d = self._cpl_dict()
+        d = self._cpl_dict
         if d is not None:
             d[key].frames = value
         else:
             self._values.setdefault(key, FrameConfig(key)).frames = value
 
     def __delitem__(self, key):
-        del self._get_dict()[key].frames
+        del self._dict[key].frames
 
     def __contains__(self, key):
-        return key in self._get_dict()
+        return key in self._dict
 
     def __len__(self):
-        return len(self._get_dict())
+        return len(self._dict)
         
     def __getattr__(self, key):
         return self[key]
@@ -152,18 +152,18 @@ class FrameList(object):
         del self[key]
 
     def __dir__(self):
-        return self._get_dict().keys()
+        return self._dict.keys()
 
     def __repr__(self):
         return list(self).__repr__()
 
-    def _doc(self):
+    @property
+    def __doc__(self):
         r = 'Frames for recipe %s.\n\nAttributes:\n' % (
             self._recipe.name)
         for s in self:
             r += '%s: %s\n' % (self._key(s), s.__doc__)
         return r        
-    __doc__ = property(_doc)
 
     def _aslist(self, **ndata):
         frames = dict()
@@ -291,8 +291,8 @@ class CplError(StandardError):
     error is notified in the log file.
 
     The exception is raised on recipe invocation, or when accessing the result
-    frames if the recipe was started in background (:attr:`cpl.Recipe.threaded` set to 
-    :attr:`True`).
+    frames if the recipe was started in background
+    (:attr:`cpl.Recipe.threaded` set to :attr:`True`).
 
     Attributes:
 

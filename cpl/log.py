@@ -5,28 +5,34 @@ class Logger(object):
 
     _time_enabled = False
 
-    def _get_level(self):
+    def level(self):
+        '''Log level for output to the terminal. Any of
+        [ 'debug', 'info', 'warn', 'error', 'off' ]
+        '''
         return Logger.verbosity[CPL_recipe.get_msg_level()]
 
     def _set_level(self, level):
         CPL_recipe.set_msg_level(Logger.verbosity.index(level))
 
-    level = property(_get_level, _set_level, 
-                     doc = 'Log level for output to the terminal. Any of %s' % str(verbosity))
+    level = property(level, _set_level, doc = level.__doc__)
+
+    def time(self):
+        '''Specify whether time tag shall be included in the terminal output'''
+        return Logger._time_enabled
 
     def _enable_time(self, enable):
         CPL_recipe.set_msg_time(enable);
         Logger._time_enabled = not not enable
 
-    time = property(lambda self: Logger._time_enabled, _enable_time, 
-                    doc = 'Specify whether time tag shall be included in the terminal output')
+    time = property(time, _enable_time, doc = time.__doc__)
 
     def logfile(self, name, level = 'info'):
         '''Open a logfile with the specified name. 
 
         :param name: Log file name
         :type name: :class:`str`
-        :param level: Log level. Any of [ 'debug', 'info', 'warn', 'error', 'off' ]
+        :param level: Log level. Any of 
+                      [ 'debug', 'info', 'warn', 'error', 'off' ]
         :type level: :class:`str`
 
         .. note:: This is possible only once due to limitations of the CPL.
@@ -34,14 +40,18 @@ class Logger(object):
         CPL_recipe.set_log_file(name)
         CPL_recipe.set_log_level(Logger.verbosity.index(level))
 
-    def _get_file(self):
+    @property
+    def file(self):
+        '''Get the log file name, if one is set.'''
         return CPL_recipe.get_log_file()
 
-    file = property(_get_file, doc = 'Get the log file name, if one is set.')
+    def domain(self):
+        '''The domain tag in the header of the log file.'''
+        return CPL_recipe.get_log_domain()
 
-    domain = property(lambda self: CPL_recipe.get_log_domain(),
-                      lambda self, domain: CPL_recipe.set_log_domain(domain), 
-                      doc = 'The domain tag in the header of the log file.')
+    def _set_domain(self, domain):
+        CPL_recipe.set_log_domain(domain)
+    domain = property(domain, _set_domain, doc = domain.__doc__)
 
     def log(self, level, msg, caller = None):
         if caller == None:

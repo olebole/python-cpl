@@ -38,8 +38,8 @@ class Parameter(object):
 
     .. attribute:: Parameter.range 
 
-      The numeric range of a parameter, or :attr:`None` if the parameter has
-      no limited range (readonly).
+      The numeric range of a parameter, or :attr:`None` if the parameter range
+      is unlimited (readonly).
 
     .. attribute:: Parameter.sequence
 
@@ -78,6 +78,9 @@ class Parameter(object):
         self.type = type or default.__class__
         self.__doc__ = "%s (%s)" % (desc, default.__class__.__name__)
 
+    def value(self):
+        return self._value
+
     def _set_value(self, value):
         if value is not None and self.type is not None.__class__:
             if self.type is bool and isinstance(value, str):
@@ -90,13 +93,10 @@ class Parameter(object):
                 raise ValueError("'%s' is not in range %s" % (value, self.range))
         self._value = value
 
-    def _get_value(self):
-        return self._value
-
     def _del_value(self):
         self._value = None
 
-    value = property(_get_value, _set_value, _del_value)
+    value = property(value, _set_value, _del_value)
 
     def __str__(self):
         return "%s%s" % (
@@ -129,7 +129,10 @@ class ParameterList(object):
                 except:
                     pass
 
+    @property
     def _cpl_dict(self):
+        if self._recipe is None or self._recipe._recipe is None:
+            return None
         cpl_params = self._recipe._recipe.params()
         if cpl_params is None:
             return None
@@ -145,36 +148,36 @@ class ParameterList(object):
                                          desc, _range, sequence, type)
         return s
 
-    def _get_dict(self):
-        return self._cpl_dict() or self._values
+    @property
+    def _dict(self):
+        return self._cpl_dict or self._values
 
-    _dict = property(_get_dict)
-
-    def _get_dict_full(self):
-        return dict(self._get_dict().items() 
-                    + [ (p.fullname, p) for p in self._get_dict().values()
-                        if p.fullname ]
-                    + [ (p.name, p) for p in self._get_dict().values()
-                        if p.name.find('.') >= 0])
+    @property
+    def _dict_full(self):
+        d = self._dict
+        return dict(d.items() +
+                    [ (p.fullname, p) for p in d.values() if p.fullname ] +
+                    [ (p.name, p) for p in d.values() if p.name not in d])
 
     def __iter__(self):
-        return self._get_dict().itervalues()
+        return self._dict.itervalues()
 
     def __getitem__(self, key):
-        return self._get_dict_full()[key]
+        return self._dict_full[key]
 
     def __setitem__(self, key, value):
-        d = self._cpl_dict()
+        d = self._cpl_dict
         if d is not None:
             d = dict(d.items() +
                      [ (p.fullname, p) for p in d.values() if p.fullname] +
-                     [ (p.name, p) for p in d.values() if p.name.find('.') >= 0])
+                     [ (p.name, p) for p in d.values() if p.name not in d])
             d[key].value = value
         else:
-            self._values.setdefault(key, Parameter(key)).value = value
+            self._values.setdefault(key.replace('.', '_'), 
+                                    Parameter(key)).value = value
 
     def __delitem__(self, key):
-        del self._get_dict_full()[key].value
+        del self._dict_full[key].value
 
     def __str__(self):
         r = ''
@@ -184,10 +187,10 @@ class ParameterList(object):
         return r
     
     def __contains__(self, key):
-        return key in self._get_dict_full()
+        return key in self._dict_full
 
     def __len__(self):
-        return len(self._get_dict())
+        return len(self._dict)
         
     def __getattr__(self, key):
         return self[key]
@@ -202,20 +205,20 @@ class ParameterList(object):
         del self[key]
 
     def __dir__(self):
-        return self._get_dict().keys()
+        return self._dict.keys()
 
     def __repr__(self):
         return list(self).__repr__()
 
-    def _doc(self):
+    @property
+    def __doc__(self):
         r = 'Parameter list for recipe %s.\n\nAttributes:\n' % (
-            self._recipe.name)
-        for s in self:
+            self._recipe.name if self._recipe is not None else '')
+        maxlen = max(len(p.name) for p in self.param)
+        for p in self:
             r += ' %s: %s (default: %s)\n' % (
-                s.name, s.__doc__, str(s.default))
+                p.name.rjust(maxlen), p.__doc__, str(p.default))
         return r        
-
-    __doc__ = property(_doc)
 
     def _aslist(self, **ndata):
         parlist = dict([ ( param.fullname, param.value ) 
