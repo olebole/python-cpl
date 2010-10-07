@@ -1,13 +1,101 @@
+import logging
+import threading
+import os
+import dateutil.parser
+
 import CPL_recipe
 
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+
+logging.getLogger('cpl').addHandler(NullHandler())
+
+level = { "DEBUG":logging.DEBUG, "INFO":logging.INFO, "WARNING":logging.WARN, 
+          "ERROR":logging.ERROR }
+
+class LogServer(threading.Thread):
+
+    def __init__(self, name, path):
+        threading.Thread.__init__(self)
+        self.name = name
+        self.logpath = path
+        self.entries = LogList()
+        os.mkfifo(self.logpath)
+        self.start()
+
+    def run(self):
+        try:
+            logfile = open(self.logpath)
+        except:
+            print('Exception raised during open()')
+        try:
+            for line in logfile:
+                self.log(line)
+        except:
+            print('Exception raised during read()')
+        os.remove(self.logpath)
+
+    def log(self, s):
+        try:
+            creation_date = dateutil.parser.parse(s[:8])
+            lvl = level.get(s[10:17].strip(), logging.NOTSET)
+            func = s[19:].split(':', 1)[0]
+            msg = s[19:].split(':', 1)[1][1:-1]
+            record = logging.LogRecord('cpl.%s.%s' % (self.name, func), 
+                                       lvl, None, None, msg, None, None, func)
+            record.created = float(creation_date.strftime('%s'))
+            self.entries.append(record)
+            logging.getLogger('cpl.%s.%s' % (self.name, func)).handle(record)
+        except:
+            pass
+
+
+class LogList(list):
+    '''List of log messages.
+    '''
+    def filter(self, level):
+        return [ '%s: %s' % (entry.funcName, entry.msg) for entry in self 
+                 if entry.levelno >= level ]
+
+    @property
+    def error(self):
+        '''Error messages
+        '''
+        return self.filter(logging.ERROR)
+
+    @property
+    def warning(self):
+        '''Warnings and error messages
+        '''
+        return self.filter(logging.WARN)
+
+    @property
+    def info(self):
+        '''Info, warning and error messages
+        '''
+        return self.filter(logging.INFO)
+
+    @property
+    def debug(self):
+        '''Debug, info, warning, and error messages
+        '''
+        return self.filter(logging.DEBUG)
+
 class Logger(object):
-    verbosity = [ "debug", "info", "warn", "error", "off" ]
+    DEBUG = logging.DEBUG
+    INFO = logging.INFO
+    WARN = logging.WARN
+    ERROR = logging.ERROR
+    OFF = 101
+
+    verbosity = [ DEBUG, INFO, WARN, ERROR, OFF ]
 
     _time_enabled = False
 
     def level(self):
         '''Log level for output to the terminal. Any of
-        [ 'debug', 'info', 'warn', 'error', 'off' ]
+        [ DEBUG, INFO, WARN, ERROR, OFF ]
         '''
         return Logger.verbosity[CPL_recipe.get_msg_level()]
 
@@ -26,25 +114,6 @@ class Logger(object):
 
     time = property(time, _enable_time, doc = time.__doc__)
 
-    def logfile(self, name, level = 'info'):
-        '''Open a logfile with the specified name. 
-
-        :param name: Log file name
-        :type name: :class:`str`
-        :param level: Log level. Any of 
-                      [ 'debug', 'info', 'warn', 'error', 'off' ]
-        :type level: :class:`str`
-
-        .. note:: This is possible only once due to limitations of the CPL.
-        ''' 
-        CPL_recipe.set_log_file(name)
-        CPL_recipe.set_log_level(Logger.verbosity.index(level))
-
-    @property
-    def file(self):
-        '''Get the log file name, if one is set.'''
-        return CPL_recipe.get_log_file()
-
     def domain(self):
         '''The domain tag in the header of the log file.'''
         return CPL_recipe.get_log_domain()
@@ -61,42 +130,42 @@ class Logger(object):
     def debug(self, msg, caller = None):
         '''Put a 'debug' message to the log.
 
-        :param msg: Message to put
-        :type msg: :class:`str`
-        :param caller: Name of the function generating the message. 
-        :type caller: :class:`str`
-        '''
-        self.log("debug", msg, caller)
+:param msg: Message to put
+:type msg: :class:`str`
+:param caller: Name of the function generating the message.
+:type caller: :class:`str`
+'''
+        self.log(Logger.DEBUG, msg, caller)
 
     def info(self, msg, caller = None):
         '''Put an 'info' message to the log.
 
-        :param msg: Message to put
-        :type msg: :class:`str`
-        :param caller: Name of the function generating the message. 
-        :type caller: :class:`str`
-        '''
-        self.log("info", msg, caller)
+:param msg: Message to put
+:type msg: :class:`str`
+:param caller: Name of the function generating the message.
+:type caller: :class:`str`
+'''
+        self.log(Logger.INFO, msg, caller)
 
     def warn(self, msg, caller = None):
         '''Put a 'warn' message to the log.
 
-        :param msg: Message to put
-        :type msg: :class:`str`
-        :param caller: Name of the function generating the message. 
-        :type caller: :class:`str`
-        '''
-        self.log("warn", msg, caller)
+:param msg: Message to put
+:type msg: :class:`str`
+:param caller: Name of the function generating the message.
+:type caller: :class:`str`
+'''
+        self.log(Logger.WARN, msg, caller)
 
     def error(self, msg, caller = None):
         '''Put an 'error' message to the log.
 
-        :param msg: Message to put
-        :type msg: :class:`str`
-        :param caller: Name of the function generating the message. 
-        :type caller: :class:`str`
-        '''
-        self.log("error", msg, caller)
+:param msg: Message to put
+:type msg: :class:`str`
+:param caller: Name of the function generating the message.
+:type caller: :class:`str`
+'''
+        self.log(Logger.ERROR, msg, caller)
 
     def indent_more(self):
         '''Indent the output more.'''

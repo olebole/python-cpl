@@ -3,8 +3,6 @@ import sys
 import tempfile
 import pyfits
 
-from log import msg
-
 class FrameConfig(object):
     '''Frame configuration. 
 
@@ -222,7 +220,7 @@ def expandframelist(frames):
     return framelist
 
 class Result(object):
-    def __init__(self, recipedefs, dir, res, delete = True, input_len = 0):
+    def __init__(self, recipedefs, dir, res, delete = True, input_len = 0, logger = None):
         '''Build an object containing all result frames.
 
         Calling :meth:`cpl.Recipe.__call__` returns an object that contains
@@ -251,16 +249,9 @@ class Result(object):
            anyway. So, we will skip this to probably some distant future.
         '''
         self.dir = dir
-        if res[0]:
-            msg.info("Result frames:" )
-            msg.indent_more()
-            for tag, frame in res[0]:
-                msg.info("%s = %s" % (tag, frame))
-            msg.indent_less()
-        
         if res[1][0]:
             raise CplError(res[1][0], res[1][1], res[1][2], 
-                           res[1][3], res[1][4])
+                           res[1][3], res[1][4], logger)
         self.tags = set()
         for tag, frame in res[0]:
             hdu = pyfits.open(os.path.abspath(os.path.join(dir, frame)))
@@ -275,6 +266,7 @@ class Result(object):
             else:
                 self.__dict__[tag].append(hdu)
         self.stat = Stat(res[2])
+        self.log = logger.entries if logger else None
 
 class Stat(object):
     def __init__(self, stat):
@@ -313,13 +305,13 @@ class CplError(StandardError):
        The line number where the error occurred.
 
     '''
-    def __init__(self, code, txt, filename, line, function):
-        msg.error("%s:%i in %s(): %s" % (filename, line, function, txt))
+    def __init__(self, code, txt, filename, line, function, logger = None):
         self.code = code
         self.msg = txt
         self.file = filename
         self.line = line
         self.function = function
+        self.log = logger.entries if logger else None
     
     def __str__(self):
         return repr("%s (%i) in %s() (%s:%s)" % (self.msg, self.code, 

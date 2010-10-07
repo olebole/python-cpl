@@ -773,6 +773,8 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	int retval;
 	struct tms clock_end;
 	if (chdir(dirname) == 0) {
+	    cpl_msg_set_log_name("log");
+	    cpl_msg_set_log_level(CPL_MSG_DEBUG);
 	    struct tms clock_start;
 	    times(&clock_start);
 	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
@@ -781,6 +783,7 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	    clock_end.tms_stime -= clock_start.tms_stime;
 	    clock_end.tms_cutime -= clock_start.tms_cutime;
 	    clock_end.tms_cstime -= clock_start.tms_cstime;
+	    cpl_msg_stop_log();
 	} else {
 	    retval = CPL_ERROR_FILE_NOT_CREATED;
 	    cpl_error_set(__func__, retval);

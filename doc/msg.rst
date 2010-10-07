@@ -13,11 +13,17 @@ Basic setup
 
 .. autoattribute:: cpl.log.Logger.time
 
-.. automethod:: cpl.log.Logger.logfile
-
-.. autoattribute:: cpl.log.Logger.file
-
 .. autoattribute:: cpl.log.Logger.domain
+
+.. autoclass:: cpl.log.LogList
+
+.. autoattribute:: cpl.log.LogList.error
+
+.. autoattribute:: cpl.log.LogList.warn
+
+.. autoattribute:: cpl.log.LogList.info
+
+.. autoattribute:: cpl.log.LogList.debug
 
 Logging from the python script
 ------------------------------

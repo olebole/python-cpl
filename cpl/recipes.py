@@ -9,7 +9,7 @@ import esorex
 from frames import FrameList, Result
 from frames import mkabspath, expandframelist
 from parameters import ParameterList
-from log import msg
+from log import LogServer
 
 class Recipe(object):
     '''Pluggable Data Reduction Module (PDRM) from a ESO pipeline. 
@@ -314,29 +314,30 @@ class Recipe(object):
             len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
         calib_frames = self.calib._aslist(**ndata)
         framelist = expandframelist(raw_frames + calib_frames)
+        logger = None
         try:
             if (not os.access(recipe_dir, os.F_OK)):
                 os.makedirs(recipe_dir)
             tmpfiles = mkabspath(framelist, recipe_dir)
-            msg.info("Executing %s (version %s, CPL version %s)" 
-                     % (self.name, self.version[1], CPL_recipe.version()))
+            logger = LogServer(self.name, os.path.join(recipe_dir, 'log'))
         except:
-            self._cleanup(recipe_dir, tmpfiles)
+            self._cleanup(recipe_dir, tmpfiles, logger)
             raise
         return self._exec(recipe_dir, parlist, framelist, input_len, 
-                          tmpfiles) \
+                          tmpfiles, logger) \
             if not threaded else \
             Threaded(self._exec, recipe_dir, parlist, framelist, input_len, 
-                     tmpfiles)
+                     tmpfiles, logger)
 
-    def _exec(self, recipe_dir, parlist, framelist, input_len, tmpfiles):
+    def _exec(self, recipe_dir, parlist, framelist, input_len, 
+              tmpfiles, logger):
         try:
             return Result(self._recipe.frameConfig(), recipe_dir,
                           self._recipe.run(recipe_dir, parlist, framelist),
                           (self.temp_dir and not self.output_dir),
-                          input_len)
+                          input_len, logger)
         finally:
-            self._cleanup(recipe_dir, tmpfiles)
+            self._cleanup(recipe_dir, tmpfiles, logger)
 
     def _get_raw_frames(self, *data, **ndata):
         '''Return the input frames.
@@ -367,7 +368,7 @@ class Recipe(object):
 
         return list(m.iteritems())
 
-    def _cleanup(self, recipe_dir, tmpfiles):
+    def _cleanup(self, recipe_dir, tmpfiles, logger):
             for f in tmpfiles:
                 os.remove(f)
             if self.temp_dir and not self.output_dir:
@@ -481,3 +482,4 @@ class Threaded(threading.Thread):
             return self._res.__dict__[name]
         else:
             raise self._exception
+

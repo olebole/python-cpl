@@ -6,7 +6,7 @@ import cpl
 class CplTestCase(unittest.TestCase):
     def setUp(self):
         cpl.Recipe.path = '.'
-        cpl.msg.level = 'off'
+        cpl.msg.level = cpl.msg.OFF
 
 class RecipeTestCase(CplTestCase):
     def setUp(self):
@@ -367,7 +367,7 @@ class RecipeEsorex(CplTestCase):
         rcfile = 'esorex.caller.recipe-dir=/some/dir\n' \
         'esorex.caller.msg-level=debug'
         cpl.esorex.init(rcfile)
-        self.assertEqual(cpl.msg.level, 'debug')
+        self.assertEqual(cpl.msg.level, cpl.msg.DEBUG)
         self.assertEqual(cpl.Recipe.path, ['/some/dir'])
             
 if __name__ == '__main__':
