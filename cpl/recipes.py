@@ -278,11 +278,11 @@ class Recipe(object):
         :param raw_name = data: Data with a specific tag 'name'.
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
         :type threaded: :class:`bool`
-        :param loglevel: set the log level for python logging (optional).
+        :param loglevel: set the log level for python :mod:`logging` (optional).
         :type loglevel: :class:`int`
-        :param logname: set the log name for python logging (optional, 
-            default is 'cpl.' + recipename).
-        :type loglevel: :class:`str`
+        :param logname: set the log name for the used python :class:`logging.Logger` 
+            (optional, default is 'cpl.' + recipename).
+        :type logname: :class:`str`
         :param param_name = value: overwrite the according CPL 
             parameter of the recipe (optional). 
         :param calib_name = value: overwrite the calibration frame 

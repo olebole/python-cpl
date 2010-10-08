@@ -304,6 +304,12 @@ class CplError(StandardError):
 
        The line number where the error occurred.
 
+    .. attribute:: log
+
+       Log lines of the recipe that lead to this exception.
+
+       .. seealso:: :class:`cpl.log.LogList`
+
     '''
     def __init__(self, code, txt, filename, line, function, logger = None):
         self.code = code

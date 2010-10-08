@@ -61,6 +61,10 @@ class LogServer(threading.Thread):
 
 class LogList(list):
     '''List of log messages.
+
+    Accessing this list directly will return the :class:`logging.LogRecord`
+    instances. To get them formatted as string, use the :attr:`error`,
+    :attr:`warning`, :attr:`info` or :attr:`debug` attributes.
     '''
     def filter(self, level):
         return [ '%s: %s' % (entry.funcName, entry.msg) for entry in self 
@@ -68,25 +72,25 @@ class LogList(list):
 
     @property
     def error(self):
-        '''Error messages
+        '''Error messages as list of :class:`str`
         '''
         return self.filter(logging.ERROR)
 
     @property
     def warning(self):
-        '''Warnings and error messages
+        '''Warnings and error messages as list of :class:`str`
         '''
         return self.filter(logging.WARN)
 
     @property
     def info(self):
-        '''Info, warning and error messages
+        '''Info, warning and error messages as list of :class:`str`
         '''
         return self.filter(logging.INFO)
 
     @property
     def debug(self):
-        '''Debug, info, warning, and error messages
+        '''Debug, info, warning, and error messages as list of :class:`str`
         '''
         return self.filter(logging.DEBUG)
 
@@ -107,6 +111,9 @@ class CplLogger(object):
     def level(self):
         '''Log level for output to the terminal. Any of
         [ DEBUG, INFO, WARN, ERROR, OFF ]
+
+        .. deprecated:: 0.3
+           Use :func:`logging.Logger.setLevel` 
         '''
         return CplLogger.verbosity[CPL_recipe.get_msg_level()]
 
@@ -116,7 +123,11 @@ class CplLogger(object):
     level = property(level, _set_level, doc = level.__doc__)
 
     def time(self):
-        '''Specify whether time tag shall be included in the terminal output'''
+        '''Specify whether time tag shall be included in the terminal output
+
+        .. deprecated:: 0.3
+           Use :func:`logging.Handler.setFormatter` 
+        '''
         return CplLogger._time_enabled
 
     def _enable_time(self, enable):
@@ -126,7 +137,11 @@ class CplLogger(object):
     time = property(time, _enable_time, doc = time.__doc__)
 
     def domain(self):
-        '''The domain tag in the header of the log file.'''
+        '''The domain tag in the header of the log file.
+
+        .. deprecated:: 0.3
+           Use :func:`logging.getLogger` 
+        '''
         return CPL_recipe.get_log_domain()
 
     def _set_domain(self, domain):
@@ -146,6 +161,9 @@ class CplLogger(object):
         :type msg: :class:`str`
         :param caller: Name of the function generating the message.
         :type caller: :class:`str`
+
+        .. deprecated:: 0.3
+           Use :func:`logging.Logger.debug` 
         '''
         self.log(CplLogger.DEBUG, msg, caller)
 
@@ -156,6 +174,9 @@ class CplLogger(object):
         :type msg: :class:`str`
         :param caller: Name of the function generating the message.
         :type caller: :class:`str`
+
+        .. deprecated:: 0.3
+           Use :func:`logging.Logger.info` 
         '''
         self.log(CplLogger.INFO, msg, caller)
 
@@ -166,6 +187,9 @@ class CplLogger(object):
         :type msg: :class:`str`
         :param caller: Name of the function generating the message.
         :type caller: :class:`str`
+
+        .. deprecated:: 0.3
+           Use :func:`logging.Logger.warn` 
         '''
         self.log(CplLogger.WARN, msg, caller)
 
@@ -176,6 +200,9 @@ class CplLogger(object):
         :type msg: :class:`str`
         :param caller: Name of the function generating the message.
         :type caller: :class:`str`
+
+        .. deprecated:: 0.3
+           Use :func:`logging.Logger.error` 
         '''
         self.log(CplLogger.ERROR, msg, caller)
 

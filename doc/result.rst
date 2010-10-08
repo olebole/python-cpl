@@ -69,6 +69,15 @@ Run statistics
        Flag whether the recipe terminated with freeing all available Memory. If
        this information is not available, this flag ist set to :attr:`None`.
    
+Execution log
+-------------
+
+   .. attribute:: cpl.Result.log
+   
+       List of log messages for the recipe.
+
+       .. seealso:: :class:`cpl.log.LogList`
+
 Thread control
 --------------
 

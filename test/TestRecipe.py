@@ -3,6 +3,17 @@ import numpy
 import pyfits
 import cpl
 
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+ch = logging.FileHandler('TestRecipe.log')
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
 class CplTestCase(unittest.TestCase):
     def setUp(self):
         cpl.Recipe.path = '.'
