@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import tarfile
 #from cpl.version import __version__ as cpl_version
-cpl_version = '0.2.1'
+cpl_version = '0.3.0'
 
 basedir = 'debian_build'
 module = 'cpl'
