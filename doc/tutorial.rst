@@ -22,7 +22,6 @@ MASTER BIAS to the file name provided with the :option:`-o` option::
   cpl.esorex.init()
 
   cpl.msg.level = 'info'  
-  cpl.msg.logfile('muse_pipeline.log', level = 'debug')
 
   muse_bias = cpl.Recipe('muse_bias')
   muse_bias.nifu = 1
@@ -144,8 +143,4 @@ To control message verbosity on terminal (use :literal:`'debug'`,
 :literal:`'info'`, :literal:`'warn'`, :literal:`'error'` or :literal:`'off'`):
 
 >>> cpl.msg.level = 'debug'
-
-To open a log file additionally to the output (possible only once!)
-
->>> cpl.msg.logfile('muse_pipeline.log', level = 'debug')
 
