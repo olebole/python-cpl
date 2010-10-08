@@ -101,6 +101,9 @@ class CplLogger(object):
 
     _time_enabled = False
 
+    def __init__(self, name = 'cpl'):
+        self.name = name
+
     def level(self):
         '''Log level for output to the terminal. Any of
         [ DEBUG, INFO, WARN, ERROR, OFF ]
@@ -133,47 +136,47 @@ class CplLogger(object):
     def log(self, level, msg, caller = None):
         if caller == None:
             caller = CPL_recipe.get_log_domain()
-        logging.getLogger('cpl.%s' % caller).log(level, msg)
+        logging.getLogger('%s.%s' % (self.name, caller)).log(level, msg)
         CPL_recipe.log(Logger.verbosity.index(level), caller, msg)
 
     def debug(self, msg, caller = None):
         '''Put a 'debug' message to the log.
 
-:param msg: Message to put
-:type msg: :class:`str`
-:param caller: Name of the function generating the message.
-:type caller: :class:`str`
-'''
+        :param msg: Message to put
+        :type msg: :class:`str`
+        :param caller: Name of the function generating the message.
+        :type caller: :class:`str`
+        '''
         self.log(CplLogger.DEBUG, msg, caller)
 
     def info(self, msg, caller = None):
         '''Put an 'info' message to the log.
 
-:param msg: Message to put
-:type msg: :class:`str`
-:param caller: Name of the function generating the message.
-:type caller: :class:`str`
-'''
+        :param msg: Message to put
+        :type msg: :class:`str`
+        :param caller: Name of the function generating the message.
+        :type caller: :class:`str`
+        '''
         self.log(CplLogger.INFO, msg, caller)
 
     def warn(self, msg, caller = None):
         '''Put a 'warn' message to the log.
 
-:param msg: Message to put
-:type msg: :class:`str`
-:param caller: Name of the function generating the message.
-:type caller: :class:`str`
-'''
+        :param msg: Message to put
+        :type msg: :class:`str`
+        :param caller: Name of the function generating the message.
+        :type caller: :class:`str`
+        '''
         self.log(CplLogger.WARN, msg, caller)
 
     def error(self, msg, caller = None):
         '''Put an 'error' message to the log.
 
-:param msg: Message to put
-:type msg: :class:`str`
-:param caller: Name of the function generating the message.
-:type caller: :class:`str`
-'''
+        :param msg: Message to put
+        :type msg: :class:`str`
+        :param caller: Name of the function generating the message.
+        :type caller: :class:`str`
+        '''
         self.log(CplLogger.ERROR, msg, caller)
 
     def indent_more(self):
