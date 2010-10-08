@@ -28,12 +28,12 @@ class LogServer(threading.Thread):
         try:
             logfile = open(self.logpath)
         except:
-            print('Exception raised during open()')
+            pass
         try:
             for line in logfile:
                 self.log(line)
         except:
-            print('Exception raised during read()')
+            pass
         os.remove(self.logpath)
 
     def log(self, s):
@@ -49,7 +49,6 @@ class LogServer(threading.Thread):
             logging.getLogger('cpl.%s.%s' % (self.name, func)).handle(record)
         except:
             pass
-
 
 class LogList(list):
     '''List of log messages.
@@ -125,6 +124,7 @@ class Logger(object):
     def log(self, level, msg, caller = None):
         if caller == None:
             caller = CPL_recipe.get_log_domain()
+        logging.getLogger('cpl.%s' % caller).log(level, msg)
         CPL_recipe.log(Logger.verbosity.index(level), caller, msg)
 
     def debug(self, msg, caller = None):
