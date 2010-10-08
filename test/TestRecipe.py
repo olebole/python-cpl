@@ -1,18 +1,8 @@
 import unittest
+import logging
 import numpy
 import pyfits
 import cpl
-
-import logging
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-
-ch = logging.FileHandler('TestRecipe.log')
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
 
 class CplTestCase(unittest.TestCase):
     def setUp(self):
@@ -225,7 +215,7 @@ class RecipeCalib(RecipeTestCase):
         self.assertEqual(self.recipe.calib.__dir__(), 
                          [ f.tag for f in self.recipe.calib ])
 
-class TestRecipeExec(CplTestCase):
+class RecipeExec(CplTestCase):
     def setUp(self):
         CplTestCase.setUp(self)
         size = (1024, 1024)
@@ -380,6 +370,100 @@ class RecipeEsorex(CplTestCase):
         cpl.esorex.init(rcfile)
         self.assertEqual(cpl.msg.level, cpl.msg.DEBUG)
         self.assertEqual(cpl.Recipe.path, ['/some/dir'])
-            
+
+class RecipeLog(RecipeTestCase):
+    def setUp(self):
+        RecipeTestCase.setUp(self)
+        self.recipe.temp_dir = '/tmp'
+        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        size = (1024, 1024)
+        self.raw_frame = pyfits.HDUList([
+                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
+                                                               size))])
+        self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
+        self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', 
+                                        'RRRECIPE_DOCATG_RAW')
+
+    def test_logging(self):
+        '''Injection of CPL messages into the python logging system'''
+        logs = list()
+
+        class THandler(logging.Handler):
+            def __init__(self, l):
+                logging.Handler.__init__(self)
+                self.logs = l
+
+            def emit(self, record):
+                self.logs.append(record)
+
+        # Test the conventional log name
+        logging.getLogger('cpl.rrrecipe').addHandler(THandler(logs))
+        self.recipe(self.raw_frame)
+        # check that the logs are not empty
+        self.assertNotEqual(len(logs), 0)
+        funcnames = set()
+        lognames = set()
+        for r in logs:
+            # Check that we saved the right class
+            self.assertTrue(isinstance(r, logging.LogRecord))
+            # Check that a message was provided
+            self.assertNotEqual(r.msg, None)
+            # Check that a function name was provided
+            self.assertNotEqual(r.funcName, None)
+            funcnames.add(r.funcName)
+            lognames.add(r.name)
+        # Check that we had at least one expected entry
+        self.assertTrue('cpl_dfs_product_save' in funcnames)
+        self.assertTrue('cpl.rrrecipe.cpl_dfs_product_save' in lognames)
+        
+        # Test if we can specify the log name on recipe's call
+        logs = list()
+        logging.getLogger('othername').addHandler(THandler(logs))
+        self.recipe(self.raw_frame, logname = 'othername')
+        self.assertNotEqual(len(logs), 0)
+
+    def test_result(self):
+        ''''log' attribute of the result object'''
+        res = self.recipe(self.raw_frame)
+        # Check that we get a not-empty list back
+        self.assertTrue(isinstance(res.log, list))
+        self.assertNotEqual(len(res.log), 0)
+        self.assertTrue(isinstance(res.log[0], logging.LogRecord))
+
+        # Check that we can read debug messages
+        self.assertNotEqual(len(res.log.debug), 0)
+        self.assertTrue(isinstance(res.log.debug[0], str))
+        # Check that we can read info messages
+        self.assertNotEqual(len(res.log.info), 0)
+        self.assertTrue(isinstance(res.log.info[0], str))
+        # Check that we can read warning messages
+        self.assertNotEqual(len(res.log.warning), 0)
+        self.assertTrue(isinstance(res.log.warning[0], str))
+        # Check that there were no error messages
+        self.assertEqual(len(res.log.error), 0)
+
+    def test_error(self):
+        ''''log' attribute of the CplError object'''
+        try:
+            self.recipe('test.fits')
+        except cpl.CplError as res:
+            pass
+        # Check that we get a not-empty list back
+        self.assertTrue(isinstance(res.log, list))
+        self.assertNotEqual(len(res.log), 0)
+        self.assertTrue(isinstance(res.log[0], logging.LogRecord))
+        # Check that we can read debug messages
+        self.assertNotEqual(len(res.log.debug), 0)
+        self.assertTrue(isinstance(res.log.debug[0], str))
+        # Check that we can read info messages
+        self.assertNotEqual(len(res.log.info), 0)
+        self.assertTrue(isinstance(res.log.info[0], str))
+        # Check that we can read warning messages
+        self.assertNotEqual(len(res.log.warning), 0)
+        self.assertTrue(isinstance(res.log.warning[0], str))
+        # Check that we can read error messages
+        self.assertNotEqual(len(res.log.error), 0)
+        self.assertTrue(isinstance(res.log.error[0], str))
+        
 if __name__ == '__main__':
     unittest.main()
