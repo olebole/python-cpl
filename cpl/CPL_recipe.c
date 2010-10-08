@@ -737,7 +737,10 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     PyObject *parlist;
     PyObject *soflist;
     const char *dirname;
-    if (!PyArg_ParseTuple(args, "sOO", &dirname, &parlist, &soflist))
+    const char *logfile;
+    int loglevel;
+    if (!PyArg_ParseTuple(args, "sOOsi", &dirname, &parlist, &soflist,
+			  &logfile, &loglevel))
         return NULL;
     if (!PySequence_Check(parlist)) {
 	PyErr_SetString(PyExc_TypeError, "Second parameter not a list");
@@ -772,9 +775,9 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	close(fd[0]);
 	int retval;
 	struct tms clock_end;
+	cpl_msg_set_log_name(logfile);
+	cpl_msg_set_log_level(loglevel);
 	if (chdir(dirname) == 0) {
-	    cpl_msg_set_log_name("log");
-	    cpl_msg_set_log_level(CPL_MSG_DEBUG);
 	    struct tms clock_start;
 	    times(&clock_start);
 	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);

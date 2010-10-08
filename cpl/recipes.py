@@ -9,7 +9,7 @@ import esorex
 from frames import FrameList, Result
 from frames import mkabspath, expandframelist
 from parameters import ParameterList
-from log import LogServer
+from log import LogServer, msg
 
 class Recipe(object):
     '''Pluggable Data Reduction Module (PDRM) from a ESO pipeline. 
@@ -278,6 +278,11 @@ class Recipe(object):
         :param raw_name = data: Data with a specific tag 'name'.
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
         :type threaded: :class:`bool`
+        :param loglevel: set the log level for python logging (optional).
+        :type loglevel: :class:`int`
+        :param logname: set the log name for python logging (optional, 
+            default is 'cpl.' + recipename).
+        :type loglevel: :class:`str`
         :param param_name = value: overwrite the according CPL 
             parameter of the recipe (optional). 
         :param calib_name = value: overwrite the calibration frame 
@@ -303,6 +308,8 @@ class Recipe(object):
                              prefix = self.name + "-") 
             if self.temp_dir else os.getcwd())
         threaded = ndata.get('threaded', self.threaded)
+        loglevel = ndata.get('loglevel', msg.DEBUG)
+        logname = ndata.get('logname', 'cpl.%s' % self.name)
         parlist = self.param._aslist(**ndata)
         raw_frames = self._get_raw_frames(*data, **ndata)
         if len(raw_frames) < 1:
@@ -319,7 +326,8 @@ class Recipe(object):
             if (not os.access(recipe_dir, os.F_OK)):
                 os.makedirs(recipe_dir)
             tmpfiles = mkabspath(framelist, recipe_dir)
-            logger = LogServer(self.name, os.path.join(recipe_dir, 'log'))
+            logger = LogServer(os.path.join(recipe_dir, 'log'), logname,
+                               loglevel)
         except:
             self._cleanup(recipe_dir, tmpfiles, logger)
             raise
@@ -333,7 +341,8 @@ class Recipe(object):
               tmpfiles, logger):
         try:
             return Result(self._recipe.frameConfig(), recipe_dir,
-                          self._recipe.run(recipe_dir, parlist, framelist),
+                          self._recipe.run(recipe_dir, parlist, framelist,
+                                           logger.logfile, logger.level),
                           (self.temp_dir and not self.output_dir),
                           input_len, logger)
         finally:

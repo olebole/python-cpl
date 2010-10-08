@@ -16,17 +16,18 @@ level = { "DEBUG":logging.DEBUG, "INFO":logging.INFO, "WARNING":logging.WARN,
 
 class LogServer(threading.Thread):
 
-    def __init__(self, name, path):
+    def __init__(self, filename, name, level):
         threading.Thread.__init__(self)
+        self.logfile = filename
         self.name = name
-        self.logpath = path
+        self.level = CplLogger.verbosity.index(level)
         self.entries = LogList()
-        os.mkfifo(self.logpath)
+        os.mkfifo(self.logfile)
         self.start()
 
     def run(self):
         try:
-            logfile = open(self.logpath)
+            logfile = open(self.logfile)
         except:
             pass
         try:
@@ -34,7 +35,7 @@ class LogServer(threading.Thread):
                 self.log(line)
         except:
             pass
-        os.remove(self.logpath)
+        os.remove(self.logfile)
 
     def log(self, s):
         try:
@@ -42,11 +43,16 @@ class LogServer(threading.Thread):
             lvl = level.get(s[10:17].strip(), logging.NOTSET)
             func = s[19:].split(':', 1)[0]
             msg = s[19:].split(':', 1)[1][1:-1]
-            record = logging.LogRecord('cpl.%s.%s' % (self.name, func), 
+            record = logging.LogRecord('%s.%s' % (self.name, func), 
                                        lvl, None, None, msg, None, None, func)
-            record.created = float(creation_date.strftime('%s'))
+            created = float(creation_date.strftime('%s'))
+            if record.created < created:
+                created -= 86400
+            record.relativeCreated += created - record.created
+            record.created = created
+            record.msecs = 0.0
             self.entries.append(record)
-            logging.getLogger('cpl.%s.%s' % (self.name, func)).handle(record)
+            logging.getLogger('%s.%s' % (self.name, func)).handle(record)
         except:
             pass
 
@@ -81,7 +87,7 @@ class LogList(list):
         '''
         return self.filter(logging.DEBUG)
 
-class Logger(object):
+class CplLogger(object):
     DEBUG = logging.DEBUG
     INFO = logging.INFO
     WARN = logging.WARN
@@ -96,20 +102,20 @@ class Logger(object):
         '''Log level for output to the terminal. Any of
         [ DEBUG, INFO, WARN, ERROR, OFF ]
         '''
-        return Logger.verbosity[CPL_recipe.get_msg_level()]
+        return CplLogger.verbosity[CPL_recipe.get_msg_level()]
 
     def _set_level(self, level):
-        CPL_recipe.set_msg_level(Logger.verbosity.index(level))
+        CPL_recipe.set_msg_level(CplLogger.verbosity.index(level))
 
     level = property(level, _set_level, doc = level.__doc__)
 
     def time(self):
         '''Specify whether time tag shall be included in the terminal output'''
-        return Logger._time_enabled
+        return CplLogger._time_enabled
 
     def _enable_time(self, enable):
         CPL_recipe.set_msg_time(enable);
-        Logger._time_enabled = not not enable
+        CplLogger._time_enabled = not not enable
 
     time = property(time, _enable_time, doc = time.__doc__)
 
@@ -135,7 +141,7 @@ class Logger(object):
 :param caller: Name of the function generating the message.
 :type caller: :class:`str`
 '''
-        self.log(Logger.DEBUG, msg, caller)
+        self.log(CplLogger.DEBUG, msg, caller)
 
     def info(self, msg, caller = None):
         '''Put an 'info' message to the log.
@@ -145,7 +151,7 @@ class Logger(object):
 :param caller: Name of the function generating the message.
 :type caller: :class:`str`
 '''
-        self.log(Logger.INFO, msg, caller)
+        self.log(CplLogger.INFO, msg, caller)
 
     def warn(self, msg, caller = None):
         '''Put a 'warn' message to the log.
@@ -155,7 +161,7 @@ class Logger(object):
 :param caller: Name of the function generating the message.
 :type caller: :class:`str`
 '''
-        self.log(Logger.WARN, msg, caller)
+        self.log(CplLogger.WARN, msg, caller)
 
     def error(self, msg, caller = None):
         '''Put an 'error' message to the log.
@@ -165,7 +171,7 @@ class Logger(object):
 :param caller: Name of the function generating the message.
 :type caller: :class:`str`
 '''
-        self.log(Logger.ERROR, msg, caller)
+        self.log(CplLogger.ERROR, msg, caller)
 
     def indent_more(self):
         '''Indent the output more.'''
@@ -175,4 +181,4 @@ class Logger(object):
         '''Indent the output less.'''
         CPL_recipe.log_indent_less()
 
-msg = Logger()
+msg = CplLogger()
