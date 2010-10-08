@@ -50,7 +50,8 @@ class LogServer(threading.Thread):
             created = float(creation_date.strftime('%s'))
             if record.created < created:
                 created -= 86400
-            record.relativeCreated += created - record.created
+            record.relativeCreated -= record.msecs
+            record.relativeCreated += 1000*(created - record.created) 
             record.created = created
             record.msecs = 0.0
             self.entries.append(record)
