@@ -1,7 +1,7 @@
 import logging
 import threading
 import os
-import dateutil.parser
+import datetime
 
 import CPL_recipe
 
@@ -39,7 +39,9 @@ class LogServer(threading.Thread):
 
     def log(self, s):
         try:
-            creation_date = dateutil.parser.parse(s[:8])
+            creation_date = datetime.datetime.combine(
+                datetime.date.today(), 
+                datetime.time(int(s[0:2]),int(s[3:5]),int(s[6:8])))
             lvl = level.get(s[10:17].strip(), logging.NOTSET)
             func = s[19:].split(':', 1)[0]
             msg = s[19:].split(':', 1)[1][1:-1]
