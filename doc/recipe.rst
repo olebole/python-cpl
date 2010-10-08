@@ -10,9 +10,10 @@
 
 .. attribute:: Recipe.path
 
-   Search path for the recipes. It may be set to either a string, or to a list of
-   strings. All shared libraries in the search path and their subdirectories are
-   searched for CPL recipes. On default, the path is set to the current directory.
+   Search path for the recipes. It may be set to either a string, or to a list
+   of strings. All shared libraries in the search path and their
+   subdirectories are searched for CPL recipes. On default, the path is set to
+   the current directory.
 
    The search path is automatically set to the esorex path when
    :func:`cpl.esorex.init()` is called.
@@ -73,10 +74,10 @@ These attributes and methods are available for all recipes.
 Recipe parameters
 -----------------
 
-Recipe parameters may be set either via the :attr:`Recipe.param` attribute or as
-named keywords on the run execution. A value set in the recipe call will
-overwrite any value that was set previously in the :attr:`Recipe.param` attribute
-for that specific call.
+Recipe parameters may be set either via the :attr:`Recipe.param` attribute or
+as named keywords on the run execution. A value set in the recipe call will
+overwrite any value that was set previously in the :attr:`Recipe.param`
+attribute for that specific call.
 
 .. autoattribute:: Recipe.param
 .. seealso:: :class:`cpl.Parameter`
@@ -86,11 +87,12 @@ Recipe frames
 
 There are three groups of frames: calibration ("calib") frames, input ("raw")
 frames, and result ("product") frames.  Calibration frames may be set either
-via the :attr:`Recipe.calib` attribute or as named keywords on the run execution. A
-value set in the recipe call will overwrite any value that was set previously
-in the :attr:`Recipe.calib` attribute for that specific call. Input frames are
-always set in the recipe call. If their tag name was not given, the tag name
-from :attr:`Recipe.tag` is used if the recipe provides it.
+via the :attr:`Recipe.calib` attribute or as named keywords on the run
+execution. A value set in the recipe call will overwrite any value that was
+set previously in the :attr:`Recipe.calib` attribute for that specific
+call. Input frames are always set in the recipe call. If their tag name was
+not given, the tag name from :attr:`Recipe.tag` is used if the recipe provides
+it.
 
 .. autoattribute:: Recipe.calib
 .. seealso:: :class:`cpl.FrameConfig`
