@@ -130,10 +130,6 @@ or 'off'):
 
 >>> cpl.msg.level = 'debug'
 
-To open a log file additionally to the output (possible only once!)
-
->>> cpl.msg.logfile('muse_pipeline.log', level = 'debug')
-
 Feedback
 ========
 
