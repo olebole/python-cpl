@@ -35,7 +35,6 @@ class LogServer(threading.Thread):
                 self.log(line)
         except:
             pass
-        os.remove(self.logfile)
 
     def log(self, s):
         try:

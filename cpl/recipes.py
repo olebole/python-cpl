@@ -378,13 +378,14 @@ class Recipe(object):
         return list(m.iteritems())
 
     def _cleanup(self, recipe_dir, tmpfiles, logger):
-            for f in tmpfiles:
-                os.remove(f)
-            if self.temp_dir and not self.output_dir:
-                try:
-                    os.rmdir(recipe_dir)
-                except:
-                    pass
+        for f in tmpfiles:
+            os.remove(f)
+        os.remove(logger.logfile)
+        if self.temp_dir and not self.output_dir:
+            try:
+                os.rmdir(recipe_dir)
+            except:
+                pass
 
     @property
     def __doc__(self):
