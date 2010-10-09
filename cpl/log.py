@@ -50,7 +50,7 @@ class LogServer(threading.Thread):
             if record.created < created:
                 created -= 86400
             record.relativeCreated -= record.msecs
-            record.relativeCreated += 1000*(created - record.created) 
+            record.relativeCreated += 1000*(created - record.created + 1) 
             record.created = created
             record.msecs = 0.0
             self.entries.append(record)
