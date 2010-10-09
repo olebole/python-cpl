@@ -95,8 +95,8 @@ The following attributes control the format of the terminal messages:
    .. autoattribute:: cpl.log.CplLogger.domain
 
 
-Calling CPL messages from Python
---------------------------------
+Creating CPL messages from Python
+---------------------------------
 
 These methods can be called from the :data:`cpl.msg` object. Additionally from
 logging them as CPL terminal messages, they get logged to the Python
