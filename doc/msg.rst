@@ -53,7 +53,7 @@ Log message lists
 
 The :class:`cpl.Result` object as well as a :class:`cpl.CplError` have an
 attribute :attr:`cpl.Result.log` resp. :attr:`cpl.CplError.log` that contains
-the list of all log messages.
+the :class:`list` of all log messages.
 
 .. autoclass:: cpl.log.LogList
 
@@ -100,7 +100,7 @@ Creating CPL messages from Python
 
 These methods can be called from the :data:`cpl.msg` object. Additionally from
 logging them as CPL terminal messages, they get logged to the Python
-:class:`logging.Logger` object with the log name 'cpl.<domain>'.
+:class:`logging.Logger` object with the log name 'cpl.{domain}'.
 
    .. automethod:: cpl.log.CplLogger.debug
 

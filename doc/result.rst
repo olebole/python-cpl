@@ -14,14 +14,14 @@ Result frames
      res = muse_bias(...)
      res.MASTER_BIAS.writeto('master_bias')
    
-   The attribute content is either a :class:`pyfits.HDUList` or a class:`list`
-   of HDU lists, depending on the recipe and the call: If the recipe produces
-   one out put frame of a tag per input file, the attribute contains a list if
-   the recipe was called with a list, and if the recipe was called with a
-   single input frame, the result attribute will also contain a single input
-   frame. If the recipe combines all input frames to one output frame, a
-   single :class:`pyfits.HDUList` es returned, independent of the input
-   parameters. The following examples will illustrate this::
+   The attribute content is either a :class:`pyfits.HDUList` or a
+   :class:`list` of HDU lists, depending on the recipe and the call: If the
+   recipe produces one out put frame of a tag per input file, the attribute
+   contains a list if the recipe was called with a list, and if the recipe was
+   called with a single input frame, the result attribute will also contain a
+   single input frame. If the recipe combines all input frames to one output
+   frame, a single :class:`pyfits.HDUList` es returned, independent of the
+   input parameters. The following examples will illustrate this::
    
      muse_scibasic = cpl.Recipe('muse_scibasic')
      ...
