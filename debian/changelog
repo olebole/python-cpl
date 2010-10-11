@@ -2,7 +2,7 @@ python-cpl (0.3.0-1) maverick; urgency=low
 
   * Sync with upstream: support python-style logging
 
- -- Ole Streicher <python-cpl@liska.ath.cx>  Wed, 22 Sep 2010 17:45:00 +0200
+ -- Ole Streicher <python-cpl@liska.ath.cx>  Mon, 11 Oct 2010 09:30:00 +0200
 
 python-cpl (0.2.1-1) maverick; urgency=low
 
