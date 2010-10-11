@@ -7,11 +7,11 @@ The library allows a simple parallelization of recipe processing. The
 parallelization is done using independent processes and thus does not depend
 on parallelization features in the CPL or the recipe implementation.
 
-To specify that a recipe should be executed in the background, the :attr:`threaded`
-attribute needs to be set to :attr:`True`. This may be done either in the recipe
-constructor, as a recipe attribute or as a parameter of the execution
-call. Each of the following three recipes will start a background process for
-the BIAS calculation::
+To specify that a recipe should be executed in the background, the
+:attr:`threaded` attribute needs to be set to :attr:`True`. This may be done
+either in the recipe constructor, as a recipe attribute or as a parameter of
+the execution call. Each of the following three recipes will start a
+background process for the BIAS calculation::
 
   # Create a threaded recipe
   r1 = cpl.Recipe('muse_bias', threaded = True)
@@ -55,9 +55,14 @@ shows the parallel execution of the 'muse_focus' recipe::
       res.FOCUS_TABLE.writeto('FOCUS_TABLE_%02i.fits' % (i+1))
 
 When using parallel processing note that the number of parallel processes is
-not limited yet, so this feature may produce a high load when called with a
-large number of processes. Parallelization in the recipe itself or in the CPL may
-also result in additional load.
+not limited by default, so this feature may produce a high load when called
+with a large number of processes. Parallelization in the recipe itself or in
+the CPL may also result in additional load.
+
+To limit the maximal number of parallel processes, the function
+:func:`cpl.Recipe.set_maxthreads()` can be called with the maximal number of
+parallel processes. Note that this function controls only the threads that are
+started afterwards.
 
 If the recipe execution fails, the according exception will be raised whenever
 one of the results is accessed.

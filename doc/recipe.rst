@@ -20,6 +20,10 @@
 
 .. automethod:: Recipe.list
 
+.. automethod:: Recipe.set_maxthreads
+
+   .. seealso:: :ref:`parallel`
+
 Constructor
 -----------
 

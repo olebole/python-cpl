@@ -413,6 +413,7 @@ class Recipe(object):
     def __repr__(self):
         return "Recipe('%s')" % self.name
 
+    @staticmethod
     def list():
         '''Return a list of recipes.
         
@@ -426,8 +427,8 @@ class Recipe(object):
                 for p in plugin_f:
                     plugins[p[0]].append(p[2])
         return list(plugins.items())
-    list = staticmethod(list)
 
+    @staticmethod
     def get_recipefilename(name, version = None):
         filename = None
         rversion = -1
@@ -443,8 +444,8 @@ class Recipe(object):
                         rversion = p[2]
                         filename = f
         return filename
-    get_recipefilename = staticmethod(get_recipefilename)
 
+    @staticmethod
     def get_libs():
         libs = [ ]
         path = Recipe.path.split(':') if isinstance(Recipe.path, str) else Recipe.path
@@ -453,35 +454,15 @@ class Recipe(object):
                 libs += [ os.path.join(root, f) 
                            for f in files if f.endswith('.so') ]
         return libs
-    get_libs = staticmethod(get_libs)
 
+    @staticmethod
+    def set_maxthreads(n):
+        '''Set the maximal number of threads to be executed in parallel.
 
-class ThreadQueue(object):
-    def __init__(self, maxthreads):
-        self.maxthreads = maxthreads
-        self.currentthreads = 0
-        self.waitingthreads = list()
-        self.lock = threading.RLock()
-
-    def add(self, t):
-        with self.lock:
-            if self.currentthreads < self.maxthreads:
-                self.currentthreads += 1
-                print 'Starting next thread', self.currentthreads
-                t.start()
-            else:
-                print 'appending to w', self.waitingthreads
-                self.waitingthreads.append(t)
-
-    def remove(self, t):
-        with self.lock:
-            try:
-                self.waitingthreads.pop(0).start
-                print 'starting next thread, still waiting:', self.waitingthreads
-            except IndexError:
-                print 'nothing waits', self.waitingthreads
-                self.currentthreads -= 1
-                print 'now running:', self.currentthreads
+        .. note:: This affects only threads that are started afterwards with
+        the ``threaded = True`` flag.
+        '''
+        Threaded.set_maxthreads(n)
 
 class Threaded(threading.Thread):
     '''Simple threading interface. 
@@ -498,7 +479,7 @@ class Threaded(threading.Thread):
     If the function returns an exception, this exception is thrown by any
     attempt to access an attribute.
     '''
-    queue = ThreadQueue(8)
+    pool_sema = threading.BoundedSemaphore(65536)
 
     def __init__(self, func, *args, **nargs):
         threading.Thread.__init__(self)
@@ -507,15 +488,14 @@ class Threaded(threading.Thread):
         self._nargs = nargs
         self._res = None
         self._exception = None
-        Threaded.queue.add(self)
+        self.start()
                     
     def run(self):
-        try:
-            self._res = self._func(*self._args, **self._nargs)
-        except Exception as exception:
-            self._exception = exception
-        finally:
-            Threaded.queue.remove(self)
+        with Threaded.pool_sema:
+            try:
+                self._res = self._func(*self._args, **self._nargs)
+            except Exception as exception:
+                self._exception = exception
 
     def __getattr__(self, name):
         self.join()
@@ -524,3 +504,7 @@ class Threaded(threading.Thread):
         else:
             raise self._exception
 
+    @staticmethod
+    def set_maxthreads(n):
+        with Threaded.pool_sema:
+            Threaded.pool_sema = threading.BoundedSemaphore(n)
