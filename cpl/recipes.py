@@ -456,6 +456,33 @@ class Recipe(object):
     get_libs = staticmethod(get_libs)
 
 
+class ThreadQueue(object):
+    def __init__(self, maxthreads):
+        self.maxthreads = maxthreads
+        self.currentthreads = 0
+        self.waitingthreads = list()
+        self.lock = threading.RLock()
+
+    def add(self, t):
+        with self.lock:
+            if self.currentthreads < self.maxthreads:
+                self.currentthreads += 1
+                print 'Starting next thread', self.currentthreads
+                t.start()
+            else:
+                print 'appending to w', self.waitingthreads
+                self.waitingthreads.append(t)
+
+    def remove(self, t):
+        with self.lock:
+            try:
+                self.waitingthreads.pop(0).start
+                print 'starting next thread, still waiting:', self.waitingthreads
+            except IndexError:
+                print 'nothing waits', self.waitingthreads
+                self.currentthreads -= 1
+                print 'now running:', self.currentthreads
+
 class Threaded(threading.Thread):
     '''Simple threading interface. 
 
@@ -471,6 +498,8 @@ class Threaded(threading.Thread):
     If the function returns an exception, this exception is thrown by any
     attempt to access an attribute.
     '''
+    queue = ThreadQueue(8)
+
     def __init__(self, func, *args, **nargs):
         threading.Thread.__init__(self)
         self._func = func
@@ -478,13 +507,15 @@ class Threaded(threading.Thread):
         self._nargs = nargs
         self._res = None
         self._exception = None
-        self.start()
-        
+        Threaded.queue.add(self)
+                    
     def run(self):
         try:
             self._res = self._func(*self._args, **self._nargs)
         except Exception as exception:
             self._exception = exception
+        finally:
+            Threaded.queue.remove(self)
 
     def __getattr__(self, name):
         self.join()
