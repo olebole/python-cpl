@@ -78,10 +78,12 @@ class Parameter(object):
         self.type = type or default.__class__
         self.__doc__ = "%s (%s)" % (desc, default.__class__.__name__)
 
+    @property
     def value(self):
         return self._value
 
-    def _set_value(self, value):
+    @value.setter
+    def value(self, value):
         if value is not None and self.type is not None.__class__:
             if self.type is bool and isinstance(value, str):
                 d = {'true':True, 'false':False, 'yes':True, 'no':False}
@@ -93,10 +95,9 @@ class Parameter(object):
                 raise ValueError("'%s' is not in range %s" % (value, self.range))
         self._value = value
 
-    def _del_value(self):
+    @value.deleter
+    def value(self):
         self._value = None
-
-    value = property(value, _set_value, _del_value)
 
     def __str__(self):
         return "%s%s" % (

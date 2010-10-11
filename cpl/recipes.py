@@ -104,20 +104,21 @@ class Recipe(object):
         '''Copyright string'''
         return self._recipe.copyright()
 
+    @property
     def tags(self):
         '''Possible tags for the raw input frames, or ':attr:`None` if this
         information is not provided by the recipe.'''
         frameconfig = self._recipe.frameConfig()
         return [ c[0][0] for c in frameconfig ] if frameconfig else self._tags
 
-    def _set_tags(self, tags):
+    @tags.setter
+    def tags(self, t):
         if self._recipe.frameConfig():
             raise AttributeError('Tags are immutable')
         else:
-            self._tags = tags
+            self._tags = t
 
-    tags = property(tags, _set_tags, doc=tags.__doc__)
-
+    @property
     def tag(self):
         '''Default raw input frame tag. After creation, it is set to the first
         tag from the "tags" property and may be changed to any of these
@@ -126,14 +127,14 @@ class Recipe(object):
         recipe.'''
         return self._tag
 
-    def _set_tag(self, tag):
-        if self.tags is None or tag in self.tags:
-            self._tag = tag 
+    @tag.setter
+    def tag(self, t):
+        if self.tags is None or t in self.tags:
+            self._tag = t 
         else:
-            raise KeyError("Tag '%s' not in %s" % (tag, str(self.tags)))
+            raise KeyError("Tag '%s' not in %s" % (t, str(self.tags)))
 
-    tag = property(tag, _set_tag, doc=tag.__doc__)
-
+    @property
     def calib(self):
         '''This attribute contains the calibration frames
         for the recipe.  It is iterable and then returns all calibration frames:
@@ -184,13 +185,17 @@ class Recipe(object):
         '''
         return self._calib
 
-    def _load_calib(self, source = None):
+    @calib.setter
+    def calib(self, source = None):
         if isinstance(source, (str, file)):
             source = esorex.load_sof(source)
         self._calib = FrameList(self, source) 
 
-    calib = property(calib, _load_calib, _load_calib, doc = calib.__doc__)
+    @calib.deleter
+    def calib(self):
+        self._calib = FrameList(self, None)
 
+    @property
     def param(self):
         '''This attribute contains all recipe parameters. 
         It is iteratable and then returns all individual parameters:
@@ -245,12 +250,15 @@ class Recipe(object):
         '''
         return self._param
 
-    def _load_param(self, source = None):
+    @param.setter
+    def param(self, source = None):
         if isinstance(source, (str, file)):
             source = esorex.load_rc(source)
         self._param = ParameterList(self, source)
 
-    param = property(param, _load_param, _load_param, doc = param.__doc__)
+    @param.deleter
+    def param(self):
+        self._param = ParameterList(self, None)
 
     def output(self, tag = None):
         '''Return the list of output frame tags.

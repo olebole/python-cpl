@@ -107,6 +107,7 @@ class CplLogger(object):
     def __init__(self, name = 'cpl'):
         self.name = name
 
+    @property
     def level(self):
         '''Log level for output to the terminal. Any of
         [ DEBUG, INFO, WARN, ERROR, OFF ]
@@ -116,11 +117,11 @@ class CplLogger(object):
         '''
         return CplLogger.verbosity[CPL_recipe.get_msg_level()]
 
-    def _set_level(self, level):
+    @level.setter
+    def level(self, level):
         CPL_recipe.set_msg_level(CplLogger.verbosity.index(level))
 
-    level = property(level, _set_level, doc = level.__doc__)
-
+    @property
     def time(self):
         '''Specify whether time tag shall be included in the terminal output
 
@@ -129,12 +130,12 @@ class CplLogger(object):
         '''
         return CplLogger._time_enabled
 
-    def _enable_time(self, enable):
+    @time.setter
+    def time(self, enable):
         CPL_recipe.set_msg_time(enable);
         CplLogger._time_enabled = not not enable
 
-    time = property(time, _enable_time, doc = time.__doc__)
-
+    @property
     def domain(self):
         '''The domain tag in the header of the log file.
 
@@ -143,9 +144,9 @@ class CplLogger(object):
         '''
         return CPL_recipe.get_log_domain()
 
-    def _set_domain(self, domain):
+    @domain.setter
+    def domain(self, domain):
         CPL_recipe.set_log_domain(domain)
-    domain = property(domain, _set_domain, doc = domain.__doc__)
 
     def log(self, level, msg, caller = None):
         if caller == None:
