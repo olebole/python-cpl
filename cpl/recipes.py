@@ -460,7 +460,7 @@ class Recipe(object):
         '''Set the maximal number of threads to be executed in parallel.
 
         .. note:: This affects only threads that are started afterwards with
-        the ``threaded = True`` flag.
+            the ``threaded = True`` flag.
         '''
         Threaded.set_maxthreads(n)
 
