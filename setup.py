@@ -8,7 +8,7 @@ module1 = Extension('cpl.CPL_recipe',
                     sources = ['cpl/CPL_recipe.c'])
 
 setup (name = 'cpl',
-       version = '0.3.0',
+       version = '0.3.1',
        author = 'Ole Streicher',
        author_email = 'python-cpl@liska.ath.cx',
        description = 'Python interface for the Common Pipeline Library',

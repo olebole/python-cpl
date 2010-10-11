@@ -1,3 +1,8 @@
+python-cpl (0.3.1-1) maverick; urgency=low
+
+  * Sync with upstream: limit max number of threads
+
+ -- Ole Streicher <python-cpl@liska.ath.cx>  Mon, 11 Oct 2010 12:20:00 +0200
 python-cpl (0.3.0-1) maverick; urgency=low
 
   * Sync with upstream: support python-style logging
