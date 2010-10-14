@@ -1,5 +1,5 @@
-:class:`cpl.Result` Execution results
-=====================================
+Execution results
+=================
 
 Result frames
 -------------
@@ -114,3 +114,8 @@ Thread control
    the recipe execution raised an exception, this exception will be raised
    whenever an attribute is accessed.
 
+CPL Exceptions
+--------------
+.. module:: cpl
+
+.. autoclass:: CplError

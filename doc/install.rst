@@ -1,44 +1,39 @@
 Installation
 ============
 
-Released version
-----------------
+Prequisites
+-----------
 
-To install and run this package, you need the following prequisites:
-
-* CPL 5 <http://www.eso.org/sci/data-processing/software/cpl/>
+* `CPL <http://www.eso.org/sci/data-processing/software/cpl/>`_ 5
   (:program:`Esorex` is not needed)
-* Python 2.6 <http://www.python.org/>
-* pyfits <http://www.pyfits.org/>
+* `Python <http://www.python.org/>`_ 2.6 or 2.7, 
+* `Pyfits <http://www.pyfits.org/>`_
 
-We still dont have released packages. However, you may download the source
-code of the alpha version from `here <python-cpl.tar.gz>`_.
+Binary packages
+---------------
 
-On Ubuntu, a precompiled package is available. Installing it will
-automatically check and resolve the dependencies. Go to
-<https://launchpad.net/~olebole/+archive/astro> for details.
+* `Ubuntu repository <https://launchpad.net/~olebole/+archive/astro>`_ (10.04
+  and 10.10). This repository also contains the required packages that are not
+  in the standard distribution (CPL etc.)
+* `Python egg <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ planned
 
-At some later stage, we plan to create a "Python egg"
-<http://peak.telecommunity.com/DevCenter/EasyInstall>  for easy installation.
+Source code
+-----------
 
-Developer version
------------------
-
-Currently, python-cpl is only available from its code repository. You need to
-checkout from http://github.com/olebole/python-cpl . The easiest way of this
-is::
+* `Releases and prereleases <http://github.com/olebole/python-cpl/downloads>`_
+* `Git repository <http://github.com/olebole/python-cpl>`_. To access, do a::
 
     git clone git://github.com/olebole/python-cpl.git
 
-This gives you the current version in the subdirectory :file:`python-cpl`.
-To update to the current version of an existing repository, do a 
-``git pull`` in the :file:`python-cpl` directory.
+  This gives you the current version in the subdirectory :file:`python-cpl`.
+  To update to the current version of an existing repository, do a 
+  ``git pull`` in the :file:`python-cpl` directory.
 
-For more detailed information, check the manual page of :program:`git` and the
-github page of the project.
+  For more detailed information, check the manual page of :program:`git` and the
+  `github <http://github.com/olebole/python-cpl>`_ page of the project.
 
-Compile and install the source
-------------------------------
+Compilation
+-----------
 
 Additionally to the software mentioned above, a C compiler is needed.
 

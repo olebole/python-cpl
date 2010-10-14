@@ -1,5 +1,5 @@
-:class:`cpl.Recipe` The Recipe interface
-========================================
+The Recipe interface
+====================
 
 .. module:: cpl
 

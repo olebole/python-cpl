@@ -5,14 +5,16 @@
 
 .. title:: The CPL recipe python interface
 
-:mod:`cpl` The CPL recipe python interface
-##########################################
+The CPL recipe python interface
+###############################
 
 .. module:: cpl
 
 This is a non-official python module to access CPL recipes. It is not meant as
 part of the CPL or the MUSE pipeline software, but may be useful for testing
 and analysis.
+
+.. seealso:: http://www.eso.org/sci/data-processing/software/cpl
 
 "The Common Pipeline Library (CPL) consists of a set of C libraries, which have
 been developed to standardise the way VLT instrument pipelines are built, to
@@ -36,7 +38,6 @@ A PDF version of the user manual can be downloaded from `here <python-cpl.pdf>`_
    param
    frames
    result
-   error
    msg
    esorex
    restrictions
@@ -45,8 +46,8 @@ A PDF version of the user manual can be downloaded from `here <python-cpl.pdf>`_
 Feedback
 ========
 
-Bug reports should be made on the developer web page
-http://github.com/olebole/python-cpl/issues. Send python specific questions to
+Bug reports should be made on the `developer web page
+<http://github.com/olebole/python-cpl/issues>`_. Send python specific questions to
 python-cpl@liska.ath.cx. Questions regading CPL should be mailed to
 cpl-help@eso.org.
 

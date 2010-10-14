@@ -13,6 +13,7 @@ MASTER BIAS to the file name provided with the :option:`-o` option::
 
   parser = OptionParser(usage='%prog files')
   parser.add_option('-o', '--output', help='Output file', default='master_bias.fits')
+  parser.add_option('-b', '--badpix-table', help='Bad pixel table')
 
   (opt, filenames) = parser.parse_args()
   if not filenames:
@@ -21,10 +22,9 @@ MASTER BIAS to the file name provided with the :option:`-o` option::
 
   cpl.esorex.init()
 
-  cpl.msg.level = 'info'  
-
   muse_bias = cpl.Recipe('muse_bias')
-  muse_bias.nifu = 1
+  muse_bias.param.nifu = 1
+  muse_bias.calib.BADPIX_TABLE = opt.badpix_table
 
   res = muse_bias(filenames)
   res.MASTER_BIAS.writeto(opt.output)
