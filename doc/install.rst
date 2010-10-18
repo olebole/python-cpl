@@ -29,22 +29,22 @@ Source code
   To update to the current version of an existing repository, do a 
   ``git pull`` in the :file:`python-cpl` directory.
 
-  For more detailed information, check the manual page of :program:`git` and the
+  For more detailed information, check the manual page of :manpage:`git(1)` and the
   `github <http://github.com/olebole/python-cpl>`_ page of the project.
 
 Compilation
 -----------
 
-Additionally to the software mentioned above, a C compiler is needed.
+* Additionally to the software mentioned above, a C compiler is needed.
 
-Determine where you want to install the compiled python package. Standard is
-:file:`/usr/local`. In the source directory of cpl-python, run::
+* Determine where you want to install the compiled python package. Standard is
+  :file:`/usr/local`. In the source directory of cpl-python, run::
 
-   python setup.py install --prefix=PREFIX
+    python setup.py install --prefix=PREFIX
 
-where :file:`{PREFIX}` is the installation path for the package. The package
-will be installed in the subdir :file:`lib/python2.6/site-packages/`
-(:file:`lib64/python2.6/site-packages/` on 64 bit systems) of :file:`{PREFIX}`
+  where :file:`{PREFIX}` is the installation path for the package. The package
+  will be installed in the subdir :file:`lib/python2.6/site-packages/`
+  (:file:`lib64/python2.6/site-packages/` on 64 bit systems) of :file:`{PREFIX}`
 
-Add the directory :file:`{PREFIX}/lib[64]/python2.6/site-packages/` to your
-environment variable :envvar:`PYTHONPATH`.
+* Add the directory :file:`{PREFIX}/lib[64]/python2.6/site-packages/` to your
+  environment variable :envvar:`PYTHONPATH`.

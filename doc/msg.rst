@@ -26,7 +26,7 @@ in esorex) is::
   log.addHandler(ch)
 
 The default basic log name for CPL log messages in the recipes is
-`cpl.<recipename>`. The log name can be changed with the `logname` parameter
+:file:`cpl.{recipename}`. The log name can be changed with the ``logname`` parameter
 of the recipe call to follow own naming rules, or to separate the output of
 recipes that are executed in parallel::
 
@@ -100,7 +100,7 @@ Creating CPL messages from Python
 
 These methods can be called from the :data:`cpl.msg` object. Additionally from
 logging them as CPL terminal messages, they get logged to the Python
-:class:`logging.Logger` object with the log name 'cpl.{domain}'.
+:class:`logging.Logger` object with the log name :file:`cpl.{domain}`.
 
    .. automethod:: cpl.log.CplLogger.debug
 
