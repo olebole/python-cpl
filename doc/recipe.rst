@@ -48,6 +48,8 @@ These attributes and methods are available for all recipes.
 
 .. autoattribute:: Recipe.description
 
+.. autoattribute:: Recipe.copyright
+
 .. attribute:: Recipe.output_dir
 
    Output directory if specified, or :keyword:`None`.
