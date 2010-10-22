@@ -13,6 +13,15 @@ class RecipeTestCase(CplTestCase):
     def setUp(self):
         CplTestCase.setUp(self)
         self.recipe = cpl.Recipe('rrrecipe')
+        self.recipe.temp_dir = '/tmp'
+        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        self.image_size = (1024, 1024)
+        self.raw_frame = pyfits.HDUList([
+                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
+                                                               self.image_size))])
+        self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
+        self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', 
+                                        'RRRECIPE_DOCATG_RAW')
 
 class RecipeStatic(CplTestCase):
     def test_list(self):
@@ -215,92 +224,89 @@ class RecipeCalib(RecipeTestCase):
         self.assertEqual(self.recipe.calib.__dir__(), 
                          [ f.tag for f in self.recipe.calib ])
 
-class RecipeExec(CplTestCase):
+class RecipeExec(RecipeTestCase):
     def setUp(self):
-        CplTestCase.setUp(self)
-        size = (1024, 1024)
-        self.raw_frame = pyfits.HDUList([
-                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
-                                                               size))])
-        self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
-        self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', 
-                                        'RRRECIPE_DOCATG_RAW')
+        RecipeTestCase.setUp(self)
         self.flat_frame = pyfits.HDUList([
                 pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
-                                                               size))])
+                                                               self.image_size))])
 
-    def test_frames(self):
-        '''Raw and calibration frame handling.'''
-        rrr = cpl.Recipe('rrrecipe')
-        rrr.temp_dir = '/tmp'
-
-        # Both as keyword parameters
-        res = rrr(raw_RRRECIPE_DOCATG_RAW = self.raw_frame, 
+    def test_frames_keyword(self):
+        '''Raw and calibration frames specified as keywords'''
+        self.recipe.tag = None
+        res = self.recipe(raw_RRRECIPE_DOCATG_RAW = self.raw_frame, 
                   calib_FLAT = self.flat_frame)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
         self.assertTrue(abs(self.raw_frame[0].data 
                             - res.THE_PRO_CATG_VALUE[0].data).max() == 0)
 
-        # Set calibration frame in recipe, use raw tag keyword
-        rrr.calib.FLAT = self.flat_frame
-        res = rrr(raw_RRRECIPE_DOCATG_RAW = self.raw_frame)
+    def test_frames_keyword(self):
+        '''Raw frame specified as keyword, calibration frame set in recipe'''
+        self.recipe.tag = None
+        self.recipe.calib.FLAT = self.flat_frame
+        res = self.recipe(raw_RRRECIPE_DOCATG_RAW = self.raw_frame)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 
-        # Use 'tag' parameter
-        rrr.calib.FLAT = self.flat_frame
-        res = rrr(self.raw_frame, tag = 'RRRECIPE_DOCATG_RAW')
+    def test_frames_tag_keyword(self):
+        '''The 'tag' parameter'''
+        self.recipe.tag = None
+        self.recipe.calib.FLAT = self.flat_frame
+        res = self.recipe(self.raw_frame, tag = 'RRRECIPE_DOCATG_RAW')
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 
-        # Explicitely set 'tag' attribute
-        rrr.tag = 'RRRECIPE_DOCATG_RAW'
-        res = rrr(self.raw_frame)
+    def test_frames_tag_keyword(self):
+        '''The 'tag' attribute'''
+        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        res = self.recipe(self.raw_frame)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 
-        # Use 1-element list as input --> we want a list back
-        rrr.tag = 'RRRECIPE_DOCATG_RAW'
-        res = rrr([self.raw_frame])
+    def test_frames_one_element_input_list(self):
+        '''Use 1-element list as input'''
+        # --> we want a list back'''
+        res = self.recipe([self.raw_frame])
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertFalse(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, list))
 
-        # Use longer as input --> since we only get back one image, it is
-        # assumed to be a 'master', and we get back a plain frame
-        rrr.tag = 'RRRECIPE_DOCATG_RAW'
-        res = rrr([self.raw_frame, self.raw_frame])
+    def test_frames_many_element_input_list(self):
+        '''Use multiple files as input'''
+        # --> since we only get back one image, it is
+        # assumed to be a 'master', and we get back a plain frame'''
+        res = self.recipe([self.raw_frame, self.raw_frame])
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 
-    def test_param(self):
-        '''Parameter handling'''
-        rrr = cpl.Recipe('rrrecipe', threaded = True)
-        rrr.temp_dir = '/tmp'
-        rrr.tag = 'RRRECIPE_DOCATG_RAW'
-
-        # Test setting the string param via keyword arg
-        res = rrr(self.raw_frame, param_stropt = 'more').THE_PRO_CATG_VALUE
+    def test_param_keyword(self):
+        '''Parameter handling via keyword arg'''
+        res = self.recipe(self.raw_frame, param_stropt = 'more').THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
 
-        # Test setting the string param via recipe setting
-        rrr.param.stropt = 'more'
-        res = rrr(self.raw_frame).THE_PRO_CATG_VALUE
+    def test_param_setting(self):
+        '''Parameter handling via recipe setting'''
+        self.recipe.param.stropt = 'more'
+        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
 
-        # Test overwriting the string param via recipe setting
-        rrr.param.stropt = 'more'
-        res = rrr(self.raw_frame, param_stropt = 'less').THE_PRO_CATG_VALUE
+    def test_param_overwrite(self):
+        '''Overwrite the recipe setting param via via keyword arg'''
+        self.recipe.param.stropt = 'more'
+        res = self.recipe(self.raw_frame, param_stropt = 'less').THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'less')
 
-        # Test all other parameter types
-        rrr.param.boolopt = False
-        rrr.param.intopt = 123
-        rrr.param.floatopt = -0.25
-        rrr.param.enumopt = 'third'
-        rrr.param.rangeopt = 0.125
-        res = rrr(self.raw_frame).THE_PRO_CATG_VALUE
+    def test_param_types(self):
+        '''Parameter types'''
+        self.recipe.param.stropt = 'more'
+        self.recipe.param.boolopt = False
+        self.recipe.param.intopt = 123
+        self.recipe.param.floatopt = -0.25
+        self.recipe.param.enumopt = 'third'
+        self.recipe.param.rangeopt = 0.125
+        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
+        self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
         self.assertEqual(res[0].header['HIERARCH ESO QC BOOLOPT'], False)
         self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'], 123)
         self.assertEqual(res[0].header['HIERARCH ESO QC FLOATOPT'], -0.25)
@@ -310,21 +316,16 @@ class RecipeExec(CplTestCase):
 
     def test_error(self):
         '''Error handling'''
-        rrr = cpl.Recipe('rrrecipe')
-        rrr.temp_dir = '/tmp'
-        rrr.tag = 'some_unknown_tag'
-        self.assertRaises(cpl.CplError, rrr, self.raw_frame)
+        self.recipe.tag = 'some_unknown_tag'
+        self.assertRaises(cpl.CplError, self.recipe, self.raw_frame)
 
     def test_parallel(self):
         '''Parallel execution'''
-        rrr = cpl.Recipe('rrrecipe', threaded = True)
-        rrr.temp_dir = '/tmp'
-        rrr.tag = 'RRRECIPE_DOCATG_RAW'
         results = list()
         for i in range(20):
             # mark each frame so that we can see their order
             self.raw_frame[0].header.update('HIERARCH ESO RAW1 NR', i)
-            results.append(rrr(self.raw_frame, param_intopt = i))
+            results.append(self.recipe(self.raw_frame, param_intopt = i))
         for i, res in enumerate(results):
             # check if we got the correct type
             self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
@@ -374,15 +375,6 @@ class RecipeEsorex(CplTestCase):
 class RecipeLog(RecipeTestCase):
     def setUp(self):
         RecipeTestCase.setUp(self)
-        self.recipe.temp_dir = '/tmp'
-        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
-        size = (1024, 1024)
-        self.raw_frame = pyfits.HDUList([
-                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
-                                                               size))])
-        self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
-        self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', 
-                                        'RRRECIPE_DOCATG_RAW')
         self.handler = RecipeLog.THandler()
         logging.getLogger('cpl.rrrecipe').addHandler(self.handler)
         self.other_handler = RecipeLog.THandler()
