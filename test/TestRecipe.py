@@ -383,27 +383,32 @@ class RecipeLog(RecipeTestCase):
         self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
         self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', 
                                         'RRRECIPE_DOCATG_RAW')
+        self.handler = RecipeLog.THandler()
+        logging.getLogger('cpl.rrrecipe').addHandler(self.handler)
+        self.other_handler = RecipeLog.THandler()
+        logging.getLogger('othername').addHandler(self.other_handler)
 
-    def test_logging(self):
+    class THandler(logging.Handler):
+        def __init__(self):
+            logging.Handler.__init__(self)
+            self.logs = list()
+
+        def emit(self, record):
+            self.logs.append(record)
+
+        def clear(self):
+            self.logs = list()
+
+    def test_logging_DEBUG(self):
         '''Injection of CPL messages into the python logging system'''
-        logs = list()
-
-        class THandler(logging.Handler):
-            def __init__(self, l):
-                logging.Handler.__init__(self)
-                self.logs = l
-
-            def emit(self, record):
-                self.logs.append(record)
-
-        # Test the conventional log name
-        logging.getLogger('cpl.rrrecipe').addHandler(THandler(logs))
+        logging.getLogger().setLevel(logging.DEBUG)
         self.recipe(self.raw_frame)
+
         # check that the logs are not empty
-        self.assertNotEqual(len(logs), 0)
+        self.assertNotEqual(len(self.handler.logs), 0)
         funcnames = set()
         lognames = set()
-        for r in logs:
+        for r in self.handler.logs:
             # Check that we saved the right class
             self.assertTrue(isinstance(r, logging.LogRecord))
             # Check that a message was provided
@@ -416,11 +421,36 @@ class RecipeLog(RecipeTestCase):
         self.assertTrue('cpl_dfs_product_save' in funcnames)
         self.assertTrue('cpl.rrrecipe.cpl_dfs_product_save' in lognames)
         
-        # Test if we can specify the log name on recipe's call
-        logs = list()
-        logging.getLogger('othername').addHandler(THandler(logs))
+    def test_logging_INFO(self):
+        '''Filtering INFO messages'''
+        self.handler.clear()
+        logging.getLogger('cpl.rrrecipe').setLevel(logging.INFO)
+        self.recipe(self.raw_frame)
+        # check that the logs are not empty
+        self.assertNotEqual(len(self.handler.logs), 0)
+
+    def test_logging_WARN(self):
+        '''Filtering WARN messages'''
+        self.handler.clear()
+        logging.getLogger('cpl.rrrecipe').setLevel(logging.WARN)
+        self.recipe(self.raw_frame)
+        # check that the logs are not empty
+        self.assertNotEqual(len(self.handler.logs), 0)
+
+    def test_logging_ERROR(self):
+        '''Filtering of error messages'''
+        # There is no error msg written by the recipe, so it should be empty.
+        self.handler.clear()
+        logging.getLogger('cpl.rrrecipe').setLevel(logging.ERROR)
+        self.recipe(self.raw_frame)
+        self.assertEqual(len(self.handler.logs), 0)
+
+    def test_logging_common(self):
+        '''Log name specification on recipe call'''
+        self.handler.clear()
+        self.other_handler.clear()
         self.recipe(self.raw_frame, logname = 'othername')
-        self.assertNotEqual(len(logs), 0)
+        self.assertNotEqual(len(self.other_handler.logs), 0)
 
     def test_result(self):
         ''''log' attribute of the result object'''

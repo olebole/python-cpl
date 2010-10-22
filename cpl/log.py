@@ -55,7 +55,7 @@ class LogServer(threading.Thread):
             record.msecs = 0.0
             self.entries.append(record)
             log = logging.getLogger('%s.%s' % (self.name, func))
-            if log.filter(record):
+            if log.isEnabledFor(lvl) and log.filter(record):
                 log.handle(record)
         except:
             pass
