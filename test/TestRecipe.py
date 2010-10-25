@@ -1,13 +1,13 @@
 import unittest
 import logging
+import os
 import numpy
 import pyfits
 import cpl
 
 class CplTestCase(unittest.TestCase):
     def setUp(self):
-        cpl.Recipe.path = '.'
-        cpl.msg.level = cpl.msg.OFF
+        cpl.Recipe.path = os.path.dirname(os.path.abspath(__file__))
 
 class RecipeTestCase(CplTestCase):
     def setUp(self):
@@ -340,6 +340,9 @@ class RecipeExec(RecipeTestCase):
                                 - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
 
 class RecipeEsorex(CplTestCase):
+    def tearDown(self):
+        cpl.msg.level = cpl.msg.OFF
+
     def test_read_sof(self):
         '''Read a SOF file'''
         soffile = 'geometry_table1.fits GEOMETRY_TABLE\n' \
