@@ -1,4 +1,4 @@
-python-cpl (0.3.2-1) lucid; urgency=low
+python-cpl (0.3.2-2) maverick; urgency=low
 
   * Fix log level filter
 
