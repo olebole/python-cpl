@@ -10,6 +10,6 @@ Homepage: http://www.aip.de/~oles/python-cpl/index.html
 Package: python-cpl
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libcpl (>= 5.1.0), python
-Description: This is a non-official python module to access CPL recipes. 
+Description: Non-official python module to access CPL recipes. 
        It is not meant as part of the CPL or the MUSE pipeline software, but
        may be useful for testing and analysis.
