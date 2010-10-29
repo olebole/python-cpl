@@ -44,9 +44,14 @@ additionally to the other messages.
 .. note:: Since the log messages are cached in CPL, they may occur with some
    delay in the python log module. Also, log messages from different recipes
    running in parallel may be mixed in their chronological order. The
-   resolution of the log time stamp is one second. The fields 
+   resolution of the log time stamp is one second. The fields
    :attr:`logging.LogRecord.args`, :attr:`logging.LogRecord.exc_info` and
-   :attr:`logging.LogRecord.lineno` are not set.
+   :attr:`logging.LogRecord.lineno` are not set. Also, due to limitations in
+   the CPL logging module, level filtering is done only after the creation of
+   the log entries. This may cause performance problems if extensive debug
+   logging is done and filtered out by :class:`logging.Logger.setLevel()`. In
+   this case the :class:`cpl.Recipe.__call__()` parameter ``loglevel`` may be
+   used.
 
 Log message lists
 -----------------

@@ -160,14 +160,18 @@ class Recipe(object):
 
         >>> muse_scibasic.calib.MASTER_BIAS = 'MASTER_BIAS_0.fits'
 
-        Using a HDU list is useful when it needs to be patched before fed into
-        the recipe. Note that HDU lists are stored in temporary files before the
-        recipe is called which may produce some overhead. Also, the CPL then
-        assigns the temporary file names to the 
+        Using :class:`pyfits.HDUList` is useful when it needs to be patched
+        before fed into the recipe. 
 
         >>> master_bias = pyfits.open('master_bias_0.fits')
         >>> master_bias[0].header['HIERARCH ESO DET CHIP1 OUT1 GAIN'] = 2.5
         >>> muse_scibasic.calib.MASTER_BIAS = 'master_bias_0.fits'
+
+        Note that :class:`pyfits.HDUList` objects are stored in temporary
+        files before the recipe is called which may produce some
+        overhead. Also, the CPL then assigns the random temporary file names
+        to the FITS keywords ``HIERARCH ESO PRO RECm RAWn NAME`` which should
+        be corrected afterwards if needed. 
 
         To assign more than one frame, put them into a list:
 
