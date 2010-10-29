@@ -656,16 +656,29 @@ set_parameters(cpl_parameterlist *parameters, PyObject *parlist) {
 static PyObject *
 exec_build_retval(void *ptr) {
     long ret_code = ((long *)ptr)[1];
-    long error_line = ((long *)ptr)[2];
+    double user_time = ((long *)ptr)[2] * 1e-6;
+    double sys_time = ((long *)ptr)[3] * 1e-6;
+    int memcheck = ((long *)ptr)[4];
+    PyObject *stats = Py_BuildValue("ffi", user_time, sys_time, memcheck);
+
+    long n_errors = ((long *)ptr)[5];
+
     long index = 6 * sizeof(long);
-    const char *error_msg = ptr + index;
-    index += strlen(error_msg) + 1;
-    const char *error_file = ptr + index;
-    index += strlen(error_file) + 1;
-    const char *error_func = ptr + index;
-    index += strlen(error_func) + 1;
-    PyObject *error = Py_BuildValue("issis", ret_code, error_msg, error_file,
-				    error_line, error_func);
+    PyObject *errors = PyList_New(0);
+    for (; n_errors > 0; n_errors--) {
+	long error_code = *((long *)(ptr + index));
+	index += sizeof(long);
+	long error_line = *((long *)(ptr + index));
+	index += sizeof(long);
+	const char *error_msg = ptr + index;
+	index += strlen(error_msg) + 1;
+	const char *error_file = ptr + index;
+	index += strlen(error_file) + 1;
+	const char *error_func = ptr + index;
+	index += strlen(error_func) + 1;
+	PyList_Append(errors, Py_BuildValue("issis", error_code, error_msg, 
+					    error_file, error_line, error_func));
+    }
 
     PyObject *frames = PyList_New(0);
     while (index < ((long *)ptr)[0]) {
@@ -675,53 +688,86 @@ exec_build_retval(void *ptr) {
 	index += strlen(file) + 1;
 	PyList_Append(frames, Py_BuildValue("ss", tag, file));
     }
-    double user_time = ((long *)ptr)[3] * 1e-6;
-    double sys_time = ((long *)ptr)[4] * 1e-6;
-    int memcheck = ((long *)ptr)[5];
-    PyObject *stats = Py_BuildValue("ffi", user_time, sys_time, memcheck);
 
-    return Py_BuildValue("OOO", frames, error, stats);
+    return Py_BuildValue("OOO", frames, errors, stats);
+}
+
+static void *sbuffer_append_string(void *buf, const char *str) {
+    buf = cpl_realloc(buf, ((long *)buf)[0] + strlen(str) + 1);
+    strcpy(buf + *((long *)buf), str);
+    *((long *)buf) += strlen(str) + 1;
+    return buf;
+}
+
+static void *sbuffer_append_bytes(void *buf, const void *src, size_t nbytes) {
+    buf = cpl_realloc(buf, ((long *)buf)[0] + nbytes);
+    memcpy(buf + *((long *)buf), src, nbytes);
+    *((long *)buf) += nbytes;
+    return buf;
+}
+
+static void *sbuffer_append_long(void *buf, long val) {
+    buf = cpl_realloc(buf, *((long *)buf) + sizeof(long));
+    *((long *)(buf + ((long *)buf)[0])) = val;
+    *((long *)buf) += sizeof(long);
+    return buf;
+}
+
+static void *serialized_error_ptr = NULL;
+
+static void 
+exec_serialize_one_error(unsigned self, unsigned first, unsigned last) {
+    if (serialized_error_ptr == NULL) {
+	serialized_error_ptr = cpl_malloc(sizeof(long));
+	((long *)serialized_error_ptr)[0] = sizeof(long);
+	serialized_error_ptr = sbuffer_append_long(serialized_error_ptr, 0);
+    }
+    if (cpl_error_get_code() == CPL_ERROR_NONE) {
+	return;
+    }
+    ((long *)serialized_error_ptr)[1]++; // number of errors
+
+    serialized_error_ptr = sbuffer_append_long(serialized_error_ptr, 
+					       cpl_error_get_code());
+    serialized_error_ptr = sbuffer_append_long(serialized_error_ptr, 
+					       cpl_error_get_line());
+    serialized_error_ptr = sbuffer_append_string(serialized_error_ptr, 
+						 cpl_error_get_message());
+    serialized_error_ptr = sbuffer_append_string(serialized_error_ptr, 
+						 cpl_error_get_file());
+    serialized_error_ptr = sbuffer_append_string(serialized_error_ptr, 
+						 cpl_error_get_function());
 }
 
 static void *
-exec_serialize_retval(cpl_frameset *frames, int retval, 
+exec_serialize_retval(cpl_frameset *frames, cpl_errorstate prestate, int retval, 
 		      const struct tms *tms_clock) {
     int n_frames = cpl_frameset_get_size(frames);
     int i_frame;
-    void *ptr = cpl_malloc(6 * sizeof(long));
-    ((long *)ptr)[0] = 6 * sizeof(long);
-    ((long *)ptr)[1] = retval;
-    ((long *)ptr)[2] = cpl_error_get_line();
-    ((long *)ptr)[3] = 1000000L * (tms_clock->tms_utime + tms_clock->tms_cutime) 
-	/ sysconf(_SC_CLK_TCK);
-    ((long *)ptr)[4] = 1000000L * (tms_clock->tms_stime + tms_clock->tms_cstime)
-	/ sysconf(_SC_CLK_TCK);
-    ((long *)ptr)[5] = cpl_memory_is_empty();
-    const char *error_msg = cpl_error_get_message();
-    ptr = cpl_realloc(ptr, ((long *)ptr)[0] + strlen(error_msg) + 1);
-    strcpy(ptr + ((long *)ptr)[0], error_msg);
-    ((long *)ptr)[0] += strlen(error_msg) + 1;
-    const char *error_file = cpl_error_get_file();
-    ptr = cpl_realloc(ptr, ((long *)ptr)[0] + strlen(error_file) + 1);
-    strcpy(ptr + ((long *)ptr)[0], error_file);
-    ((long *)ptr)[0] += strlen(error_file) + 1;
-    const char *error_func = cpl_error_get_function();
-    ptr = cpl_realloc(ptr, ((long *)ptr)[0] + strlen(error_func) + 1);
-    strcpy(ptr + ((long *)ptr)[0], error_func);
-    ((long *)ptr)[0] += strlen(error_func) + 1;
+    void *ptr = cpl_malloc(sizeof(long));
+    ((long *)ptr)[0] = sizeof(long);
+    ptr = sbuffer_append_long(ptr, retval);
+    ptr = sbuffer_append_long(ptr, 1000000L * 
+			      (tms_clock->tms_utime + tms_clock->tms_cutime) 
+			      / sysconf(_SC_CLK_TCK));
+    ptr = sbuffer_append_long(ptr, 1000000L * 
+			      (tms_clock->tms_stime + tms_clock->tms_cstime)
+			      / sysconf(_SC_CLK_TCK));
+    ptr = sbuffer_append_long(ptr, cpl_memory_is_empty());
+
+    cpl_errorstate_dump(prestate, CPL_FALSE, exec_serialize_one_error);
+    ptr = sbuffer_append_bytes(ptr, serialized_error_ptr + sizeof(long),
+			       ((long *)serialized_error_ptr)[0] - sizeof(long));
+    cpl_free(serialized_error_ptr);
+    serialized_error_ptr = NULL;
 
     for (i_frame = 0; i_frame < n_frames; i_frame++) {
 	cpl_frame *f = cpl_frameset_get_frame(frames, i_frame);
 	if (cpl_frame_get_group(f) != CPL_FRAME_GROUP_PRODUCT) {
 	    continue;
 	}
-	const char *tag = cpl_frame_get_tag(f);
-	const char *file = cpl_frame_get_filename(f);
-	ptr = cpl_realloc(ptr, ((long *)ptr)[0] + strlen(tag)+1 + strlen(file)+1);
-	strcpy(ptr + ((long *)ptr)[0], tag);
-	((long *)ptr)[0] += strlen(tag)+1;
-	strcpy(ptr + ((long *)ptr)[0], file);
-	((long *)ptr)[0] += strlen(file)+1;
+	ptr = sbuffer_append_string(ptr, cpl_frame_get_tag(f));
+	ptr = sbuffer_append_string(ptr, cpl_frame_get_filename(f));
     }
     return ptr;
 }
@@ -777,6 +823,7 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	struct tms clock_end;
 	cpl_msg_set_log_name(logfile);
 	cpl_msg_set_log_level(loglevel);
+	cpl_errorstate prestate = cpl_errorstate_get();
 	if (chdir(dirname) == 0) {
 	    struct tms clock_start;
 	    times(&clock_start);
@@ -791,7 +838,8 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	    retval = CPL_ERROR_FILE_NOT_CREATED;
 	    cpl_error_set(__func__, retval);
 	}
-	void *ptr = exec_serialize_retval(recipe->frames, retval, &clock_end);
+	void *ptr = exec_serialize_retval(recipe->frames, prestate,
+					  retval, &clock_end);
 	long n_bytes = write(fd[1], ptr, ((long *)ptr)[0]);
 	close(fd[1]);
 	exit(n_bytes != ((long *)ptr)[0]);

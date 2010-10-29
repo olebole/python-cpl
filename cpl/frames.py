@@ -220,7 +220,8 @@ def expandframelist(frames):
     return framelist
 
 class Result(object):
-    def __init__(self, recipedefs, dir, res, delete = True, input_len = 0, logger = None):
+    def __init__(self, recipedefs, dir, res, delete = True, 
+                 input_len = 0, logger = None):
         '''Build an object containing all result frames.
 
         Calling :meth:`cpl.Recipe.__call__` returns an object that contains
@@ -249,9 +250,8 @@ class Result(object):
            anyway. So, we will skip this to probably some distant future.
         '''
         self.dir = dir
-        if res[1][0]:
-            raise CplError(res[1][0], res[1][1], res[1][2], 
-                           res[1][3], res[1][4], logger)
+        if res[1]:
+            raise CplError(res[1], logger)
         self.tags = set()
         for tag, frame in res[0]:
             hdu = pyfits.open(os.path.abspath(os.path.join(dir, frame)))
@@ -310,17 +310,35 @@ class CplError(StandardError):
 
        .. seealso:: :class:`cpl.log.LogList`
 
+    .. attribute:: next
+     
+       Next error, or :attr:`None`.
+
     '''
-    def __init__(self, code, txt, filename, line, function, logger = None):
-        self.code = code
-        self.msg = txt
-        self.file = filename
-        self.line = line
-        self.function = function
+    def __init__(self, res, logger = None):
+        self.code = res[0][0]
+        self.msg = res[0][1]
+        self.file = res[0][2]
+        self.line = res[0][3]
+        self.function = res[0][4]
+        self.next = CplError(res[1:], logger) if len(res) > 1 else None
         self.log = logger.entries if logger else None
     
-    def __str__(self):
-        return repr("%s (%i) in %s() (%s:%s)" % (self.msg, self.code, 
-                                               self.function, self.file, 
-                                               self.line))
+    def __iter__(self):
+        class Iter:
+            current = self
+            def next(self):
+                if Iter.current is None:
+                    raise StopIteration
+                s = Iter.current
+                Iter.current = Iter.current.next
+                return s
+        return Iter()
 
+    def __str__(self):
+        s = "%s (%i) in %s() (%s:%s)" % (self.msg, self.code, 
+                                         self.function, self.file, 
+                                         self.line) 
+        if self.next:
+            s = '%s\n%s' % (s, str(self.next))
+        return s
