@@ -250,8 +250,8 @@ class Result(object):
            anyway. So, we will skip this to probably some distant future.
         '''
         self.dir = dir
-        if res[1]:
-            raise CplError(res[1], logger)
+        if res[2][0]:
+            raise CplError(res[2][0], res[1], logger)
         self.tags = set()
         for tag, frame in res[0]:
             hdu = pyfits.open(os.path.abspath(os.path.join(dir, frame)))
@@ -270,9 +270,10 @@ class Result(object):
 
 class Stat(object):
     def __init__(self, stat):
-        self.user_time = stat[0]
-        self.sys_time = stat[1]
-        self.memory_is_empty = { -1:None, 0:False, 1:True }[stat[2]]
+        self.return_code = stat[0]
+        self.user_time = stat[1]
+        self.sys_time = stat[2]
+        self.memory_is_empty = { -1:None, 0:False, 1:True }[stat[3]]
 
 
 class CplError(StandardError):
@@ -315,13 +316,15 @@ class CplError(StandardError):
        Next error, or :attr:`None`.
 
     '''
-    def __init__(self, res, logger = None):
-        self.code = res[0][0]
-        self.msg = res[0][1]
-        self.file = res[0][2]
-        self.line = res[0][3]
-        self.function = res[0][4]
-        self.next = CplError(res[1:], logger) if len(res) > 1 else None
+    def __init__(self, retval, res, logger = None):
+        self.retval = retval
+        if res:
+            self.code, self.msg, self.file, self.line, self.function = res[0]
+            self.next = CplError(retval, res[1:], logger) if len(res) > 1 else None
+        else:
+            self.code, self.msg, self.file, self.line, self.function = (
+                None, None, None, None, None)
+            self.next = None
         self.log = logger.entries if logger else None
     
     def __iter__(self):
@@ -336,9 +339,12 @@ class CplError(StandardError):
         return Iter()
 
     def __str__(self):
-        s = "%s (%i) in %s() (%s:%s)" % (self.msg, self.code, 
-                                         self.function, self.file, 
-                                         self.line) 
+        if self.code is None:
+            s = 'Unspecified'
+        else:
+            s = "%s (%i) in %s() (%s:%s)" % (self.msg, self.code, 
+                                             self.function, self.file, 
+                                             self.line) 
         if self.next:
             s = '%s\n%s' % (s, str(self.next))
         return s

@@ -659,7 +659,8 @@ exec_build_retval(void *ptr) {
     double user_time = ((long *)ptr)[2] * 1e-6;
     double sys_time = ((long *)ptr)[3] * 1e-6;
     int memcheck = ((long *)ptr)[4];
-    PyObject *stats = Py_BuildValue("ffi", user_time, sys_time, memcheck);
+    PyObject *stats = Py_BuildValue("iffi", 
+				    ret_code, user_time, sys_time, memcheck);
 
     long n_errors = ((long *)ptr)[5];
 
