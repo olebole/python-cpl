@@ -56,6 +56,11 @@ Run statistics
    attribute :attr:`cpl.Result.stat` which contains several statistics of the
    recipe execution:
    
+   .. attribute:: cpl.Result.return_code
+
+       The return code of the recipe. Since an exception is thrown if the 
+       return code indicates an error, this attribute is always set to 0.
+
    .. attribute:: cpl.Result.stat.user_time
    
        CPU time in user mode, in seconds.
@@ -77,6 +82,15 @@ Execution log
        List of log messages for the recipe.
 
        .. seealso:: :class:`cpl.log.LogList`
+
+   .. attribute:: cpl.Result.error
+
+       If one or more error was set during the recipe run, they are stored in
+       this attribute. Not that an error here does not indicate a failed
+       recipe execution, since a failed execution would result in a non-zero 
+       return code, and an exception would be thrown.
+
+       .. seealso:: :class:`cpl.CplError`
 
 Thread control
 --------------
@@ -119,3 +133,4 @@ CPL Exceptions
 .. module:: cpl
 
 .. autoclass:: CplError
+

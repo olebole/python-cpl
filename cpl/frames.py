@@ -266,6 +266,7 @@ class Result(object):
             else:
                 self.__dict__[tag].append(hdu)
         self.stat = Stat(res[2])
+        self.error = CplError(res[2][0], res[1], logger) if res[1] else None
         self.log = logger.entries if logger else None
 
 class Stat(object):
