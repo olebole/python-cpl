@@ -319,14 +319,17 @@ class CplError(StandardError):
     '''
     def __init__(self, retval, res, logger = None):
         self.retval = retval
-        if res:
-            self.code, self.msg, self.file, self.line, self.function = res[0]
-            self.next = CplError(retval, res[1:], logger) if len(res) > 1 else None
-        else:
+        self.log = logger.entries if logger else None
+        self.next = None
+        if not res:
             self.code, self.msg, self.file, self.line, self.function = (
                 None, None, None, None, None)
-            self.next = None
-        self.log = logger.entries if logger else None
+        else:
+            self.code, self.msg, self.file, self.line, self.function = res[0]
+            o = self
+            for r in res[1:]:
+                o.next = CplError(retval, [ r ], logger)
+                o = o.next
     
     def __iter__(self):
         class Iter:
@@ -347,5 +350,8 @@ class CplError(StandardError):
                                              self.function, self.file, 
                                              self.line) 
         if self.next:
-            s = '%s\n%s' % (s, str(self.next))
+            for e in self.next:
+                s += "\n    %s (%i) in %s() (%s:%s)" % (e.msg, e.code, 
+                                                        e.function, e.file, 
+                                                        e.line) 
         return s
