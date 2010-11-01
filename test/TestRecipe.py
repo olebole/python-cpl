@@ -325,7 +325,8 @@ class RecipeExec(RecipeTestCase):
         for i in range(20):
             # mark each frame so that we can see their order
             self.raw_frame[0].header.update('HIERARCH ESO RAW1 NR', i)
-            results.append(self.recipe(self.raw_frame, param_intopt = i))
+            results.append(self.recipe(self.raw_frame, param_intopt = i,
+                                       threaded = True))
         for i, res in enumerate(results):
             # check if we got the correct type
             self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
@@ -338,6 +339,14 @@ class RecipeExec(RecipeTestCase):
             # check that the data were moved correctly
             self.assertTrue(abs(self.raw_frame[0].data 
                                 - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
+
+    def test_error_parallel(self):
+        '''Error handling in parallel execution'''
+        self.recipe.tag = 'some_unknown_tag'
+        res = self.recipe(self.raw_frame, threaded = True)
+        def get(x):
+            return x.THE_PRO_CATG_VALUE
+        self.assertRaises(cpl.CplError, get, res)
 
 class RecipeEsorex(CplTestCase):
     def tearDown(self):
