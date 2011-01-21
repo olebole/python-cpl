@@ -45,27 +45,36 @@ class Expression(object):
         if isinstance(expr, parser.Expression):
             self.op = Expression.ops[expr.op]
             self.pars = [ Expression(p) for p in expr.param ]
+            self.name = expr.op
         else:
-            self.op = expr
-            self.pars = None
+            self.op = lambda param, var: expr
+            self.pars = [ ]
+            self.name = '"%s"' % expr if isinstance(expr, (str, unicode)) \
+                else str(expr)
 
     def __call__(self, var):
-        if isinstance(self.op, str) and self.pars is not None:
-            print self.op, self.pars
-        return self.op([p(var) for p in self.pars], var) \
-            if self.pars is not None else self.op
+        return self.op([p(var) for p in self.pars], var) 
 
     @property
     def keywords(self):
         if self.op == fitskeyword:
-            return set([self.pars[0].op])
-        elif self.pars:
+            return set([self.pars[0]([])])
+        else:
             s = set()
             for p in self.pars:
                 s = s.union(p.keywords)
             return s
         else:
-            return set()
+            if self.pars[0].op in (self.op, fitskeyword) or not self.pars[0].pars:
+                s = self.pars[0].oca
+            else:
+                s = '(%s)' % self.pars[0].oca
+            for p in self.pars[1:]:
+                if p.op in (self.op, fitskeyword) or not p.pars:
+                    s = '%s %s %s' % (s, self.name, p.oca)
+                else:
+                    s = '%s %s (%s)' % (s, self.name, p.oca)
+            return '%s' % s
 
 class Assignment(object):
     def __init__(self, ass):
