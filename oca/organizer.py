@@ -5,7 +5,7 @@ import fnmatch
 import numpy
 import pyfits
 
-import parser
+import pyparser as parser
 
 def likeFunc(template, s):
     if s is None:
