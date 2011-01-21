@@ -263,41 +263,51 @@ class OcaOrganizer(object):
             s = s.union(a.targets)
         return s
 
+# ------------------------------------------------------------------------
 
-oparser = OptionParser(usage='%prog files')
-oparser.add_option('-r', '--rules', help = 'OCA rules file')
+if __name__ == "__main__":
 
-(opt, filenames) = oparser.parse_args()
-if not opt.rules:
-    oparser.print_help()
-    sys.exit()
+    oparser = OptionParser(usage='%prog files')
+    oparser.add_option('-r', '--rules', help = 'OCA rules file')
 
-organizer = OcaOrganizer(parser.parseFile(opt.rules))
-print 'keywords', organizer.keywords
-print 'categories', organizer.targets
+    (opt, filenames) = oparser.parse_args()
+    if not opt.rules:
+        oparser.print_help()
+        sys.exit()
 
-files = list()
-for f in filenames:
-    hdulist = pyfits.open(f)
-    var = dict(hdulist[0].header)
-    var.setdefault('FILENAME', f)
-    organizer.classify(var)
-    files.append(var)
+    organizer = OcaOrganizer(parser.parseFile(opt.rules))
+    print 'keywords', organizer.keywords
+    print 'categories', organizer.targets
 
-for var in [
-    {'OBJECT':'BIAS', 'FILENAME':'bias.fits'},
-    {'OBJECT':'BIAS', 'FILENAME':'bias2.fits'},
-    {'DPR.TYPE':'BADPIX_TABLE', 'FILENAME':'pixtable.fits'},
-    ]:
-    organizer.classify(var)
-    files.append(var)
+    files = list()
+    for f in filenames:
+        hdulist = pyfits.open(f)
+        var = dict(hdulist[0].header)
+        var.setdefault('FILENAME', f)
+        organizer.classify(var)
+        files.append(var)
 
-for name, f in organizer.group(files).iteritems():
-    for i, fn in enumerate(f):
-        c = list()
-        for ca in [ cc[1] for cc in 
-                    organizer.action[name].calib(files, fn[0]).items()]:
-            c += ca
-        print '%s-%i.zip' % (name, i+1), [n.get('FILENAME') 
-                                          for n in (fn + c) ]
+    for var in [
+        {'OBJECT':'BIAS', 'FILENAME':'bias.fits'},
+        {'OBJECT':'BIAS', 'FILENAME':'bias2.fits'},
+        {'OBJECT':'FLAT', 'FILENAME':'flat.fits'},
+        {'OBJECT':'FLAT', 'FILENAME':'flat2.fits'},
+        {'OBJECT':'FLAT', 'FILENAME':'flat3.fits'},
+        {'OBJECT':'DARK', 'FILENAME':'dark.fits'},
+        {'OBJECT':'DARK', 'FILENAME':'dark2.fits'},
+        {'OBJECT':'DARK', 'FILENAME':'dark3.fits'},
+        {'OBJECT':'SKY', 'FILENAME':'sky.fits'},
+        {'DPR.TYPE':'BADPIX_TABLE', 'FILENAME':'bpixtable.fits'},
+        ]:
+        organizer.classify(var)
+        files.append(var)
+
+    for name, f in organizer.group(files).iteritems():
+        for i, fn in enumerate(f):
+            c = list()
+            for ca in [ cc[1] for cc in 
+                        organizer.action[name].calib(files, fn[0]).items()]:
+                c += ca
+            print '%s-%i.zip' % (name, i+1), [n.get('FILENAME') 
+                                              for n in (fn + c) ]
 
