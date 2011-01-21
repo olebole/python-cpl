@@ -219,7 +219,7 @@ class ActionRule(object):
     def __init__(self, rule):
         self.associations = [ AssociationRule(a) 
                               for a in rule.associations ]
-        self.recipedef = RecipeDef(rule.recipe)
+        self.recipedef = RecipeDef(rule.recipe) if rule.recipe else None
         self.products = [ ProductDef(p) for p in rule.products ]
 
     def calib(self, var, inputfile = {}):

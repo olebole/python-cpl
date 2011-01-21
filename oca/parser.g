@@ -140,6 +140,7 @@ parser oca:
   rule _ActionRule: 'action' name '{'  
      {{ assoc = [] }}
      {{ product = [] }}
+     {{ recipe = None }}
     ( _SelectAssociateStatement 
             {{ assoc.append(_SelectAssociateStatement) }}
     | _RecipeDefinition {{ recipe = _RecipeDefinition }}
