@@ -113,7 +113,7 @@ _Assignment.setParseAction(lambda tokens: [ Assignment(tokens[0].param[0],
 
 _AssignmentBlock = pyparsing.Group(_Assignment) | (
     pyparsing.Literal('{').suppress() + 
-    pyparsing.ZeroOrMore(pyparsing.Group(_Assignment)) + 
+    pyparsing.Group(pyparsing.ZeroOrMore(_Assignment)) + 
     ( pyparsing.Literal('}').suppress() ) 
     )
 _IfStatement = ( 
@@ -149,12 +149,12 @@ def _SelectExecuteStatementAction(token):
     cond = token.pop(0)
     if token and token[0] == 'group by':
         token.pop(0)
-        keys = [ a[0] for a in token.pop(0) ]
+        keys = [ a[1][0] for a in token.pop(0) ]
     else:
         keys = list()
     if token and token[0] == 'as':
         token.pop(0)
-        alias = [ a[0] for a in token.pop(0) ]
+        alias = [ a[1][0] for a in token.pop(0) ]
     else:
         alias = list()
     return [ GroupingRule(xn, src, cond, keys, alias) ]
