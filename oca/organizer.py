@@ -45,27 +45,43 @@ class Expression(object):
         if isinstance(expr, parser.Expression):
             self.op = Expression.ops[expr.op]
             self.pars = [ Expression(p) for p in expr.param ]
+            self.name = expr.op
         else:
-            self.op = expr
-            self.pars = None
+            self.op = lambda param, var: expr
+            self.pars = [ ]
+            self.name = '"%s"' % expr if isinstance(expr, (str, unicode)) \
+                else str(expr)
 
     def __call__(self, var):
-        if isinstance(self.op, str) and self.pars is not None:
-            print self.op, self.pars
-        return self.op([p(var) for p in self.pars], var) \
-            if self.pars is not None else self.op
+        return self.op([p(var) for p in self.pars], var) 
 
     @property
     def keywords(self):
         if self.op == fitskeyword:
-            return set([self.pars[0].op])
-        elif self.pars:
+            return set([self.pars[0]([])])
+        else:
             s = set()
             for p in self.pars:
                 s = s.union(p.keywords)
             return s
+
+    @property
+    def oca(self):
+        if self.op == fitskeyword:
+            return self.pars[0]([])
+        elif len(self.pars) == 0:
+            return self.name
         else:
-            return set()
+            if self.pars[0].op in (self.op, fitskeyword) or not self.pars[0].pars:
+                s = self.pars[0].oca
+            else:
+                s = '(%s)' % self.pars[0].oca
+            for p in self.pars[1:]:
+                if p.op in (self.op, fitskeyword) or not p.pars:
+                    s = '%s %s %s' % (s, self.name, p.oca)
+                else:
+                    s = '%s %s (%s)' % (s, self.name, p.oca)
+            return '%s' % s
 
 class Assignment(object):
     def __init__(self, ass):
@@ -82,6 +98,10 @@ class Assignment(object):
     @property
     def targets(self):
         return set((self.target, ))
+
+    @property
+    def oca(self):
+        return '%s = %s;' % (self.target, self.expression.oca)
 
 class ClassificationRule(object):
     def __init__(self, rule):
@@ -107,6 +127,14 @@ class ClassificationRule(object):
             s = s.union(a.targets)
         return s
 
+    @property
+    def oca(self):
+        s = 'if %s then {\n' % self.condition.oca
+        for a in self.assignments:
+            s += '  %s\n' % a.oca
+        s += '}\n'
+        return s
+
 class Classificator(object):
     def __init__(self, rules):
         self.rules = [ ClassificationRule(r) for r in rules ]
@@ -127,6 +155,13 @@ class Classificator(object):
         s = set()
         for r in self.rules:
             s = s.union(r.targets)
+        return s
+
+    @property
+    def oca(self):
+        s = ''
+        for c in self.rules:
+            s += c.oca
         return s
     
 class OrganizationRule(object):
@@ -149,6 +184,21 @@ class OrganizationRule(object):
     def keywords(self):
         return self.condition.keywords
 
+    @property
+    def oca(self):
+        s = 'select execute(%s) from %s where %s' % (self.actionname, self.dataset, self.condition.oca)
+        if self.grouping:
+            s += ' group by %s' % self.grouping[0]
+            for g in self.grouping[1:]:
+                s += ', %s' % g
+        if self.alias:
+            s += ' as (%s' % self.alias[0]
+            for g in self.alias[1:]:
+                s += ', %s' % g
+            s += ')'
+        return s + ';\n'
+        
+
 class Organizator(object):
     def __init__(self, rules):
         self.rules = [OrganizationRule(r) for r in rules]
@@ -165,6 +215,13 @@ class Organizator(object):
         s = set()
         for r in self.rules:
             s = s.union(r.keywords)
+        return s
+
+    @property
+    def oca(self):
+        s = ''
+        for c in self.rules:
+            s += c.oca
         return s
 
 class AssociationRule(object):
@@ -184,6 +241,16 @@ class AssociationRule(object):
     def keywords(self):
         return set([ k.replace('inputFile.', '') 
                      for k in self.condition.keywords] )
+
+    @property
+    def oca(self):
+        s = ''
+        if self.cardinality[0] != 1:
+            s += 'minRet = %i; ' % self.cardinality[0]
+        if self.cardinality[1] != 1:
+            s += 'maxRet = %i; ' % self.cardinality[1]
+        s += 'select file as %s from %s where %s;' % (self.name, self.datasource, self.condition.oca)
+        return s
 
 class ProductDef(object):
     def __init__(self, product):
@@ -210,13 +277,38 @@ class ProductDef(object):
             s = s.union(a.targets)
         return s
 
+    @property
+    def oca(self):
+        s = 'product %s' % self.name
+        if self.assignments:
+            s +=' {'
+            for a in self.assignments:
+                s += ' %s' % a.oca
+            s +=' }'
+        else:
+            s +=';'
+        return s
+
 class RecipeDef(object):
     def __init__(self, recipe):
         self.name = recipe.name
         self.param = recipe.parameters
 
+    @property
+    def oca(self):
+        s = 'recipe %s' % self.name
+        if self.param:
+            s += ' {'
+            for p, v in self.param.items():
+                s += ' "--%s=%s";' % (p,v) 
+            s += ' }'
+        else:
+            s +=';'
+        return s
+
 class ActionRule(object):
     def __init__(self, rule):
+        self.name = rule.name
         self.associations = [ AssociationRule(a) 
                               for a in rule.associations ]
         self.recipedef = RecipeDef(rule.recipe) if rule.recipe else None
@@ -243,6 +335,18 @@ class ActionRule(object):
             s = s.union(a.targets)
         return s
 
+    @property
+    def oca(self):
+        s = 'action %s {\n' % self.name
+        for a in self.associations:
+            s += '  %s\n' % a.oca
+        if self.recipedef:
+            s += '  %s\n' % self.recipedef.oca
+        for p in self.products:
+            s += '  %s\n' % p.oca
+        s += '}\n'
+        return s
+
 class OcaOrganizer(object):
     def __init__(self, rules):
         self.classify = Classificator(rules.classification)
@@ -263,6 +367,12 @@ class OcaOrganizer(object):
             s = s.union(a.targets)
         return s
 
+    @property
+    def oca(self):
+        s = self.classify.oca + self.group.oca
+        for a in self.action.values():
+            s += a.oca
+        return s
 # ------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -278,6 +388,7 @@ if __name__ == "__main__":
     organizer = OcaOrganizer(parser.parseFile(opt.rules))
     print 'keywords', organizer.keywords
     print 'categories', organizer.targets
+    print organizer.oca
 
     files = list()
     for f in filenames:
