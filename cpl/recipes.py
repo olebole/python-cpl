@@ -392,7 +392,8 @@ class Recipe(object):
     def _cleanup(self, recipe_dir, tmpfiles, logger):
         for f in tmpfiles:
             os.remove(f)
-        os.remove(logger.logfile)
+        if logger is not None:
+            os.remove(logger.logfile)
         if self.temp_dir and not self.output_dir:
             try:
                 os.rmdir(recipe_dir)
