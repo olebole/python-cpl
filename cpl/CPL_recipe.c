@@ -613,6 +613,37 @@ get_frames(PyObject *framelist) {
     return frames;
 }
 
+static void 
+clear_parameters(cpl_parameterlist *parameters) {
+    cpl_parameter *par = cpl_parameterlist_get_first(parameters);
+    while (par != NULL) {
+	cpl_type type = cpl_parameter_get_type(par);
+	switch(type) {
+	    case CPL_TYPE_STRING:
+		cpl_parameter_set_string(par, 
+					 cpl_parameter_get_default_string(par));
+		break;
+	    case CPL_TYPE_INT:
+		cpl_parameter_set_int(par, 
+				      cpl_parameter_get_default_int(par));
+		break;
+	    case CPL_TYPE_DOUBLE:
+		cpl_parameter_set_double(par, 
+					 cpl_parameter_get_default_double(par));
+		break;
+	    case CPL_TYPE_BOOL:
+		cpl_parameter_set_bool(par, 
+				       cpl_parameter_get_default_bool(par));
+		break;
+	    default:
+		break;
+	}
+	
+	par = cpl_parameterlist_get_next(parameters);
+    }
+    
+}
+
 static void
 set_parameters(cpl_parameterlist *parameters, PyObject *parlist) {
     PyObject *iter = PyObject_GetIter(parlist);
@@ -806,6 +837,7 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     cpl_recipe *recipe = (cpl_recipe *)self->plugin;
     cpl_frameset_delete(recipe->frames);
     recipe->frames = get_frames(soflist);
+    clear_parameters(recipe->parameters);
     set_parameters(recipe->parameters, parlist);
     int fd[2];
     if (pipe(fd) == -1) {

@@ -291,6 +291,14 @@ class RecipeExec(RecipeTestCase):
         res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
 
+    def test_param_delete(self):
+        '''Delete a parameter in a second run after setting it'''
+        self.recipe.param.intopt = 123
+        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
+        del self.recipe.param.intopt
+        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
+        self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'], 2)
+
     def test_param_overwrite(self):
         '''Overwrite the recipe setting param via via keyword arg'''
         self.recipe.param.stropt = 'more'
