@@ -229,8 +229,17 @@ class ParameterList(object):
         if ndata:
             for name, tdata in ndata.items():
                 if name.startswith('param_'):
-                    pname = name.split('_', 1)[1]
-                    if pname in self:
+                    try:
+                        parlist[self[name.split('_', 1)[1]].fullname] = tdata
+                    except KeyError:
+                        pass
+            try:
+                for pname, tdata in ndata['param'].items():
+                    try:
                         parlist[self[pname].fullname] = tdata
+                    except KeyError:
+                        pass
+            except KeyError:
+                pass
         return list(parlist.iteritems())
 

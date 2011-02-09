@@ -172,6 +172,11 @@ class FrameList(object):
                 if name.startswith('calib_'):
                     tag = name.split('_', 1)[1]
                     frames[tag] = tdata
+            try:
+                for name, tdata in ndata['calib'].items():
+                    frames[name] = tdata
+            except KeyError:
+                pass
         return list(frames.iteritems())
 
 def mkabspath(frames, tmpdir):
