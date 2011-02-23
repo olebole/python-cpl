@@ -1,25 +1,6 @@
-import collections
 import subprocess
-
 import pyparsing
-
-Expression = collections.namedtuple('Expression' , 'op param')
-Assignment = collections.namedtuple('Assignment',
-    'target expression')
-ClassificationRule = collections.namedtuple('ClassificationRule',
-    'condition assignments')
-GroupingRule = collections.namedtuple('GroupingRule',
-    'actionname dataset condition grouping alias')
-RecipeDefinition = collections.namedtuple('RecipeDefinition',
-    'name parameters')
-AssociationRule = collections.namedtuple('AssociationRule',
-    'name datasource condition cardinality')
-ActionRule = collections.namedtuple('ActionRule',
-    'name associations recipe products')
-ProductDefinition = collections.namedtuple('ProductDefinition',
-    'name assignments')
-OCARules = collections.namedtuple('OCARules',
-    'classification grouping actions')
+import rawrules
 
 # define grammar
 _StringConst = pyparsing.quotedString.copy()
@@ -39,7 +20,8 @@ _FloatConst = pyparsing.Combine(
 _FloatConst.setParseAction(lambda token: [ float(token[0]) ])
 
 _FitsKeyword = pyparsing.Word(pyparsing.alphas, pyparsing.alphanums + '_-.') 
-_FitsKeyword.setParseAction(lambda token: [ Expression('FitsKeyword', token) ])
+_FitsKeyword.setParseAction(lambda token: [ rawrules.Expression('FitsKeyword', 
+                                                                token) ])
 
 _name = pyparsing.Word(pyparsing.alphas, pyparsing.alphanums + '_')
 _datasource = pyparsing.Word(pyparsing.alphas, pyparsing.alphanums + '._') 
@@ -64,7 +46,7 @@ _Term = (
 def _OpAction(tokens):
     expr = tokens.pop(0)
     while len(tokens) > 0:
-        expr = Expression(tokens.pop(0), [expr, tokens.pop(0)])
+        expr = rawrules.Expression(tokens.pop(0), [expr, tokens.pop(0)])
     return [ expr ]
 
 _MultOp = (
@@ -108,8 +90,8 @@ _Assignment = (
     _FitsKeyword + pyparsing.Literal('=').suppress() + 
     _Expression + pyparsing.Literal(';').suppress() 
     )
-_Assignment.setParseAction(lambda tokens: [ Assignment(tokens[0].param[0], 
-                                                       tokens[1]) ])
+_Assignment.setParseAction(lambda tokens: [ 
+        rawrules.Assignment(tokens[0].param[0], tokens[1]) ])
 
 _AssignmentBlock = pyparsing.Group(_Assignment) | (
     pyparsing.Literal('{').suppress() + 
@@ -121,7 +103,7 @@ _IfStatement = (
     pyparsing.CaselessLiteral('then').suppress() + _AssignmentBlock
     )
 _IfStatement.setParseAction(lambda tokens: 
-                            [ ClassificationRule(tokens[0], tokens[1])])
+                            [ rawrules.ClassificationRule(tokens[0], tokens[1])])
 
 _FitsKeywordList = pyparsing.Group(
     _FitsKeyword + 
@@ -157,7 +139,7 @@ def _SelectExecuteStatementAction(token):
         alias = [ a[1][0] for a in token.pop(0) ]
     else:
         alias = list()
-    return [ GroupingRule(xn, src, cond, keys, alias) ]
+    return [ rawrules.GroupingRule(xn, src, cond, keys, alias) ]
 _SelectExecuteStatement.setParseAction(_SelectExecuteStatementAction)
 
 _SelectAssociateStatement = ( 
@@ -183,7 +165,7 @@ def _SelectAssociateStatementAction(token):
         maxRet = token.pop(0)
     else:
         maxRet = 1
-    return [ AssociationRule(token[0], token[1], token[2], (minRet, maxRet)) ]
+    return [ rawrules.AssociationRule(token[0], token[1], token[2], (minRet, maxRet)) ]
 
 _SelectAssociateStatement.setParseAction(_SelectAssociateStatementAction)
 
@@ -215,7 +197,7 @@ _RecipeDefinition = (
 def _RecipeDefinitionAction(tokens):
     name = tokens.pop(0)
     param = tokens[0] if tokens else dict()
-    return [ RecipeDefinition(name, param) ]
+    return [ rawrules.RecipeDefinition(name, param) ]
 _RecipeDefinition.setParseAction(_RecipeDefinitionAction)
 
 _ProductDefinition = ( 
@@ -226,7 +208,7 @@ _ProductDefinition = (
     ) 
 def _ProductDefinitionAction(tokens):
     name = tokens.pop(0)
-    return ProductDefinition(name, tokens)
+    return rawrules.ProductDefinition(name, tokens)
 _ProductDefinition.setParseAction(_ProductDefinitionAction)
 
 _ActionRule = ( 
@@ -243,13 +225,13 @@ def _ActionRuleAction(tokens):
     product = list()
     recipe = None
     for t in tokens:
-        if isinstance(t, ProductDefinition):
+        if isinstance(t, rawrules.ProductDefinition):
             product.append(t)
-        elif isinstance(t, RecipeDefinition):
+        elif isinstance(t, rawrules.RecipeDefinition):
             recipe = t
-        elif isinstance(t, AssociationRule):
+        elif isinstance(t, rawrules.AssociationRule):
             assoc.append(t)
-    return [ ActionRule(name, assoc, recipe, product) ]
+    return [ rawrules.ActionRule(name, assoc, recipe, product) ]
 
 _ActionRule.setParseAction(_ActionRuleAction)
 
@@ -263,13 +245,13 @@ def _OCARulesAction(tokens):
     classification = list()
     grouping = list()
     for t in tokens:
-        if isinstance(t, ActionRule):
+        if isinstance(t, rawrules.ActionRule):
             actions.append(t)
-        elif isinstance(t, ClassificationRule):
+        elif isinstance(t, rawrules.ClassificationRule):
             classification.append(t)
-        elif isinstance(t, GroupingRule):
+        elif isinstance(t, rawrules.GroupingRule):
             grouping.append(t)
-    return [ OCARules(classification, grouping, actions) ]
+    return [ rawrules.OCARules(classification, grouping, actions) ]
 _OCARules.setParseAction(_OCARulesAction)
 _OCARules.ignore( "//" + pyparsing.restOfLine )
 _OCARules.ignore( "#" + pyparsing.restOfLine )
