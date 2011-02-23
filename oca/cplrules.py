@@ -68,7 +68,7 @@ class CplRules(object):
     
     @property
     def grouping(self):
-        return [  rawrules.GroupingRule(self.action_name(r, tag), 
+        return [  rawrules.GroupingRule(self.get_action_name(r, tag), 
                                         self.get_source(tag), 
                                         self.get_tag_condition(tag), [], [])
                   for r, tag in self.recipes ]
