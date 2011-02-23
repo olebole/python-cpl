@@ -1,42 +1,96 @@
 import rawrules
 
-def get_tags(recipelist):
-    '''Return all tags for a given list of recipes.
+class CplRules(object):
+    def __init__(self, recipelist):
+        self.external_name = 'externalFiles'
+        self.inputs_name = 'inputFiles'
+        self.products_name = 'products'
+        self.calibs_name = 'calibFiles'
 
-    Returns two values: first, a list of all (recipe, input tag) pairs, and
-    second a dictionary of all used and produced tags with the tag name as key
-    and one of the strings 'externalFiles', 'inputFiles', 'calibFiles', or
-    'product' as values. The value indicates the type of the tag.
-    '''
-    inputs = set()
-    calibs = set()
-    products = set()
+        self.recipes = set()
+        self.inputs = set()
+        self.calibs = set()
+        self.products = set()
+        
+        for r in recipelist:
+            if not r.tags:
+                continue
+            self.recipes.update((r, tag) for tag in r.tags)
+            self.inputs.update(r.tags)
+            self.calibs.update(c.tag for c in r.calib)
+            for tag in r.tags:
+                self.products.update(r.output(tag))
+        
+        self.inputs.difference_update(self.products)
+        self.external = set(self.calibs)
+        self.external.difference_update(self.products)
+        self.calibs.intersection_update(self.products)
+        self.products.difference_update(self.calibs)
 
-    recipes = set()
-    for r in recipelist:
-        if not r.tags:
-            continue
-        inputs.update(r.tags)
-        calibs.update(c.tag for c in r.calib)
-        for tag in r.tags:
-            recipes.add((r, tag))
-            products.update(r.output(tag))
+    def get_source(self, tag):
+        return self.external_name if tag in self.external else \
+            self.inputs_name if tag in self.inputs else \
+            self.products_name if tag in self.products else \
+            self.calibs_name if tag in self.calibs else \
+            None
 
-    inputs.difference_update(products)
-    external = set(calibs)
-    external.difference_update(products)
-    calibs.intersection_update(products)
-    products.difference_update(calibs)
-    tags = dict()
-    for tag in external:
-        tags[tag] = 'externalFiles'
-    for tag in inputs:
-        tags[tag] = 'inputFiles'
-    for tag in products:
-        tags[tag] = 'products'
-    for tag in calibs:
-        tags[tag] = 'calibFiles'
-    return recipes, tags
+    def get_keyword(self, tag):
+        return {
+            self.external_name:'DO.CATG',
+            self.inputs_name:'DO.CATG',
+            self.products_name:'PRO.CATG',
+            self.calibs_name:'PRO.CATG',
+            }[self.get_source(tag)]
+
+    def get_tag_condition(self, tag, fitskey = None):
+        return rawrules.Expression('==', [ 
+                rawrules.Expression('FitsKeyword', 
+                                    [ fitskey or self.get_keyword(tag)]), 
+                tag
+                ])
+
+    def get_tag_assignment(self, tag):
+        return [ rawrules.Assignment(self.get_keyword(tag), tag) ]
+    
+    def get_action_name(self, recipe, tag):
+        return '%s_%s' % (recipe.name.upper(), tag) if len(recipe.tags) > 1 \
+            else '%s' % recipe.name.upper(),
+
+    @property
+    def classification(self):
+        return [
+            rawrules.ClassificationRule(self.get_tag_condition(tag, 'OBJECT'), 
+                                        self.get_tag_assignment(tag) )
+            for tag in self.inputs ] + [
+            rawrules.ClassificationRule(self.get_tag_condition(tag, 'DPR.TYPE'),
+                                        self.get_tag_assignment(tag) )
+            for tag in self.external ]
+    
+    @property
+    def grouping(self):
+        return [  rawrules.GroupingRule(self.action_name(r, tag), 
+                                        self.get_source(tag), 
+                                        self.get_tag_condition(tag), [], [])
+                  for r, tag in self.recipes ]
+
+    @property
+    def actions(self):
+        action_rules = []
+        for r, tag in self.recipes:
+            calibs = [ rawrules.AssociationRule(c.tag, self.get_source(c.tag), 
+                                                self.get_tag_condition(c.tag),
+                                                (max(c.min or 0, 0), c.max))
+                       for c in r.calib ]
+                
+            products = [ rawrules.ProductDefinition(p,self.get_tag_assignment(p))
+                         for p in r.output(tag) ]
+        
+            name = self.get_action_name(r, tag)
+            rec = rawrules.RecipeDefinition(r.name, [])
+            action_rules.append(rawrules.ActionRule(name, calibs, rec, products))
+        
+        return action_rules
+
 
 def calib_available(recipe, tags):
     for c in recipe.calib:
@@ -49,7 +103,7 @@ def order_recipes(recipes, tags):
     '''
     available = set(tag for tag, type in tags.items() 
                     if type in ('externalFiles', 'inputFiles'))
-    newr = list()
+    newr = []
     while len(recipes) > 0:
         for r, tag in recipes:
             if tag in available and calib_available(r, available):
@@ -57,60 +111,5 @@ def order_recipes(recipes, tags):
                 available.update(r.output(tag))
         recipes.difference_update(newr)
     return newr
-
-def parseRecipes(recipes):
-
-    catg_keyword = {
-        'externalFiles':'DO.CATG',
-        'inputFiles':'DO.CATG',
-        'products':'PRO.CATG',
-        'calibFiles':'PRO.CATG',
-        }
-
-    recipes, tags = get_tags(recipes)
-
-    cl_rules = []
-    for tag, tag_type in tags.items():
-        fitskeyword = {'inputFiles':'OBJECT', 
-                       'externalFiles':'DPR.TYPE'}.get(tag_type)
-        if fitskeyword is not None:
-            cl_rules.append(rawrules.ClassificationRule(
-                    rawrules.Expression('==', 
-                                        [ rawrules.Expression('FitsKeyword', 
-                                                              [fitskeyword]), 
-                                          tag]), 
-                    [rawrules.Assignment(catg_keyword[tag_type], tag )]))
-            
-    grouping_rules = []
-    for r, tag in recipes:
-        name = '%s_%s' % (r.name.upper(), tag) if len(r.tags) > 1 \
-            else '%s' % r.name.upper()
-        grouping_rules.append(rawrules.GroupingRule(
-                name, tags[tag], 
-                rawrules.Expression('==', 
-                           [ rawrules.Expression('FitsKeyword', 
-                                        [ catg_keyword[tags[tag]]]), tag]), 
-                list(), list()))
-
-    action_rules = []
-    for r, tag in recipes:
-        name = '%s_%s' % (r.name.upper(), tag) if len(r.tags) > 1 \
-            else '%s' % r.name.upper()
-        calibs = list()
-        for c in r.calib:
-            calibs.append(rawrules.AssociationRule(c.tag, tags[c.tag], 
-                                          rawrules.Expression('==', [ 
-                            rawrules.Expression('FitsKeyword',
-                                       [catg_keyword[tags[c.tag]]]), c.tag]),
-                                          (max(c.min or 0, 0), c.max)))
-        products = list()
-        for p in r.output(tag):
-            products.append(rawrules.ProductDefinition(p,[ 
-                        rawrules.Assignment(catg_keyword[tags[p]], p) ]))
-
-        rec = rawrules.RecipeDefinition(r.name, list())
-        action_rules.append(rawrules.ActionRule(name, calibs, rec, products))
-    
-    return rawrules.OCARules(cl_rules, grouping_rules, action_rules)
 
 
