@@ -5,8 +5,6 @@ import fnmatch
 import numpy
 import pyfits
 
-import pyparser as parser
-
 def likeFunc(template, s):
     if s is None:
         return False
@@ -42,11 +40,11 @@ class Expression(object):
         }
 
     def __init__(self, expr):
-        if isinstance(expr, parser.Expression):
+        try:
             self.op = Expression.ops[expr.op]
             self.pars = [ Expression(p) for p in expr.param ]
             self.name = expr.op
-        else:
+        except AttributeError:
             self.op = lambda param, var: expr
             self.pars = [ ]
             self.name = '"%s"' % expr if isinstance(expr, (str, unicode)) \
@@ -376,6 +374,8 @@ class OcaOrganizer(object):
 # ------------------------------------------------------------------------
 
 if __name__ == "__main__":
+
+    import pyparser as parser
 
     oparser = OptionParser(usage='%prog files')
     oparser.add_option('-r', '--rules', help = 'OCA rules file')
