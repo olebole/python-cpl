@@ -54,7 +54,7 @@ class CplRules(object):
     
     def get_action_name(self, recipe, tag):
         return '%s_%s' % (recipe.name.upper(), tag) if len(recipe.tags) > 1 \
-            else '%s' % recipe.name.upper(),
+            else '%s' % recipe.name.upper()
 
     @property
     def classification(self):
