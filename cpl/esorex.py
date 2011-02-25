@@ -34,7 +34,7 @@ def load_sof(source):
 
     '''
     if isinstance(source, str):
-        return load_sof(source.split('\n'))
+        return load_sof(file(source) if os.path.exists(source) else source.split('\n'))
     elif isinstance(source, (file, list)):
         res = dict()
         for line in source:
@@ -80,7 +80,7 @@ def load_rc(source = None):
     if source is None:
         source = file(os.path.expanduser('~/.esorex/esorex.rc'))
     if isinstance(source, str):
-        return load_rc(source.split('\n'))
+        return load_rc(file(source) if os.path.exists(source) else source.split('\n'))
     elif isinstance(source, (file, list)):
         res = dict()
         for line in source:
