@@ -263,9 +263,7 @@ class OcaOrganizer(object):
 # ------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    import ocawriter
-
-    import pyparser as parser
+    import pyparser
 
     oparser = OptionParser(usage='%prog files')
     oparser.add_option('-r', '--rules', help = 'OCA rules file')
@@ -275,10 +273,9 @@ if __name__ == "__main__":
         oparser.print_help()
         sys.exit()
 
-    organizer = OcaOrganizer(parser.parseFile(opt.rules))
+    organizer = pyparser.parseFile(opt.rules)
     print 'keywords', organizer.keywords
     print 'categories', organizer.targets
-    print ocawriter.OcaOrganizer(organizer)
 
     files = list()
     for f in filenames:
