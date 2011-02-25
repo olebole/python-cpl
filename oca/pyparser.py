@@ -2,6 +2,8 @@ import subprocess
 import pyparsing
 import rawrules
 
+import organizer
+
 # define grammar
 _StringConst = pyparsing.quotedString.copy()
 _StringConst.setParseAction(lambda token: [ token[0][1:-1] ])
@@ -257,8 +259,11 @@ _OCARules.ignore( "//" + pyparsing.restOfLine )
 _OCARules.ignore( "#" + pyparsing.restOfLine )
 _OCARules.ignore( pyparsing.cStyleComment )
 
-def parseFile(fname):
+def rawParseFile(fname):
     s = subprocess.Popen(['/usr/bin/cpp', fname], 
                          stdout = subprocess.PIPE).stdout
     rules = list()
     return _OCARules.parseFile(s)[0]
+
+def parseFile(fname):
+    return organizer.OcaOrganizer(rawParseFile(fname))

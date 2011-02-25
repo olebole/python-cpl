@@ -1,6 +1,10 @@
 import rawrules
+import organizer
 
-class CplRules(object):
+def CplRules(recipelist):
+    return organizer.OcaOrganizer(RawCplRules(recipelist))
+
+class RawCplRules(object):
     def __init__(self, recipelist):
         self.external_name = 'externalFiles'
         self.inputs_name = 'inputFiles'
