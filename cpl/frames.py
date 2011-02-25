@@ -129,7 +129,7 @@ class FrameList(object):
             self._values.setdefault(key, FrameConfig(key)).frames = value
 
     def __delitem__(self, key):
-        del self._dict[key].frames
+        self._dict[key].frames = None
 
     def __contains__(self, key):
         return key in self._dict

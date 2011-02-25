@@ -201,17 +201,14 @@ class RecipeCalib(RecipeTestCase):
         '''Delete a calibration frame set'''
         self.recipe.calib.FLAT = 'flat.fits'
         del self.recipe.calib.FLAT
-        try: 
-            f = self.recipe.calib.FLAT.frames
-        except:
-            f = None
+        f = self.recipe.calib.FLAT.frames
         self.assertEqual(f, None)
 
     def test_del_all(self):
         '''Delete all calibration frame sets'''
         self.recipe.calib.FLAT = 'flat.fits'
         del self.recipe.calib
-        try: 
+        try:
             f = self.recipe.calib.FLAT.frames
         except:
             f = None
