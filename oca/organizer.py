@@ -10,13 +10,10 @@ class Constant(object):
         self.value = value
         self.name = '"%s"' % value if isinstance(value, (str, unicode)) \
             else str(value)
+        self.keywords = set()
         
     def __call__(self, var):
         return self.value
-
-    @property
-    def keywords(self):
-        return [ ]
 
 class FitsKeyword(object):
     def __init__(self, name):
@@ -27,7 +24,7 @@ class FitsKeyword(object):
 
     @property
     def keywords(self):
-        return [ self.name ]
+        return set((self.name,))
 
 def likeFunc(template, s):
     if s is None:
@@ -69,10 +66,7 @@ class Expression(object):
 
     @property
     def keywords(self):
-        s = set()
-        for p in self.pars:
-            s = s.union(p.keywords)
-        return s
+        return set().union(*(p.keywords for p in self.pars))
 
 class Assignment(object):
     def __init__(self, target, expression):
@@ -102,17 +96,12 @@ class ClassificationRule(object):
 
     @property
     def keywords(self):
-        s = set(self.condition.keywords)
-        for a in self.assignments:
-            s = s.union(a.keywords)
-        return s
+        return set(self.condition.keywords). \
+            union(*(a.keywords for a in self.assignments))
         
     @property
     def targets(self):
-        s = set()
-        for a in self.assignments:
-            s = s.union(a.targets)
-        return s
+        return set().union(*(a.targets for a in self.assignments))
 
 class OrganizationRule(object):
     def __init__(self, actionname, dataset, condition, grouping, alias):
@@ -149,8 +138,7 @@ class AssociationRule(object):
 
     @property
     def keywords(self):
-        return set([ k.replace('inputFile.', '') 
-                     for k in self.condition.keywords] )
+        return set(k.replace('inputFile.', '') for k in self.condition.keywords)
 
 class ProductDef(object):
     def __init__(self, name, assignments):
@@ -165,17 +153,11 @@ class ProductDef(object):
 
     @property
     def keywords(self):
-        s = set()
-        for a in self.assignments:
-            s = s.union(a.keywords)
-        return s
+        return set().union(*(a.keywords for a in self.assignments))
         
     @property
     def targets(self):
-        s = set()
-        for a in self.assignments:
-            s = s.union(a.targets)
-        return s
+        return set().union(*(a.targets for a in self.assignments))
 
 class RecipeDef(object):
     def __init__(self, name, param):
@@ -198,17 +180,12 @@ class ActionRule(object):
 
     @property
     def keywords(self):
-        s = set()
-        for a in self.associations + self.products:
-            s = s.union(a.keywords)
-        return s
+        return set().union(*(a.keywords for a in self.associations)). \
+            union(*(p.keywords for p in self.products))
         
     @property
     def targets(self):
-        s = set()
-        for a in self.products:
-            s = s.union(a.targets)
-        return s
+        return set().union(*(p.targets for p in self.products))
 
 class OcaOrganizer(object):
     def __init__(self, classifications, groups, action):
@@ -227,26 +204,16 @@ class OcaOrganizer(object):
                 ret.setdefault(r.actionname, list()).append(v)
         return ret
 
-
     @property
     def keywords(self):
-        s = set()
-        for c in self.classifications:
-            s = s.union(c.keywords)
-        for g in self.groups:
-            s = s.union(g.keywords)
-        for a in self.action.values():
-            s = s.union(a.keywords)
-        return s
+        return  set().union(*(c.keywords for c in self.classifications)). \
+            union(*(g.keywords for g in self.groups)). \
+            union(*(a.keywords for a in self.action.values()))
         
     @property
     def targets(self):
-        s = set()
-        for c in self.classifications:
-            s = s.union(c.keywords)
-        for a in self.action.values():
-            s = s.union(a.targets)
-        return s
+        return set().union(*(c.keywords for c in self.classifications)). \
+            union(*(a.targets for a in self.action.values()))
 
 # ------------------------------------------------------------------------
 
