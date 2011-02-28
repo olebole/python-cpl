@@ -1,29 +1,27 @@
 import subprocess
 import pyparsing
-import rawrules
 
 import organizer
 
 # define grammar
 _StringConst = pyparsing.quotedString.copy()
-_StringConst.setParseAction(lambda token: [ token[0][1:-1] ])
+_StringConst.setParseAction(lambda token: [ organizer.Constant(token[0][1:-1]) ])
 
 _BoolConst = pyparsing.Keyword('True') | pyparsing.Keyword('False')
-_BoolConst.setParseAction(lambda token: [ bool(token[0]) ])
+_BoolConst.setParseAction(lambda token: [ organizer.Constant(bool(token[0])) ])
 
 _IntConst = pyparsing.Word(pyparsing.nums + '+-', pyparsing.nums)
-_IntConst.setParseAction(lambda token: [ int(token[0]) ])
+_IntConst.setParseAction(lambda token: [ organizer.Constant(int(token[0])) ])
 
 _FloatConst = pyparsing.Combine( 
     _IntConst + pyparsing.Literal('.') + 
     pyparsing.Optional( pyparsing.Literal('.') +
                         pyparsing.Optional(pyparsing.Word(pyparsing.nums)) ) +
     pyparsing.Optional( pyparsing.CaselessLiteral('E') + _IntConst ) )
-_FloatConst.setParseAction(lambda token: [ float(token[0]) ])
+_FloatConst.setParseAction(lambda token: [ organizer.Constant(float(token[0])) ])
 
 _FitsKeyword = pyparsing.Word(pyparsing.alphas, pyparsing.alphanums + '_-.') 
-_FitsKeyword.setParseAction(lambda token: [ rawrules.Expression('FitsKeyword', 
-                                                                token) ])
+_FitsKeyword.setParseAction(lambda token: [ organizer.FitsKeyword(token[0]) ])
 
 _name = pyparsing.Word(pyparsing.alphas, pyparsing.alphanums + '_')
 _datasource = pyparsing.Word(pyparsing.alphas, pyparsing.alphanums + '._') 
@@ -48,7 +46,7 @@ _Term = (
 def _OpAction(tokens):
     expr = tokens.pop(0)
     while len(tokens) > 0:
-        expr = rawrules.Expression(tokens.pop(0), [expr, tokens.pop(0)])
+        expr = organizer.Expression(tokens.pop(0), [expr, tokens.pop(0)])
     return [ expr ]
 
 _MultOp = (
@@ -93,7 +91,7 @@ _Assignment = (
     _Expression + pyparsing.Literal(';').suppress() 
     )
 _Assignment.setParseAction(lambda tokens: [ 
-        rawrules.Assignment(tokens[0].param[0], tokens[1]) ])
+        organizer.Assignment(tokens[0].name, tokens[1]) ])
 
 _AssignmentBlock = pyparsing.Group(_Assignment) | (
     pyparsing.Literal('{').suppress() + 
@@ -105,7 +103,7 @@ _IfStatement = (
     pyparsing.CaselessLiteral('then').suppress() + _AssignmentBlock
     )
 _IfStatement.setParseAction(lambda tokens: 
-                            [ rawrules.ClassificationRule(tokens[0], tokens[1])])
+                            [ organizer.ClassificationRule(tokens[0], tokens[1])])
 
 _FitsKeywordList = pyparsing.Group(
     _FitsKeyword + 
@@ -141,7 +139,7 @@ def _SelectExecuteStatementAction(token):
         alias = [ a[1][0] for a in token.pop(0) ]
     else:
         alias = list()
-    return [ rawrules.GroupingRule(xn, src, cond, keys, alias) ]
+    return [ organizer.OrganizationRule(xn, src, cond, keys, alias) ]
 _SelectExecuteStatement.setParseAction(_SelectExecuteStatementAction)
 
 _SelectAssociateStatement = ( 
@@ -159,15 +157,16 @@ _SelectAssociateStatement = (
 def _SelectAssociateStatementAction(token):
     if token[0] == 'minRet':
         token.pop(0)
-        minRet = token.pop(0)
+        minRet = token.pop(0).value
     else:
         minRet = 1
     if token[0] == 'maxRet':
         token.pop(0)
-        maxRet = token.pop(0)
+        maxRet = token.pop(0).value
     else:
         maxRet = 1
-    return [ rawrules.AssociationRule(token[0], token[1], token[2], (minRet, maxRet)) ]
+    return [ organizer.AssociationRule(token[0], token[1], token[2], 
+                                       (minRet, maxRet)) ]
 
 _SelectAssociateStatement.setParseAction(_SelectAssociateStatementAction)
 
@@ -187,7 +186,7 @@ _RecipePars = (
 def _RecipeParsAction(tokens):
     param = dict()
     for t in tokens:
-        p = _ParamString.parseString(t)
+        p = _ParamString.parseString(t.value)
         param[p[0]] = p[1]
     return [ param ]
 _RecipePars.setParseAction(_RecipeParsAction)
@@ -199,7 +198,7 @@ _RecipeDefinition = (
 def _RecipeDefinitionAction(tokens):
     name = tokens.pop(0)
     param = tokens[0] if tokens else dict()
-    return [ rawrules.RecipeDefinition(name, param) ]
+    return [ organizer.RecipeDef(name, param) ]
 _RecipeDefinition.setParseAction(_RecipeDefinitionAction)
 
 _ProductDefinition = ( 
@@ -210,7 +209,7 @@ _ProductDefinition = (
     ) 
 def _ProductDefinitionAction(tokens):
     name = tokens.pop(0)
-    return rawrules.ProductDefinition(name, tokens)
+    return organizer.ProductDef(name, tokens)
 _ProductDefinition.setParseAction(_ProductDefinitionAction)
 
 _ActionRule = ( 
@@ -227,13 +226,13 @@ def _ActionRuleAction(tokens):
     product = list()
     recipe = None
     for t in tokens:
-        if isinstance(t, rawrules.ProductDefinition):
+        if isinstance(t, organizer.ProductDef):
             product.append(t)
-        elif isinstance(t, rawrules.RecipeDefinition):
+        elif isinstance(t, organizer.RecipeDef):
             recipe = t
-        elif isinstance(t, rawrules.AssociationRule):
+        elif isinstance(t, organizer.AssociationRule):
             assoc.append(t)
-    return [ rawrules.ActionRule(name, assoc, recipe, product) ]
+    return [ organizer.ActionRule(name, assoc, recipe, product) ]
 
 _ActionRule.setParseAction(_ActionRuleAction)
 
@@ -247,23 +246,21 @@ def _OCARulesAction(tokens):
     classification = list()
     grouping = list()
     for t in tokens:
-        if isinstance(t, rawrules.ActionRule):
+        if isinstance(t, organizer.ActionRule):
             actions.append(t)
-        elif isinstance(t, rawrules.ClassificationRule):
+        elif isinstance(t, organizer.ClassificationRule):
             classification.append(t)
-        elif isinstance(t, rawrules.GroupingRule):
+        elif isinstance(t, organizer.OrganizationRule):
             grouping.append(t)
-    return [ rawrules.OCARules(classification, grouping, actions) ]
+    return [ organizer.OcaOrganizer(classification, grouping, actions) ]
 _OCARules.setParseAction(_OCARulesAction)
 _OCARules.ignore( "//" + pyparsing.restOfLine )
 _OCARules.ignore( "#" + pyparsing.restOfLine )
 _OCARules.ignore( pyparsing.cStyleComment )
 
-def rawParseFile(fname):
+def parseFile(fname):
     s = subprocess.Popen(['/usr/bin/cpp', fname], 
                          stdout = subprocess.PIPE).stdout
     rules = list()
     return _OCARules.parseFile(s)[0]
 
-def parseFile(fname):
-    return organizer.OcaOrganizer(rawParseFile(fname))

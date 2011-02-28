@@ -1,41 +1,38 @@
 import organizer
 
+def from_constant(obj):
+    return '"%s"' % obj.value if isinstance(obj.value, (str, unicode)) \
+        else str(obj.value)
+
+def from_fitskeyword(obj):
+    return obj.name
+
 def from_expression(obj):
-    if obj.op == organizer.fitskeyword:
-        return obj.pars[0]([])
-    elif len(obj.pars) == 0:
-        return obj.name
+    if not isinstance(obj.pars[0], organizer.Expression) \
+            or obj.pars[0].op == obj.op:
+        s = to_oca(obj.pars[0])
     else:
-        if obj.pars[0].op in (obj.op, organizer.fitskeyword) or not obj.pars[0].pars:
-            s = from_expression(obj.pars[0])
+        s = '(%s)' % to_oca(obj.pars[0])
+    for p in obj.pars[1:]:
+        if not isinstance(p, organizer.Expression) or p.op == obj.op:
+            s = '%s %s %s' % (s, obj.name, to_oca(p))
         else:
-            s = '(%s)' % from_expression(obj.pars[0])
-        for p in obj.pars[1:]:
-            if p.op in (obj.op, organizer.fitskeyword) or not p.pars:
-                s = '%s %s %s' % (s, obj.name, from_expression(p))
-            else:
-                s = '%s %s (%s)' % (s, obj.name, from_expression(p))
-        return '%s' % s
+            s = '%s %s (%s)' % (s, obj.name, to_oca(p))
+    return s
 
 def from_assignment(obj):
-    return '%s = %s;' % (obj.target, from_expression(obj.expression))
+    return '%s = %s;' % (obj.target, to_oca(obj.expression))
 
 def from_classificationrule(obj):
-    s = 'if %s then {\n' % from_expression(obj.condition)
+    s = 'if %s then {\n' % to_oca(obj.condition)
     for a in obj.assignments:
         s += '  %s\n' % from_assignment(a)
     s += '}\n'
     return s
 
-def from_classificator(obj):
-    s = ''
-    for c in obj.rules:
-        s += from_classificationrule(c)
-    return s
-    
 def from_organizationrule(obj):
     s = 'select execute(%s) from %s where %s' % (obj.actionname, obj.dataset, 
-                                                 from_expression(obj.condition))
+                                                 to_oca(obj.condition))
     if obj.grouping:
         s += ' group by %s' % obj.grouping[0]
         for g in obj.grouping[1:]:
@@ -47,12 +44,6 @@ def from_organizationrule(obj):
         s += ')'
     return s + ';\n'
 
-def from_organizator(obj):
-    s = ''
-    for c in obj.rules:
-        s += from_organizationrule(c)
-    return s
-
 def from_associationrule(obj):
     s = ''
     if obj.cardinality[0] != 1:
@@ -60,7 +51,7 @@ def from_associationrule(obj):
     if obj.cardinality[1] != 1:
         s += 'maxRet = %i; ' % obj.cardinality[1]
     s += 'select file as %s from %s where %s;' % (obj.name, obj.datasource, 
-                                                  from_expression(obj.condition))
+                                                  to_oca(obj.condition))
     return s
 
 def from_productdef(obj):
@@ -97,19 +88,23 @@ def from_actionrule(obj):
     return s
 
 def from_ocaorganizer(obj):
-    s = from_classificator(obj.classify) + from_organizator(obj.group)
+    s = ''
+    for c in obj.classifications:
+        s += from_classificationrule(c)
+    for o in obj.groups:
+        s += from_organizationrule(o)
     for a in obj.action.values():
         s += from_actionrule(a)
     return s
 
 def to_oca(obj):
     functions = {
+        organizer.Constant: from_constant,
+        organizer.FitsKeyword: from_fitskeyword,
         organizer.Expression: from_expression,
         organizer.Assignment: from_assignment,
         organizer.ClassificationRule: from_classificationrule,
-        organizer.Classificator: from_classificator,
         organizer.OrganizationRule: from_organizationrule,
-        organizer.Organizator: from_organizator,
         organizer.AssociationRule: from_associationrule,
         organizer.ProductDef: from_productdef,
         organizer.RecipeDef: from_recipedef,

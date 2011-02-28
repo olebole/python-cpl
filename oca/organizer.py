@@ -5,6 +5,30 @@ import fnmatch
 import numpy
 import pyfits
 
+class Constant(object):
+    def __init__(self, value):
+        self.value = value
+        self.name = '"%s"' % value if isinstance(value, (str, unicode)) \
+            else str(value)
+        
+    def __call__(self, var):
+        return self.value
+
+    @property
+    def keywords(self):
+        return [ ]
+
+class FitsKeyword(object):
+    def __init__(self, name):
+        self.name = name
+        
+    def __call__(self, var):
+        return var.get(self.name)
+
+    @property
+    def keywords(self):
+        return [ self.name ]
+
 def likeFunc(template, s):
     if s is None:
         return False
@@ -12,9 +36,6 @@ def likeFunc(template, s):
         template = template.replace(esc, '\\' + esc)
         template = template.replace('%', '*')
     return fnmatch.fnmatch(template, s)
-
-def fitskeyword(param, var):
-    return var.get(param[0])
 
 class Expression(object):
     ops = { 
@@ -36,37 +57,27 @@ class Expression(object):
         '*': lambda param, var: param[0] * param[1],
         '/': lambda param, var: param[0] / param[1],
         '%': lambda param, var: param[0] % param[1],
-        'FitsKeyword': fitskeyword,
         }
 
-    def __init__(self, expr):
-        try:
-            self.op = Expression.ops[expr.op]
-            self.pars = [ Expression(p) for p in expr.param ]
-            self.name = expr.op
-        except AttributeError:
-            self.op = lambda param, var: expr
-            self.pars = [ ]
-            self.name = '"%s"' % expr if isinstance(expr, (str, unicode)) \
-                else str(expr)
+    def __init__(self, op, pars):
+        self.op = Expression.ops[op]
+        self.name = op
+        self.pars = pars
 
     def __call__(self, var):
         return self.op([p(var) for p in self.pars], var) 
 
     @property
     def keywords(self):
-        if self.op == fitskeyword:
-            return set([self.pars[0]([])])
-        else:
-            s = set()
-            for p in self.pars:
-                s = s.union(p.keywords)
-            return s
+        s = set()
+        for p in self.pars:
+            s = s.union(p.keywords)
+        return s
 
 class Assignment(object):
-    def __init__(self, ass):
-        self.target = ass.target
-        self.expression = Expression(ass.expression)
+    def __init__(self, target, expression):
+        self.target = target
+        self.expression = expression
 
     def __call__(self, var = None):
         var[self.target] = self.expression(var)
@@ -80,9 +91,9 @@ class Assignment(object):
         return set((self.target, ))
 
 class ClassificationRule(object):
-    def __init__(self, rule):
-        self.condition = Expression(rule.condition)
-        self.assignments = [ Assignment(a) for a in rule.assignments ]
+    def __init__(self, condition, assignments):
+        self.condition = condition
+        self.assignments = assignments
 
     def __call__(self, var):
         if self.condition(var):
@@ -103,35 +114,13 @@ class ClassificationRule(object):
             s = s.union(a.targets)
         return s
 
-class Classificator(object):
-    def __init__(self, rules):
-        self.rules = [ ClassificationRule(r) for r in rules ]
-
-    def __call__(self, var):
-        for r in self.rules:
-            r(var)
-
-    @property
-    def keywords(self):
-        s = set()
-        for r in self.rules:
-            s = s.union(r.keywords)
-        return s
-
-    @property
-    def targets(self):
-        s = set()
-        for r in self.rules:
-            s = s.union(r.targets)
-        return s
-
 class OrganizationRule(object):
-    def __init__(self, rule):
-        self.actionname = rule.actionname
-        self.condition = Expression(rule.condition)
-        self.dataset = rule.dataset
-        self.grouping = rule.grouping
-        self.alias = rule.alias
+    def __init__(self, actionname, dataset, condition, grouping, alias):
+        self.actionname = actionname
+        self.condition = condition
+        self.dataset = dataset
+        self.grouping = grouping
+        self.alias = alias
 
     def __call__(self, var):
         ret = dict()
@@ -145,30 +134,12 @@ class OrganizationRule(object):
     def keywords(self):
         return self.condition.keywords
 
-class Organizator(object):
-    def __init__(self, rules):
-        self.rules = [OrganizationRule(r) for r in rules]
-
-    def __call__(self, var):
-        ret = dict()
-        for r in self.rules:
-            for v in r(var):
-                ret.setdefault(r.actionname, list()).append(v)
-        return ret
-
-    @property
-    def keywords(self):
-        s = set()
-        for r in self.rules:
-            s = s.union(r.keywords)
-        return s
-
 class AssociationRule(object):
-    def __init__(self, rule):
-        self.name = rule.name
-        self.datasource = rule.datasource
-        self.condition = Expression(rule.condition)
-        self.cardinality = rule.cardinality
+    def __init__(self, name, datasource, condition, cardinality):
+        self.name = name
+        self.datasource = datasource
+        self.condition = condition
+        self.cardinality = cardinality
 
     def __call__(self, var, inputfile = {}):
         return [ v for v in var if self.condition(dict(
@@ -182,9 +153,9 @@ class AssociationRule(object):
                      for k in self.condition.keywords] )
 
 class ProductDef(object):
-    def __init__(self, product):
-        self.name = product.name
-        self.assignments = [ Assignment(a) for a in product.assignments ]
+    def __init__(self, name, assignments):
+        self.name = name
+        self.assignments = assignments
 
     def __call__(self, var = None):
         var = dict(var) if var else dict()
@@ -207,17 +178,16 @@ class ProductDef(object):
         return s
 
 class RecipeDef(object):
-    def __init__(self, recipe):
-        self.name = recipe.name
-        self.param = recipe.parameters
+    def __init__(self, name, param):
+        self.name = name
+        self.param = param
 
 class ActionRule(object):
-    def __init__(self, rule):
-        self.name = rule.name
-        self.associations = [ AssociationRule(a) 
-                              for a in rule.associations ]
-        self.recipedef = RecipeDef(rule.recipe) if rule.recipe else None
-        self.products = [ ProductDef(p) for p in rule.products ]
+    def __init__(self, name, associations, recipedef, products):
+        self.name = name
+        self.associations = associations
+        self.recipedef = recipedef
+        self.products = products 
 
     def calib(self, var, inputfile = {}):
         ret = dict()
@@ -241,21 +211,39 @@ class ActionRule(object):
         return s
 
 class OcaOrganizer(object):
-    def __init__(self, rules):
-        self.classify = Classificator(rules.classification)
-        self.group = Organizator(rules.grouping)
-        self.action = dict((a.name, ActionRule(a)) for a in rules.actions)
+    def __init__(self, classifications, groups, action):
+        self.classifications = classifications
+        self.groups = groups
+        self.action = dict((a.name, a) for a in action)
+
+    def classify(self, var):
+        for c in self.classifications:
+            c(var)
+
+    def group(self, var):
+        ret = dict()
+        for r in self.groups:
+            for v in r(var):
+                ret.setdefault(r.actionname, list()).append(v)
+        return ret
+
 
     @property
     def keywords(self):
-        s = set(self.classify.keywords).union(self.group.keywords)
+        s = set()
+        for c in self.classifications:
+            s = s.union(c.keywords)
+        for g in self.groups:
+            s = s.union(g.keywords)
         for a in self.action.values():
             s = s.union(a.keywords)
         return s
         
     @property
     def targets(self):
-        s = set(self.classify.targets)
+        s = set()
+        for c in self.classifications:
+            s = s.union(c.keywords)
         for a in self.action.values():
             s = s.union(a.targets)
         return s
