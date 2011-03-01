@@ -38,7 +38,8 @@ class CplAssociationRule(organizer.AssociationRule):
     def __init__(self, organizer, framedef):
         self.organizer = organizer
         self.name = framedef.tag
-        self.cardinality = (max(framedef.min or 0, 0), framedef.max)
+        self.cardinality = (max(framedef.min or 0, 0), 
+                            max(framedef.max or 1, 1))
 
     @property
     def datasource(self):
