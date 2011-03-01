@@ -128,4 +128,36 @@ def order_recipes(recipes, tags):
         recipes.difference_update(newr)
     return newr
 
+# ------------------------------------------------------------------------
 
+if __name__ == "__main__":
+
+    from optparse import OptionParser
+    import cpl
+    from ocawriter import to_oca
+
+    oparser = OptionParser()
+    oparser.add_option('-r', '--path', help = 'MUSE recipe path',
+                       default = '/tmp/musetest')
+    oparser.add_option('-v', '--version', help = 'Use specified MUSE version')
+    oparser.add_option('-o', '--outfile', 
+                       help = 'OCA output file (default: stdout)')
+
+    (opt, filenames) = oparser.parse_args()
+
+    cpl.Recipe.path = opt.path
+    recipes = [ cpl.Recipe(name, version = opt.version) 
+                for name,versions in cpl.Recipe.list() 
+                if opt.version is None or opt.version in versions ]
+
+    for r in recipes:
+        try:
+            r.param.nifu = 0
+        except:
+            pass
+
+    org = CplOrganizer(recipes)
+    if opt.outfile:
+        file(opt.outfile, 'w').write(to_oca(org))
+    else:
+        print to_oca(org)
