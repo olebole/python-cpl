@@ -1,6 +1,78 @@
 import organizer
 
-class CplRules(organizer.OcaOrganizer):
+class CplClassificationRule(organizer.ClassificationRule):
+    def __init__(self, organizer, tag, fitskeyword):
+        self.organizer = organizer
+        self.tag = tag
+        self.fitskeyword = fitskeyword
+
+    @property 
+    def condition(self):
+        return self.organizer.get_tag_condition(self.tag, self.fitskeyword)
+
+    @property
+    def assignments(self):
+        return self.organizer.get_tag_assignment(self.tag)
+
+class CplOrganizationRule(organizer.OrganizationRule):
+    def __init__(self, organizer, recipe, tag):
+        self.organizer = organizer
+        self.recipe = recipe
+        self.tag = tag
+        self.grouping = []
+        self.alias = []
+
+    @property
+    def actionname(self):
+        return self.organizer.get_action_name(self.recipe, self.tag)
+
+    @property
+    def condition(self):
+        return self.organizer.get_tag_condition(self.tag)
+
+    @property
+    def dataset(self):
+        return self.organizer.get_source(self.tag)
+
+class CplAssociationRule(organizer.AssociationRule):
+    def __init__(self, organizer, framedef):
+        self.organizer = organizer
+        self.name = framedef.tag
+        self.cardinality = (max(framedef.min or 0, 0), framedef.max)
+
+    @property
+    def datasource(self):
+        return self.organizer.get_source(self.name)
+
+    @property
+    def condition(self):
+        return self.organizer.get_tag_condition(self.name)
+
+class CplActionRule(organizer.ActionRule):
+    def __init__(self, organizer, recipe, tag):
+        self.parent = organizer
+        self.recipe = recipe
+        self.tag = tag
+        self.associations = [ CplAssociationRule(organizer, c)
+                              for c in self.recipe.calib ]
+        self.organizationrule = CplOrganizationRule(organizer, recipe, tag) 
+
+    @property
+    def name(self):
+        return self.parent.get_action_name(self.recipe, self.tag)
+
+    @property
+    def recipedef(self):
+        return organizer.RecipeDef(self.name, dict((p.name, p.value) 
+                                                   for p in self.recipe.param 
+                                                   if p.value is not None))
+
+    @property
+    def products(self):
+        return [ organizer.ProductDef(p, self.parent.get_tag_assignment(p))
+                 for p in self.recipe.output(self.tag) ]
+
+class CplOrganizer(organizer.OcaOrganizer):
     def __init__(self, recipelist):
         self.external_name = 'externalFiles'
         self.inputs_name = 'inputFiles'
@@ -26,6 +98,19 @@ class CplRules(organizer.OcaOrganizer):
         self.external.difference_update(self.products)
         self.calibs.intersection_update(self.products)
         self.products.difference_update(self.calibs)
+
+        self.action =  dict((self.get_action_name(r, tag), 
+                             CplActionRule(self, r, tag)) 
+                            for r, tag in self.recipes)
+        self.classifications = [ 
+            CplClassificationRule(self, tag, 'OBJECT') 
+            for tag in self.inputs ] + [
+            CplClassificationRule(self, tag, 'DPR.TYPE') 
+            for tag in self.external ]
+            
+    @property
+    def groups(self):
+        return [ a.organizationrule for a in self.action.values() ]
 
     def get_source(self, tag):
         return self.external_name if tag in self.external else \
@@ -55,58 +140,6 @@ class CplRules(organizer.OcaOrganizer):
     def get_action_name(self, recipe, tag):
         return '%s_%s' % (recipe.name.upper(), tag) if len(recipe.tags) > 1 \
             else '%s' % recipe.name.upper()
-
-    @property
-    def classifications(self):
-        return [
-            organizer.ClassificationRule(self.get_tag_condition(tag, 'OBJECT'), 
-                                         self.get_tag_assignment(tag) )
-            for tag in self.inputs ] + [
-            organizer.ClassificationRule(self.get_tag_condition(tag, 'DPR.TYPE'),
-                                         self.get_tag_assignment(tag) )
-            for tag in self.external ]
-    
-    @property
-    def groups(self):
-        return [  organizer.OrganizationRule(self.get_action_name(r, tag), 
-                                               self.get_source(tag), 
-                                               self.get_tag_condition(tag), 
-                                               [], [])
-                  for r, tag in self.recipes ]
-
-    @property
-    def action(self):
-        return dict((self.get_action_name(r, tag), CplActionRule(self, r, tag)) 
-                    for r, tag in self.recipes)
-
-class CplActionRule(organizer.ActionRule):
-    def __init__(self, organizer, recipe, tag):
-        self.parent = organizer
-        self.recipe = recipe
-        self.tag = tag
-
-    @property
-    def name(self):
-        return self.parent.get_action_name(self.recipe, self.tag)
-
-    @property
-    def associations(self):
-        return [ organizer.AssociationRule(c.tag, 
-                                           self.parent.get_source(c.tag), 
-                                           self.parent.get_tag_condition(c.tag),
-                                           (max(c.min or 0, 0), c.max))
-                 for c in self.recipe.calib ]
-
-    @property
-    def recipedef(self):
-        return organizer.RecipeDef(self.name, dict((p.name, p.value) 
-                                                   for p in self.recipe.param 
-                                                   if p.value is not None))
-
-    @property
-    def products(self):
-        return [ organizer.ProductDef(p, self.parent.get_tag_assignment(p))
-                 for p in self.recipe.output(self.tag) ]
 
 def calib_available(recipe, tags):
     for c in recipe.calib:
