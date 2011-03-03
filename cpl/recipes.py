@@ -396,11 +396,19 @@ class Recipe(object):
             os.remove(f)
         if logger is not None:
             os.remove(logger.logfile)
+        bt = os.path.join(recipe_dir, 'recipe.backtrace')
+        if os.path.exists(bt):
+            ex = RecipeCrash(bt)
+            os.remove(bt)
+        else:
+            ex = None
         if self.temp_dir and not self.output_dir:
             try:
                 os.rmdir(recipe_dir)
             except:
                 pass
+        if ex:
+            raise ex
 
     @property
     def __doc__(self):
@@ -523,3 +531,64 @@ class Threaded(threading.Thread):
     def set_maxthreads(n):
         with Threaded.pool_sema:
             Threaded.pool_sema = threading.BoundedSemaphore(n)
+
+class RecipeCrash(StandardError):
+    def __init__(self, fname):
+        self.elements = []
+        current_element = None
+        handler_found = False
+        sourcefiles_found = False
+        sourcefiles = dict()
+        for line in file(fname):
+            if handler_found:
+                if line.startswith('#'):
+                    s = line.split()
+                    if s[3].startswith('Py'):
+                        handler_found = False
+                    else:
+                        try:
+                            current_element = RecipeStackElement(line)
+                            self.elements.append(current_element)
+                        except:
+                            current_element = None
+                elif current_element is not None:
+                    current_element.add(line)
+            elif line.find('signal handler called') >= 0:
+                handler_found = True
+            elif line.startswith('Source files'):
+                sourcefiles_found = True
+            elif sourcefiles_found:
+                sourcefiles.update(dict((os.path.basename(s.strip()), s.strip()) 
+                                        for s in line.split(',') 
+                                        if s.rfind('/') > 0 ))
+        for e in self.elements:
+            e.filename = sourcefiles.get(e.filename, e.filename)
+        self.elements.reverse()
+        StandardError.__init__(self, str(self))
+        
+    def __str__(self):
+        s = 'Recipe Traceback (most recent call last):\n'
+        for e in self.elements:
+            s += '  File "%s", line %i, in %s\n' % ((e.filename), 
+                                                    e.line, e.func)
+            if os.path.exists(e.filename):
+                s += '    %s\n' % file(e.filename).readlines()[e.line-1].strip()
+#        if e.localvars:
+#            s += 'Local variables in %s:\n' % e.func
+#        for name, value in e.localvars.items():
+#            s += '  %s = %s\n' %(name, value)
+        return s
+
+class RecipeStackElement(object):
+    def __init__(self, line):
+        s = line.split()
+        self.filename = s[-1].split(':')[0]
+        self.line = int(s[-1].split(':')[1])
+        self.func = s[3]
+        self.localvars = {}
+
+    def add(self, line):
+        s = line.strip().split('=', 1)
+        if len(s) > 1:
+            self.localvars[s[0].strip()] = s[1].strip()
+

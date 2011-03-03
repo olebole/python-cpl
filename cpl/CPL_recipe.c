@@ -3,6 +3,10 @@
 #include <dlfcn.h>
 #include <sys/wait.h>
 #include <sys/times.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <cpl.h>
 
 #define CPL_version_doc \
@@ -804,6 +808,22 @@ exec_serialize_retval(cpl_frameset *frames, cpl_errorstate prestate, int retval,
     return ptr;
 }
 
+static int segv_handler(int sig) {
+    FILE *fp = fopen("gdb_commands", "w");
+    const char *gdb_commands = "set height 0\nset width 0\nbt full\ninfo sources\n";
+    fprintf(fp, "%s", gdb_commands);
+    fclose(fp);
+  
+    char cmd[100];
+    snprintf(cmd, sizeof(cmd), 
+	     "gdb -batch -x gdb_commands --pid %i > recipe.backtrace 2> /dev/null", 
+	     (int)getpid());
+    system(cmd);
+    unlink("gdb_commands");
+    signal(SIGSEGV, SIG_DFL);
+    return 0;
+}
+
 #define CPL_recipe_exec_doc                                             \
     "Execute with parameters and frames.\n\n"                           \
     "The parameters shall contain an iterable of (name, value) pairs\n" \
@@ -860,6 +880,8 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	if (chdir(dirname) == 0) {
 	    struct tms clock_start;
 	    times(&clock_start);
+	    signal(SIGSEGV, (sighandler_t) segv_handler);
+	    signal(SIGBUS, (sighandler_t) segv_handler);
 	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
 	    times(&clock_end);
 	    clock_end.tms_utime -= clock_start.tms_utime;
