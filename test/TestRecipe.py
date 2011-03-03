@@ -341,6 +341,11 @@ class RecipeExec(RecipeTestCase):
         self.recipe.tag = 'some_unknown_tag'
         self.assertRaises(cpl.CplError, self.recipe, self.raw_frame)
 
+    def test_crash(self):
+        '''Handling of recipe crashes'''
+        self.recipe.param.crashing = True
+        self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
+
     def test_parallel(self):
         '''Parallel execution'''
         results = list()
