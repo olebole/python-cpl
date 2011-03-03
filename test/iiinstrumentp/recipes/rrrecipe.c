@@ -203,6 +203,13 @@ static int rrrecipe_create(cpl_plugin * plugin)
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
  
+    /* --crashing */
+    p = cpl_parameter_new_value("iiinstrument.rrrecipe.crashing", 
+            CPL_TYPE_BOOL, "Crash the recipe?", "iiinstrument.rrrecipe", FALSE);
+    cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "crashing");
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
+    cpl_parameterlist_append(recipe->parameters, p);
+ 
     return 0;
 }
 
@@ -352,6 +359,11 @@ static int rrrecipe(cpl_frameset            * frameset,
                                          "iiinstrument.rrrecipe.range_option");
     double range_option = cpl_parameter_get_double(param);
 
+    /* --crashing */
+    param = cpl_parameterlist_find_const(parlist,
+                                         "iiinstrument.rrrecipe.crashing");
+    int crashing = cpl_parameter_get_bool(param);
+
     if (!cpl_errorstate_is_equal(prestate)) {
         return (int)cpl_error_set_message(cpl_func, cpl_error_get_code(),
                                           "Could not retrieve the input "
@@ -438,6 +450,14 @@ static int rrrecipe(cpl_frameset            * frameset,
 
     cpl_image_delete(image);
     cpl_propertylist_delete(qclist);
+
+    /* Let's see if we can crash the machine by some random code */
+    if (crashing) {
+	cpl_image_delete(image);
+	cpl_propertylist_delete(qclist);
+	double *crashvar = NULL;
+	*crashvar = 1.99;
+    }
 
     return (int)cpl_error_get_code();
 }
