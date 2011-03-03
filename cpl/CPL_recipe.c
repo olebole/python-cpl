@@ -3,6 +3,7 @@
 #include <dlfcn.h>
 #include <sys/wait.h>
 #include <sys/times.h>
+#include <sys/prctl.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -880,6 +881,7 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	if (chdir(dirname) == 0) {
 	    struct tms clock_start;
 	    times(&clock_start);
+	    prctl(PR_SET_PTRACER, getpid(), 0, 0, 0);
 	    signal(SIGSEGV, (sighandler_t) segv_handler);
 	    signal(SIGBUS, (sighandler_t) segv_handler);
 	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
