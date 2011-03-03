@@ -2,7 +2,7 @@ from version import __version__
 import os
 import sys
 
-from recipes import Recipe
+from recipes import Recipe, RecipeCrash
 from parameters import Parameter
 from frames import FrameConfig, Result, CplError
 from log import msg
