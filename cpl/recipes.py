@@ -534,6 +534,8 @@ class Threaded(threading.Thread):
             Threaded.pool_sema = threading.BoundedSemaphore(n)
 
 class RecipeCrash(StandardError):
+    StackElement = collections.namedtuple('StackElement', 
+                                          'filename line func localvars')
     signals = {signal.SIGSEGV:'SIGSEV: Segmentation Fault', 
                signal.SIGBUS:'SIGBUS: Bus Error',
                signal.SIGHUP:'SIGHUP: Hangup',
@@ -557,12 +559,18 @@ class RecipeCrash(StandardError):
                         handler_found = False
                     else:
                         try:
-                            current_element = RecipeStackElement(line)
-                            self.elements.append(current_element)
+                            s = line.split()
+                            filename = s[-1].split(':')[0]
+                            lineno = int(s[-1].split(':')[1])
+                            current_element = RecipeCrash.StackElement(
+                                filename, lineno, s[3], {})
+                            self.elements.insert(0, current_element)
                         except:
                             current_element = None
                 elif current_element is not None:
-                    current_element.add(line)
+                    s = line.strip().split('=', 1)
+                    if len(s) > 1:
+                        current_element.localvars[s[0].strip()] = s[1].strip()
             elif line.find('signal handler called') >= 0:
                 handler_found = True
             elif line.startswith('Source files'):
@@ -571,9 +579,10 @@ class RecipeCrash(StandardError):
                 sourcefiles.update(dict((os.path.basename(s.strip()), s.strip()) 
                                         for s in line.split(',') 
                                         if s.rfind('/') > 0 ))
-        for e in self.elements:
-            e.filename = sourcefiles.get(e.filename, e.filename)
-        self.elements.reverse()
+        self.elements = [ RecipeCrash.StackElement(sourcefiles.get(e.filename, 
+                                                                   e.filename),
+                                                   e.line, e.func, e.localvars) 
+                          for e in self.elements ]
         StandardError.__init__(self, str(self))
         
     def __str__(self):
@@ -585,17 +594,4 @@ class RecipeCrash(StandardError):
                 s += '    %s\n' % file(e.filename).readlines()[e.line-1].strip()
         s += RecipeCrash.signals.get(self.signal, '%s: Unknown' % str(self.signal))
         return s
-
-class RecipeStackElement(object):
-    def __init__(self, line):
-        s = line.split()
-        self.filename = s[-1].split(':')[0]
-        self.line = int(s[-1].split(':')[1])
-        self.func = s[3]
-        self.localvars = {}
-
-    def add(self, line):
-        s = line.strip().split('=', 1)
-        if len(s) > 1:
-            self.localvars[s[0].strip()] = s[1].strip()
 
