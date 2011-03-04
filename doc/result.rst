@@ -134,3 +134,5 @@ CPL Exceptions
 
 .. autoclass:: CplError
 
+.. autoclass:: RecipeCrash
+
