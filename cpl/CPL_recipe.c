@@ -823,7 +823,8 @@ static int segv_handler(int sig) {
     snprintf(cmd, sizeof(cmd), 
 	     "gdb -batch -x gdb_commands --pid %i >> recipe.backtrace 2> /dev/null", 
 	     (int)getpid());
-    system(cmd);
+    int res = system(cmd);
+    res = 0;
     unlink("gdb_commands");
     signal(SIGSEGV, SIG_DFL);
     return 0;
@@ -889,6 +890,10 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	    prctl(PR_SET_PTRACER, getpid(), 0, 0, 0);
 #endif
 	    signal(SIGSEGV, (sighandler_t) segv_handler);
+	    signal(SIGINT, (sighandler_t) segv_handler);
+	    signal(SIGHUP, (sighandler_t) segv_handler);
+	    signal(SIGFPE, (sighandler_t) segv_handler);
+	    signal(SIGQUIT, (sighandler_t) segv_handler);
 	    signal(SIGBUS, (sighandler_t) segv_handler);
 	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
 	    times(&clock_end);
