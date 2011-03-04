@@ -558,7 +558,7 @@ class RecipeCrash(StandardError):
 
        .. attribute:: filename
  
-          Source file name, including full path, iv available.
+          Source file name, including full path, if available.
 
        .. attribute:: line
 
