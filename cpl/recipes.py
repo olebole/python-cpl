@@ -584,6 +584,7 @@ class RecipeCrash(StandardError):
     signals = {signal.SIGSEGV:'SIGSEV: Segmentation Fault', 
                signal.SIGBUS:'SIGBUS: Bus Error',
                signal.SIGHUP:'SIGHUP: Hangup',
+               signal.SIGABRT:'SIGABRT: Abnormal process termination',
                signal.SIGQUIT:'SIGQUIT: Quit',
                signal.SIGFPE:'SIGFPE: Arithmetic Exception',
                signal.SIGINT:'SIGINT: Interrupt'}

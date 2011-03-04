@@ -895,6 +895,7 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	    signal(SIGFPE, (sighandler_t) segv_handler);
 	    signal(SIGQUIT, (sighandler_t) segv_handler);
 	    signal(SIGBUS, (sighandler_t) segv_handler);
+	    signal(SIGABRT, (sighandler_t) segv_handler);
 	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
 	    times(&clock_end);
 	    clock_end.tms_utime -= clock_start.tms_utime;
