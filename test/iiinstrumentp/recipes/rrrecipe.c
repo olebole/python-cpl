@@ -333,6 +333,7 @@ static int rrrecipe(cpl_frameset            * frameset,
     param = cpl_parameterlist_find_const(parlist,
                                          "iiinstrument.rrrecipe.string_option");
     const char *str_option = cpl_parameter_get_string(param);
+    cpl_ensure_code(str_option != NULL, CPL_ERROR_NULL_INPUT);
 
     /* --boolopt */
     param = cpl_parameterlist_find_const(parlist,
