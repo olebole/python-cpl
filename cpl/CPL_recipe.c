@@ -624,9 +624,13 @@ clear_parameters(cpl_parameterlist *parameters) {
     while (par != NULL) {
 	cpl_type type = cpl_parameter_get_type(par);
 	switch(type) {
-	    case CPL_TYPE_STRING:
-		cpl_parameter_set_string(par, 
-					 cpl_parameter_get_default_string(par));
+	    case CPL_TYPE_STRING: {
+		const char *default_value = cpl_parameter_get_default_string(par);
+		if (default_value == NULL) {
+		    default_value = "";
+		}
+		cpl_parameter_set_string(par, default_value);
+	    }
 		break;
 	    case CPL_TYPE_INT:
 		cpl_parameter_set_int(par, 
