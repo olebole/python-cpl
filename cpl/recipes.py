@@ -2,6 +2,7 @@ import os
 import tempfile
 import threading
 import collections
+import signal
 
 import pyfits
 import CPL_recipe
@@ -533,14 +534,23 @@ class Threaded(threading.Thread):
             Threaded.pool_sema = threading.BoundedSemaphore(n)
 
 class RecipeCrash(StandardError):
+    signals = {signal.SIGSEGV:'SIGSEV: Segmentation Fault', 
+               signal.SIGBUS:'SIGBUS: Bus Error',
+               signal.SIGHUP:'SIGHUP: Hangup',
+               signal.SIGQUIT:'SIGQUIT: Quit',
+               signal.SIGFPE:'SIGFPE: Arithmetic Exception',
+               signal.SIGINT:'SIGINT: Interrupt'}
     def __init__(self, fname):
         self.elements = []
         current_element = None
         handler_found = False
         sourcefiles_found = False
         sourcefiles = dict()
+        self.signal = None
         for line in file(fname):
-            if handler_found:
+            if line.startswith('Received signal:'):
+                self.signal = int(line.split(':')[1])
+            elif handler_found:
                 if line.startswith('#'):
                     s = line.split()
                     if s[3].startswith('Py'):
@@ -573,10 +583,7 @@ class RecipeCrash(StandardError):
                                                     e.line, e.func)
             if os.path.exists(e.filename):
                 s += '    %s\n' % file(e.filename).readlines()[e.line-1].strip()
-#        if e.localvars:
-#            s += 'Local variables in %s:\n' % e.func
-#        for name, value in e.localvars.items():
-#            s += '  %s = %s\n' %(name, value)
+        s += RecipeCrash.signals.get(self.signal, '%s: Unknown' % str(self.signal))
         return s
 
 class RecipeStackElement(object):

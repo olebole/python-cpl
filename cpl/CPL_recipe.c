@@ -815,9 +815,13 @@ static int segv_handler(int sig) {
     fprintf(fp, "%s", gdb_commands);
     fclose(fp);
   
+    fp = fopen("recipe.backtrace", "w");
+    fprintf(fp, "Received signal: %i\n", sig);
+    fclose(fp);
+  
     char cmd[100];
     snprintf(cmd, sizeof(cmd), 
-	     "gdb -batch -x gdb_commands --pid %i > recipe.backtrace 2> /dev/null", 
+	     "gdb -batch -x gdb_commands --pid %i >> recipe.backtrace 2> /dev/null", 
 	     (int)getpid());
     system(cmd);
     unlink("gdb_commands");
