@@ -451,7 +451,7 @@ static int rrrecipe(cpl_frameset            * frameset,
     }
 
     if (!cpl_errorstate_is_equal(prestate)) {
-	cpl_errorstate_set(prestate); /* ignore the error */
+	cpl_msg_error(__func__, "in cpl_dfs_save_image()");
     }
 
     cpl_image_delete(image);
