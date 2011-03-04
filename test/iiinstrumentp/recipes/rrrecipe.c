@@ -438,6 +438,8 @@ static int rrrecipe(cpl_frameset            * frameset,
     }
     cpl_propertylist_append_double(qclist, "ESO QC RANGEOPT", range_option);
 
+    prestate = cpl_errorstate_get();
+
     /* HOW TO SAVE A DFS-COMPLIANT PRODUCT TO DISK  */
     if (cpl_dfs_save_image(frameset, NULL, parlist, frameset, NULL, image,
                            CPL_BPP_IEEE_FLOAT, 
@@ -446,6 +448,10 @@ static int rrrecipe(cpl_frameset            * frameset,
                            "rrrecipe.fits")) {
         /* Propagate the error */
         (void)cpl_error_set_where(cpl_func);
+    }
+
+    if (!cpl_errorstate_is_equal(prestate)) {
+	cpl_errorstate_set(prestate); /* ignore the error */
     }
 
     cpl_image_delete(image);
