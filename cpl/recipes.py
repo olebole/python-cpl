@@ -534,6 +534,51 @@ class Threaded(threading.Thread):
             Threaded.pool_sema = threading.BoundedSemaphore(n)
 
 class RecipeCrash(StandardError):
+    '''Recipe crash exception
+
+    If the CPL recipe crashes with a SIGSEV or a SIGBUS, the C stack trace is
+    tried to conserved in this exception. The stack trace is obtained with the
+    GNU debugger gdb. If the debugger is not available, or if the debugger
+    cannot be attached to the crashed recipe, the Exception remains empty.
+
+    When converted to a string, the Exception will return a stack trace
+    similar to the Python stack trace.
+
+    The exception is raised on recipe invocation, or when accessing the result
+    frames if the recipe was started in background
+    (:attr:`cpl.Recipe.threaded` set to :attr:`True`).
+
+    Attributes:
+
+    .. attribute:: elements
+
+       List of stack elements, with the most recent element (the one that
+       caused the crash) at the end. Each stack element is a 
+       :class:`collections.namedtuple` with the following attributes:
+
+       .. attribute:: filename
+ 
+          Source file name, including full path, iv available.
+
+       .. attribute:: line
+
+          Line number, if available
+
+       .. attribute:: func
+
+          Function name, if available
+
+       .. attribute:: localvars
+
+          Dictionary of local variables set in the function, if available. 
+          The key here is the parameter name, the value is a string describing the
+          value set. 
+
+    .. attribute:: signal
+
+       Signal that caused the crash.
+    '''
+
     StackElement = collections.namedtuple('StackElement', 
                                           'filename line func localvars')
     signals = {signal.SIGSEGV:'SIGSEV: Segmentation Fault', 
