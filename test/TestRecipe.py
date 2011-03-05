@@ -1,6 +1,9 @@
-import unittest
 import logging
 import os
+import shutil
+import tempfile
+import unittest
+
 import numpy
 import pyfits
 import cpl
@@ -13,7 +16,7 @@ class RecipeTestCase(CplTestCase):
     def setUp(self):
         CplTestCase.setUp(self)
         self.recipe = cpl.Recipe('rrrecipe')
-        self.recipe.temp_dir = '/tmp'
+        self.recipe.temp_dir = tempfile.mkdtemp()
         self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
         self.image_size = (1024, 1024)
         self.raw_frame = pyfits.HDUList([
@@ -22,6 +25,9 @@ class RecipeTestCase(CplTestCase):
         self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
         self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', 
                                         'RRRECIPE_DOCATG_RAW')
+
+    def tearDown(self):
+        shutil.rmtree(self.recipe.temp_dir)
 
 class RecipeStatic(CplTestCase):
     def test_list(self):
