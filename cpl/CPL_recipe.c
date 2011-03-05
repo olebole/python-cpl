@@ -897,6 +897,9 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 #ifdef PR_SET_PTRACER
 	    prctl(PR_SET_PTRACER, getpid(), 0, 0, 0);
 #endif
+#ifdef PR_SET_NAME
+	    prctl(PR_SET_NAME, cpl_plugin_get_name(self->plugin), 0, 0, 0);
+#endif
 	    signal(SIGSEGV, (sighandler_t) segv_handler);
 	    signal(SIGINT, (sighandler_t) segv_handler);
 	    signal(SIGHUP, (sighandler_t) segv_handler);
