@@ -3,11 +3,15 @@
 #include <dlfcn.h>
 #include <sys/wait.h>
 #include <sys/times.h>
-#include <sys/prctl.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef linux
+#include <sys/prctl.h>
+#endif
+
 #include <cpl.h>
 
 #define CPL_version_doc \
