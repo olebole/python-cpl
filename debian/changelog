@@ -1,3 +1,13 @@
+python-cpl (0.3.3-1~$DISTRIB1) $DISTRIB; urgency=low
+
+  * Implement stacktracing on recipe crashing
+  * Set recipe name as process name (Linux only)
+  * Allow the parameters "param={'par':value, ...}, calib={'TAG1':frames}" 
+    additionally to "param_par=value, calib_TAG1=frames" in the recipe
+    execution.
+
+ -- Ole Streicher <python-cpl@liska.ath.cx>  Mon, 07 Mar 2011 12:25:00 +0100
+
 python-cpl (0.3.2-2) maverick; urgency=low
 
   * Fix log level filter
