@@ -53,23 +53,32 @@ AC_DEFUN([ESO_ENABLE_DEBUG],
 
     if test x"$eso_cv_enable_debug" = xyes; then
 
-        eso_clean_CFLAGS="`echo $CFLAGS | sed -e 's/-O[[1-9]]//g' \
-                                               -e 's/-O//g'`"
+        eso_clean_CFLAGS="`echo $CFLAGS | sed -e 's/-O[[0-9]]//g' \
+                                              -e 's/-g[[0-9]]//g' \
+                                              -e 's/-g[[a-z,A-Z]]* / /g' \
+                                              -e 's/-[[Og]]//g'`"
 
-        if test x"$ac_cv_prog_cc_g" = xyes; then
-            eso_clean_CFLAGS="`echo $eso_clean_CFLAGS | sed -e 's/-g//g'`"
-            CFLAGS="-g"
+        ESO_PROG_CC_FLAG([g3], [CFLAGS="$CFLAGS -g3"])
+
+        if test x"$eso_cv_prog_cc_g3" = xyes; then
+            CFLAGS="-g3"
         else
-            CFLAGS=""
+            if test x"$ac_cv_prog_cc_g" = xyes; then
+                CFLAGS="-g"
+            else
+                CFLAGS=""
+            fi
         fi
 
+        ESO_PROG_CC_FLAG([ggdb], [CFLAGS="$CFLAGS -ggdb"])
+        ESO_PROG_CC_FLAG([O0], [CFLAGS="$CFLAGS -O0"])
+        ESO_PROG_CC_FLAG([rdynamic], [CFLAGS="$CFLAGS -rdynamic"])
         ESO_PROG_CC_FLAG([Wall], [CFLAGS="$CFLAGS -Wall"])
         ESO_PROG_CC_FLAG([W], [CFLAGS="$CFLAGS -W"])
 
         CFLAGS="$CFLAGS $eso_clean_CFLAGS"
         ESO_DEBUG_FLAGS="-DESO_ENABLE_DEBUG"
     else
-        CFLAGS="`echo $CFLAGS | sed -e 's/-g//g'`"
         ESO_DEBUG_FLAGS="-DNDEBUG"
     fi
 
@@ -92,10 +101,37 @@ AC_DEFUN([ESO_ENABLE_STRICT],
                    eso_cv_enable_strict,
                    eso_cv_enable_strict=$eso_enable_strict)
 
- 
+
     if test x"$eso_cv_enable_strict" = xyes; then
-        ESO_PROG_CC_FLAG([ansi], [CFLAGS="$CFLAGS -ansi"])
+        ESO_PROG_CC_FLAG([std=c99], [CFLAGS="$CFLAGS -std=c99"])
         ESO_PROG_CC_FLAG([pedantic], [CFLAGS="$CFLAGS -pedantic"])
+    fi
+])
+
+
+# ESO_ENABLE_PROFILE(profile=no)
+#-----------------------------
+AC_DEFUN([ESO_ENABLE_PROFILE],
+[
+    AC_REQUIRE([AC_PROG_CC])
+
+    AC_ARG_ENABLE(profile,
+                  AC_HELP_STRING([--enable-profile],
+                                 [compiles with compiler options necessary for profiling (may not work!) [[default=$1]]]),
+                  eso_enable_profile=$enableval, eso_enable_profile=$1)
+
+    AC_CACHE_CHECK([whether profiling compiler options should be used],
+                   eso_cv_enable_profile,
+                   eso_cv_enable_profile=$eso_enable_profile)
+
+
+    if test x"$eso_cv_enable_profile" = xyes; then
+        ESO_PROG_CC_FLAG([pg], [CFLAGS="$CFLAGS -pg"])
+        ESO_PROG_CC_FLAG([g], [CFLAGS="$CFLAGS -g"])
+        ESO_PROG_CC_FLAG([static-libgcc], [CFLAGS="$CFLAGS -static-libgcc"])
+
+        AC_ENABLE_SHARED(no)
+        AC_ENABLE_STATIC(yes)
     fi
 ])
 
@@ -111,7 +147,7 @@ AC_DEFUN([ESO_CHECK_DOCTOOLS],
     AC_PATH_PROG([LATEX], [latex])
 
 
-    if test -z "${DOXYGEN}"; then 
+    if test -z "${DOXYGEN}"; then
         DOXYGEN=":"
     fi
 
@@ -144,12 +180,12 @@ AC_DEFUN([ESO_CHECK_EXTRA_LIBS],
 
     AC_ARG_WITH(extra-includes,
                 AC_HELP_STRING([--with-extra-includes=DIR],
-                               [adds non standard include paths]), 
+                               [adds non standard include paths]),
                 eso_with_extra_includes=$withval, eso_with_extra_includes=NONE)
 
     AC_ARG_WITH(extra-libs,
                 AC_HELP_STRING([--with-extra-libs=DIR],
-                              [adds non standard library paths]), 
+                              [adds non standard library paths]),
                 eso_with_extra_libs=$withval, eso_with_extra_libs=NONE)
 
     AC_MSG_CHECKING([for extra includes])
@@ -193,9 +229,79 @@ AC_DEFUN([ESO_CHECK_EXTRA_LIBS],
         AC_MSG_RESULT(no)
     fi
 
-    AC_SUBST(EXTRA_INCLUDES)
-    AC_SUBST(EXTRA_LDFLAGS)
+])
 
+
+# ESO_CHECK_THREADS_POSIX
+#------------------------
+# Check whether the POSIX threads are available. The cached result is
+# set to 'yes' if either the compiler supports the '-pthread' flag, or linking
+# with the POSIX thread library works, and the header file defining the POSIX
+# threads symbols is present. If POSIX threads are not supported, the
+# result is set to 'no'. Whether the compiler supports POSIX threads,
+# or whether the library, and the header are available is stored in cache
+# variables.  
+AC_DEFUN([ESO_CHECK_THREADS_POSIX],
+[
+    AC_REQUIRE([AC_PROG_CC])
+
+    ESO_PROG_CC_FLAG([pthread], [], [])
+    
+    AC_CHECK_LIB([pthread], [pthread_create],
+                 [eso_threads_have_libpthread=yes],
+                 [eso_threads_have_libpthread=no])
+
+    AC_CHECK_HEADER([pthread.h],
+                    [eso_threads_have_pthread_h=yes],
+                    [eso_threads_have_pthread_h=no])
+
+    if test x"$eso_threads_have_pthread_h" != xyes; then
+        eso_threads_posix=no
+    else
+        if test x"$eso_threads_have_libpthread" != xyes && \
+          test x"$eso_cv_prog_cc_pthread" != xyes; then
+            eso_threads_posix=no
+        else
+            eso_threads_posix=yes
+        fi
+    fi
+    
+    
+    # Setup the POSIX thread symbols
+
+    if test x"$eso_threads_have_pthread_h" = xyes; then
+        AC_DEFINE([HAVE_PTHREAD_H], [1],
+                  [Define to 1 if you have <pthread.h>.])
+    fi
+    
+    if test x"$eso_threads_posix" = xyes; then
+    
+        if test x"$eso_cv_prog_cc_pthread" = xyes; then
+            PTHREAD_CFLAGS="-pthread"
+        else
+            PTHREAD_CFLAGS=""
+        fi
+        
+        if test x"$eso_threads_have_libpthread" = xyes; then
+            LIBPTHREAD="-lpthread"
+        else
+            LIBPTHREAD=""
+        fi
+        
+    fi  
+
+    AC_CACHE_VAL(eso_cv_threads_posix_header,
+                 eso_cv_threads_posix_header=$eso_threads_have_pthread_h)          
+    AC_CACHE_VAL(eso_cv_threads_posix_lib,
+                 eso_cv_threads_posix_lib=$eso_threads_have_libpthread)          
+    AC_CACHE_VAL(eso_cv_threads_posix_flags,
+                 eso_cv_threads_posix_flags=$eso_cv_prog_cc_pthread)          
+    AC_CACHE_VAL(eso_cv_threads_posix,
+                 eso_cv_threads_posix=$eso_threads_posix)
+
+    AC_SUBST(PTHREAD_CFLAGS)
+    AC_SUBST(LIBPTHREAD)
+    
 ])
 
 
@@ -204,8 +310,10 @@ AC_DEFUN([ESO_CHECK_EXTRA_LIBS],
 # Checks whether a function is available and declared.
 AC_DEFUN([ESO_CHECK_FUNC],
 [
-    
+
     AC_LANG_PUSH(C)
+
+    AC_CHECK_DECL($1, [], [], [$2])
 
     eso_save_CFLAGS="$CFLAGS"
 
@@ -214,7 +322,6 @@ AC_DEFUN([ESO_CHECK_FUNC],
     fi
 
     AC_CHECK_FUNC($1)
-    AC_CHECK_DECL($1, [], [], [$2])
 
     CFLAGS="$eso_save_CFLAGS"
 
@@ -244,7 +351,7 @@ AC_DEFUN([ESO_FUNC_VSNPRINTF_C99],
 
                        eso_cppflags_save="$CPPFLAGS"
                        eso_cflags_save="$CFLAGS"
-                       eso_ld_flags_save="$LDFLAGS"
+                       eso_ldflags_save="$LDFLAGS"
                        eso_libs_save="$LIBS"
 
                       if test x$GCC = xyes; then
@@ -252,8 +359,9 @@ AC_DEFUN([ESO_FUNC_VSNPRINTF_C99],
                           CPPFLAGS="$CPPFLAGS $CFLAGS"
                       fi
 
-                       AC_TRY_RUN([
+                       AC_RUN_IFELSE([[
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 
 int
@@ -277,13 +385,13 @@ doit(char * s, ...)
 int
 main(void)
 {
-    doit("1234567");
+    doit((char*)"1234567");
     exit(1);
 }
-                                  ], 
-                                  eso_cv_func_vsnprintf_c99=yes,
-                                  eso_cv_func_vsnprintf_c99=no,
-                                  eso_cv_func_vsnprintf_c99=no)
+                                     ]],
+                                     eso_cv_func_vsnprintf_c99=yes,
+                                     eso_cv_func_vsnprintf_c99=no,
+                                     eso_cv_func_vsnprintf_c99=no)
 
                        CPPFLAGS="$eso_cppflags_save"
                        CFLAGS="$eso_cflags_save"
@@ -317,7 +425,7 @@ AC_DEFUN([ESO_CHECK_PRINTF_FORMATS],
                 [Define if printf outputs `(null)' when printing NULL using
                  `%s'])
 
-    AC_TRY_RUN([
+    AC_RUN_IFELSE([[
 #include <stdio.h>
 #include <string.h>
 
@@ -328,11 +436,11 @@ int main()
     sprintf(s, "%s", NULL);
     return strncmp(s, "(null)", 6) ? 1 : 0;
 }
-               ],
-               eso_have_printf_str_format_null=yes,
-               eso_have_printf_str_format_null=no,
-               eso_have_printf_str_format_null=no
-              )
+                  ]],
+                  eso_have_printf_str_format_null=yes,
+                  eso_have_printf_str_format_null=no,
+                  eso_have_printf_str_format_null=no
+                 )
 
     if test x$eso_have_printf_str_format_null = xyes; then
         AC_DEFINE(HAVE_PRINTF_STR_FMT_NULL)
@@ -345,7 +453,7 @@ int main()
                 [Define if printf outputs `(nil)' when printing NULL using
                  `%p'])
 
-    AC_TRY_RUN([
+    AC_RUN_IFELSE([[
 #include <stdio.h>
 #include <string.h>
 
@@ -356,11 +464,11 @@ int main()
     sprintf(s, "%p", NULL);
     return strncmp(s, "(nil)", 5) ? 1 : 0;
 }
-               ],
-               eso_have_printf_ptr_format_nil=yes,
-               eso_have_printf_ptr_format_nil=no,
-               eso_have_printf_ptr_format_nil=no
-              )
+                  ]],
+                  eso_have_printf_ptr_format_nil=yes,
+                  eso_have_printf_ptr_format_nil=no,
+                  eso_have_printf_ptr_format_nil=no
+                 )
 
     if test x$eso_have_printf_ptr_format_nil = xyes; then
         AC_DEFINE(HAVE_PRINTF_PTR_FMT_NIL)
@@ -373,7 +481,7 @@ int main()
                 [Define if printf format `%p' produces the same output as
                  `%#x' or `%#lx'])
 
-    AC_TRY_RUN([
+    AC_RUN_IFELSE([[
 #include <stdio.h>
 #include <string.h>
 
@@ -385,11 +493,11 @@ int main()
     sprintf(s2, "%#x", s1);
     return strncmp(s1, s2, 3) ? 1 : 0;
 }
-               ],
-               eso_have_printf_ptr_format_alternate=yes,
-               eso_have_printf_ptr_format_alternate=no,
-               eso_have_printf_ptr_format_alternate=no
-              )
+                  ]],
+                  eso_have_printf_ptr_format_alternate=yes,
+                  eso_have_printf_ptr_format_alternate=no,
+                  eso_have_printf_ptr_format_alternate=no
+                 )
 
     if test x$eso_have_printf_ptr_format_alternate = xyes; then
         AC_DEFINE(HAVE_PRINTF_PTR_FMT_ALTERNATE)
@@ -402,7 +510,7 @@ int main()
                 [Define if printf treats pointers as signed when using a sign
                  flag])
 
-    AC_TRY_RUN([
+    AC_RUN_IFELSE([[
 #include <stdio.h>
 
 int main()
@@ -412,11 +520,11 @@ int main()
     sprintf(s, "%+p", s);
     return s[0] == '+' ? 0 : 1;
 }
-               ],
-               eso_have_printf_ptr_format_signed=yes,
-               eso_have_printf_ptr_format_signed=no,
-               eso_have_printf_ptr_format_signed=no
-              )
+                  ]],
+                  eso_have_printf_ptr_format_signed=yes,
+                  eso_have_printf_ptr_format_signed=no,
+                  eso_have_printf_ptr_format_signed=no
+                 )
 
     if test x$eso_have_printf_ptr_format_signed = xyes; then
         AC_DEFINE(HAVE_PRINTF_PTR_FMT_SIGNED)
@@ -430,7 +538,7 @@ int main()
                 [Define if printf default precision for format `g' is 1
                  (ISO C standard) or 6])
 
-    AC_TRY_RUN([
+    AC_RUN_IFELSE([[
 #include <stdio.h>
 
 int main()
@@ -442,11 +550,11 @@ int main()
     sprintf(s2, "%.1g%n", 1.123456, &n2);
     return n1 > n2 ? 1 : 0;
 }
-               ],
-               eso_have_printf_flt_format_g_std=yes,
-               eso_have_printf_flt_format_g_std=no,
-               eso_have_printf_flt_format_g_std=no
-              )
+                  ]],
+                  eso_have_printf_flt_format_g_std=yes,
+                  eso_have_printf_flt_format_g_std=no,
+                  eso_have_printf_flt_format_g_std=no
+                 )
 
     if test x$eso_have_printf_flt_format_g_std = xyes; then
         AC_DEFINE(HAVE_PRINTF_FLT_FMT_G_STD)
@@ -465,11 +573,14 @@ AC_DEFUN([ESO_FUNC_VSNPRINTF],
 
     AH_TEMPLATE([HAVE_VSNPRINTF],
                 [Define if you have the `vsnprintf' function])
-    ESO_CHECK_FUNC(vsnprintf, [#include <stdio.h>], HAVE_VSNPRINTF)
+    ESO_CHECK_FUNC(vsnprintf, [
+#include <stdio.h>
+#include <stdarg.h>
+                              ], HAVE_VSNPRINTF)
 
     if test x$ac_cv_func_vsnprintf = xyes &&
        test x$ac_cv_have_decl_vsnprintf = xyes; then
-  
+
         ESO_FUNC_VSNPRINTF_C99
 
         if test x$eso_cv_func_vsnprintf_c99 != xyes; then
@@ -479,7 +590,7 @@ AC_DEFUN([ESO_FUNC_VSNPRINTF],
     else
         eso_compile_snprintf=yes
     fi
-            
+
     if test x$eso_compile_snprintf = xyes; then
         if test -n "$LIBTOOL"; then
             SNPRINTF=snprintf.lo
@@ -510,7 +621,10 @@ AC_DEFUN([ESO_FUNC_VASPRINTF],
 
     AH_TEMPLATE([HAVE_VASPRINTF],
                 [Define if you have the `vasprintf' function])
-    ESO_CHECK_FUNC(vasprintf, [#include <stdio.h>], HAVE_VASPRINTF)
+    ESO_CHECK_FUNC(vasprintf, [
+#include <stdio.h>
+#include <stdarg.h>
+                              ], HAVE_VASPRINTF)
 
 ])
 
@@ -624,7 +738,7 @@ AC_DEFUN([ESO_FUNC_STRDUP],
 
     AH_BOTTOM([
 #ifndef HAVE_STRDUP
-#  define strdup  pil_strdup
+#  define strdup  cx_strdup
 #endif
               ])
 ])
@@ -702,7 +816,7 @@ AC_DEFUN([ESO_FUNC_VA_COPY],
     # gcc since version 3.0.
     AC_CACHE_CHECK([for an implementation of va_copy()], eso_cv_have_va_copy,
                    [
-                       AC_TRY_RUN([
+                       AC_RUN_IFELSE([
 #include <stdarg.h>
 
 void f(int i, ...)
@@ -722,10 +836,10 @@ int main() {
   f(0, 42);
   return 0;
 }
-                                  ],
-                                  eso_cv_have_va_copy=yes,
-                                  eso_cv_have_va_copy=no,
-                                  eso_cv_have_va_copy=no)
+                                     ],
+                                     eso_cv_have_va_copy=yes,
+                                     eso_cv_have_va_copy=no,
+                                     eso_cv_have_va_copy=no)
                    ])
 
 
@@ -734,7 +848,7 @@ int main() {
     AC_CACHE_CHECK([for an implementation of __va_copy()],
                    eso_cv_have__va_copy,
                    [
-                       AC_TRY_RUN([
+                       AC_RUN_IFELSE([
 #include <stdarg.h>
 
 void f(int i, ...)
@@ -756,10 +870,10 @@ int main()
     f(0, 42);
     return 0;
 }
-                                  ],
-                                  eso_cv_have__va_copy=yes,
-                                  eso_cv_have__va_copy=no,
-                                  eso_cv_have__va_copy=no)
+                                     ],
+                                     eso_cv_have__va_copy=yes,
+                                     eso_cv_have__va_copy=no,
+                                     eso_cv_have__va_copy=no)
 
                    ])
 
@@ -776,7 +890,7 @@ int main()
                  function.])
     AH_TEMPLATE([$1], [A `va_copy()' style function])
 
-    if test -n "x$eso_func_va_copy"; then
+    if test -n "$eso_func_va_copy"; then
         AC_DEFINE_UNQUOTED([$1], $eso_func_va_copy)
         AC_DEFINE(HAVE_VA_COPY)
     fi
@@ -785,7 +899,7 @@ int main()
     AC_CACHE_CHECK([whether va_lists can be copied by value],
                    eso_cv_have_va_value_copy,
                    [
-                       AC_TRY_RUN([
+                       AC_RUN_IFELSE([
 #include <stdarg.h>
 
 void f(int i, ...)
@@ -806,10 +920,10 @@ int main()
   f(0, 42);
   return 0;
 }
-                                  ],
-                                  eso_cv_have_va_value_copy=yes,
-                                  eso_cv_have_va_val_copy=no,
-                                  eso_cv_have_va_val_copy=no)
+                                     ],
+                                     eso_cv_have_va_value_copy=yes,
+                                     eso_cv_have_va_val_copy=no,
+                                     eso_cv_have_va_val_copy=no)
                    ])
 
     AH_TEMPLATE([HAVE_VA_LIST_COPY_BY_VALUE],
@@ -820,7 +934,7 @@ int main()
 
 ])
 
- 
+
 # ESO_FUNC_REALLOC_SANITY
 #-------------------------
 # Check whether realloc(NULL,) works.
@@ -829,17 +943,17 @@ AC_DEFUN([ESO_FUNC_REALLOC_SANITY],
     AC_CACHE_CHECK([whether realloc(NULL,) works],
                    eso_cv_have_sane_realloc,
                    [
-                       AC_TRY_RUN([
+                       AC_RUN_IFELSE([
 #include <stdlib.h>
 
 int main()
 {
     return realloc (0, sizeof (int)) == 0;
 }
-                                  ],
-                                  eso_cv_have_sane_realloc=yes,
-                                  eso_cv_have_sane_realloc=no,
-                                  eso_cv_have_sane_realloc=no)
+                                     ],
+                                     eso_cv_have_sane_realloc=yes,
+                                     eso_cv_have_sane_realloc=no,
+                                     eso_cv_have_sane_realloc=no)
                    ])
 
     AH_TEMPLATE([HAVE_WORKING_REALLOC],
