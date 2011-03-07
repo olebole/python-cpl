@@ -9,6 +9,11 @@ cpl_version = vline.split('(', 1)[1].split('-')[0]
 cpl_release = vline.split('(', 1)[1].split('-')[1].split(')')[0]
 
 module = 'cpl'
+
+vfile = open(os.path.join(module) + 'version.py', 'w')
+vfile.write("__version__ = '%s'\n" % cpl_version)
+vfile.close()
+
 files = fnmatch.filter(os.listdir(module), '*.py') + ['CPL_recipe.c']
 
 # 1. build common tar file

@@ -1,3 +1,9 @@
+python-cpl (0.3.3-2~$DISTRIB1) $DISTRIB; urgency=low
+
+  * Fix version number
+
+ -- Ole Streicher <python-cpl@liska.ath.cx>  Mon, 07 Mar 2011 13:33:00 +0100
+
 python-cpl (0.3.3-1~$DISTRIB1) $DISTRIB; urgency=low
 
   * Implement stacktracing on recipe crashing
