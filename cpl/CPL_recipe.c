@@ -10,6 +10,7 @@
 
 #ifdef linux
 #include <sys/prctl.h>
+#define HAVE_PRCTL
 #endif
 
 #include <cpl.h>
@@ -838,6 +839,36 @@ static int segv_handler(int sig) {
     return 0;
 }
 
+static void setup_tracing(CPL_recipe *self) {
+
+#ifdef HAVE_PRCTL
+#ifdef PR_SET_PTRACER
+/* Sets the top of the process tree that is allowed to use PTRACE on the
+   calling process */
+    prctl(PR_SET_PTRACER, getpid(), 0, 0, 0);
+#endif
+#ifdef PR_SET_NAME
+/*  Set  the  process  name  for  the  calling  process */
+    prctl(PR_SET_NAME, cpl_plugin_get_name(self->plugin), 0, 0, 0);
+#endif
+#endif
+
+/* When MALLOC_CHECK_ is set (Linux libc >5.4.23, glibc 2.x), a special
+   implementation of malloc() is used which is designed to be tolerant against
+   simple errors, such as double calls of free() with the same argument, or
+   overruns of a single byte (off-by-one bugs). If MALLOC_CHECK_ is set to 2,
+   abort(3) is called immediately */
+    setenv("MALLOC_CHECK_", "2", 0);
+
+    signal(SIGSEGV, (sighandler_t) segv_handler);
+    signal(SIGINT, (sighandler_t) segv_handler);
+    signal(SIGHUP, (sighandler_t) segv_handler);
+    signal(SIGFPE, (sighandler_t) segv_handler);
+    signal(SIGQUIT, (sighandler_t) segv_handler);
+    signal(SIGBUS, (sighandler_t) segv_handler);
+    signal(SIGABRT, (sighandler_t) segv_handler);
+}
+
 #define CPL_recipe_exec_doc                                             \
     "Execute with parameters and frames.\n\n"                           \
     "The parameters shall contain an iterable of (name, value) pairs\n" \
@@ -894,19 +925,7 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	if (chdir(dirname) == 0) {
 	    struct tms clock_start;
 	    times(&clock_start);
-#ifdef PR_SET_PTRACER
-	    prctl(PR_SET_PTRACER, getpid(), 0, 0, 0);
-#endif
-#ifdef PR_SET_NAME
-	    prctl(PR_SET_NAME, cpl_plugin_get_name(self->plugin), 0, 0, 0);
-#endif
-	    signal(SIGSEGV, (sighandler_t) segv_handler);
-	    signal(SIGINT, (sighandler_t) segv_handler);
-	    signal(SIGHUP, (sighandler_t) segv_handler);
-	    signal(SIGFPE, (sighandler_t) segv_handler);
-	    signal(SIGQUIT, (sighandler_t) segv_handler);
-	    signal(SIGBUS, (sighandler_t) segv_handler);
-	    signal(SIGABRT, (sighandler_t) segv_handler);
+	    setup_tracing(self);
 	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
 	    times(&clock_end);
 	    clock_end.tms_utime -= clock_start.tms_utime;
