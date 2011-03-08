@@ -568,11 +568,16 @@ class RecipeCrash(StandardError):
 
           Function name, if available
 
+       .. attribute:: params
+
+          Dictionary parameters the function was called with.  The key here is
+          the parameter name, the value is a string describing the value set.
+
        .. attribute:: localvars
 
-          Dictionary of local variables set in the function, if available. 
-          The key here is the parameter name, the value is a string describing the
-          value set. 
+          Dictionary of local variables of the function, if available.  The
+          key here is the parameter name, the value is a string describing the
+          value set.
 
     .. attribute:: signal
 
