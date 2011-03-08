@@ -819,21 +819,19 @@ exec_serialize_retval(cpl_frameset *frames, cpl_errorstate prestate, int retval,
 }
 
 static int segv_handler(int sig) {
-    FILE *fp = fopen("gdb_commands", "w");
-    const char *gdb_commands = "set height 0\nset width 0\nbt full\ninfo sources\n";
-    fprintf(fp, "%s", gdb_commands);
-    fclose(fp);
-  
-    fp = fopen("recipe.backtrace", "w");
-    fprintf(fp, "Received signal: %i\n", sig);
-    fclose(fp);
-  
     char cmd[100];
+    snprintf(cmd, sizeof(cmd), 
+	     "cat >> gdb_commands << EOF\n"
+	     "set height 0\nset width 0\nbt full\ninfo sources\n"
+	     "EOF");
+    int res = system(cmd);
+    snprintf(cmd, sizeof(cmd), 
+	     "echo Received signal: %i > recipe.backtrace", sig);
+    res = system(cmd);
     snprintf(cmd, sizeof(cmd), 
 	     "gdb -batch -x gdb_commands --pid %i >> recipe.backtrace 2> /dev/null", 
 	     (int)getpid());
-    int res = system(cmd);
-    res = 0;
+    res = system(cmd);
     unlink("gdb_commands");
     signal(SIGSEGV, SIG_DFL);
     return 0;
