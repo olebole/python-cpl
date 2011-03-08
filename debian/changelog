@@ -1,3 +1,16 @@
+python-cpl (0.3.3-4~$DISTRIB1) $DISTRIB; urgency=low
+
+  * Avoid deadlock on tracedump
+  * Add function parameters to tracedump
+
+ -- Ole Streicher <python-cpl@liska.ath.cx>  Mon, 07 Mar 2011 14:36:00 +0100
+
+python-cpl (0.3.3-3~$DISTRIB1) $DISTRIB; urgency=low
+
+  * Fix version number in setup.py
+
+ -- Ole Streicher <python-cpl@liska.ath.cx>  Mon, 07 Mar 2011 14:36:00 +0100
+
 python-cpl (0.3.3-2~$DISTRIB1) $DISTRIB; urgency=low
 
   * Fix version number
