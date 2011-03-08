@@ -580,7 +580,7 @@ class RecipeCrash(StandardError):
     '''
 
     StackElement = collections.namedtuple('StackElement', 
-                                          'filename line func localvars')
+                                          'filename line func params localvars')
     signals = {signal.SIGSEGV:'SIGSEV: Segmentation Fault', 
                signal.SIGBUS:'SIGBUS: Bus Error',
                signal.SIGHUP:'SIGHUP: Hangup',
@@ -600,23 +600,12 @@ class RecipeCrash(StandardError):
                 self.signal = int(line.split(':')[1])
             elif handler_found:
                 if line.startswith('#'):
-                    s = line.split()
-                    if s[3].startswith('Py'):
+                    try:
+                        current_element = self._parse_function_line(line)
+                    except StopIteration:
                         handler_found = False
-                    else:
-                        try:
-                            s = line.split()
-                            filename = s[-1].split(':')[0]
-                            lineno = int(s[-1].split(':')[1])
-                            current_element = RecipeCrash.StackElement(
-                                filename, lineno, s[3], {})
-                            self.elements.insert(0, current_element)
-                        except:
-                            current_element = None
                 elif current_element is not None:
-                    s = line.strip().split('=', 1)
-                    if len(s) > 1:
-                        current_element.localvars[s[0].strip()] = s[1].strip()
+                    self._add_variable(current_element.localvars, line)
             elif line.find('signal handler called') >= 0:
                 handler_found = True
             elif line.startswith('Source files'):
@@ -627,16 +616,45 @@ class RecipeCrash(StandardError):
                                         if s.rfind('/') > 0 ))
         self.elements = [ RecipeCrash.StackElement(sourcefiles.get(e.filename, 
                                                                    e.filename),
-                                                   e.line, e.func, e.localvars) 
+                                                   e.line, e.func, e.params, e.localvars) 
                           for e in self.elements ]
         StandardError.__init__(self, str(self))
+
+    def _add_variable(self, vars, line):
+        s = line.strip().split('=', 1)
+        if len(s) > 1:
+            vars[s[0].strip()] = s[1].strip()
+
+    def _parse_function_line(self, line):
+        s = line.split()
+        funcname = s[3] if s[1].startswith('0x') else s[1]
+        if funcname.startswith('Py'):
+            raise StopIteration()
+        pars = {}
+        for fp in line[line.find('(')+1:line.rfind(')')].split(','):
+            self._add_variable(pars, fp)
+        l = line[line.rfind(')')+1:].split()
+        if not l:
+            return None
+        source = l[-1].split(':')
+        filename = source[0]
+        lineno = int(source[1]) if len(source) > 1 else None
+        current_element = RecipeCrash.StackElement(filename, lineno, 
+                                                   funcname, pars, {})
+        self.elements.insert(0, current_element)
+        return current_element
         
+    def __repr__(self):
+        return 'RecipeCrash()'
+
     def __str__(self):
         s = 'Recipe Traceback (most recent call last):\n'
         for e in self.elements:
-            s += '  File "%s", line %i, in %s\n' % ((e.filename), 
-                                                    e.line, e.func)
-            if os.path.exists(e.filename):
+            s += '  File "%s", %sin %s\n' % ((e.filename), 
+                                             'line %i, ' % e.line if e.line 
+                                             else '', 
+                                             e.func)
+            if os.path.exists(e.filename) and e.line:
                 s += '    %s\n' % file(e.filename).readlines()[e.line-1].strip()
         s += RecipeCrash.signals.get(self.signal, '%s: Unknown' % str(self.signal))
         return s
