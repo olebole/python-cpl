@@ -4,18 +4,25 @@ try:
 except:
     from distutils.core import setup, Extension
 
+def get_version():
+    changelog = os.path.join('debian', 'changelog')
+    if os.path.exists(changelog):
+        vline = open(changelog).readline()
+        cpl_version = vline.split('(', 1)[1].split('-')[0]
+    else:
+        cpl_version = '0.3.4'
+    vfile = open(os.path.join('cpl', 'version.py'), 'w')
+    vfile.write("__version__ = '%s'\n" % cpl_version)
+    vfile.close()
+    return cpl_version
+
 module1 = Extension('cpl.CPL_recipe',
+                    include_dirs = ['/usr/local/include/cext'],
                     libraries = [ 'cplcore', 'cpldfs', 'cplui', 'cpldrs', 'gomp' ],
                     sources = ['cpl/CPL_recipe.c'])
 
-vline = open(os.path.join('debian', 'changelog')).readline()
-cpl_version = vline.split('(', 1)[1].split('-')[0]
-vfile = open(os.path.join('cpl', 'version.py'), 'w')
-vfile.write("__version__ = '%s'\n" % cpl_version)
-vfile.close()
-
 setup (name = 'cpl',
-       version = cpl_version,
+       version = get_version(),
        author = 'Ole Streicher',
        author_email = 'python-cpl@liska.ath.cx',
        description = 'Python interface for the Common Pipeline Library',
