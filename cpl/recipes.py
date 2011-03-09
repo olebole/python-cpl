@@ -360,8 +360,11 @@ class Recipe(object):
                                            logger.logfile, logger.level),
                           (self.temp_dir and not self.output_dir),
                           input_len, logger)
+        except KeyboardInterrupt as ex:
+            pass
         finally:
             self._cleanup(recipe_dir, tmpfiles, logger)
+        raise ex
 
     def _get_raw_frames(self, *data, **ndata):
         '''Return the input frames.
@@ -590,6 +593,7 @@ class RecipeCrash(StandardError):
                signal.SIGBUS:'SIGBUS: Bus Error',
                signal.SIGHUP:'SIGHUP: Hangup',
                signal.SIGABRT:'SIGABRT: Abnormal process termination',
+               signal.SIGTERM:'SIGTERM: Terminated by user',
                signal.SIGQUIT:'SIGQUIT: Quit',
                signal.SIGFPE:'SIGFPE: Arithmetic Exception',
                signal.SIGINT:'SIGINT: Interrupt'}

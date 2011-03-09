@@ -833,8 +833,8 @@ static int segv_handler(int sig) {
 	     (int)getpid());
     res = system(cmd);
     unlink("gdb_commands");
-    signal(SIGSEGV, SIG_DFL);
-    return 0;
+    signal(sig, SIG_DFL);
+    exit(0);
 }
 
 static void setup_tracing(CPL_recipe *self) {
@@ -865,6 +865,7 @@ static void setup_tracing(CPL_recipe *self) {
     signal(SIGQUIT, (sighandler_t) segv_handler);
     signal(SIGBUS, (sighandler_t) segv_handler);
     signal(SIGABRT, (sighandler_t) segv_handler);
+    signal(SIGTERM, (sighandler_t) segv_handler);
 }
 
 #define CPL_recipe_exec_doc                                             \
