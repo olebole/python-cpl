@@ -592,40 +592,41 @@ class RecipeCrash(StandardError):
     signals = {signal.SIGSEGV:'SIGSEV: Segmentation Fault', 
                signal.SIGBUS:'SIGBUS: Bus Error',
                signal.SIGHUP:'SIGHUP: Hangup',
-               signal.SIGABRT:'SIGABRT: Abnormal process termination',
+               signal.SIGABRT:'SIGABRT: Abnormal process termination (usually double free())',
                signal.SIGTERM:'SIGTERM: Terminated by user',
                signal.SIGQUIT:'SIGQUIT: Quit',
                signal.SIGFPE:'SIGFPE: Arithmetic Exception',
-               signal.SIGINT:'SIGINT: Interrupt'}
+               signal.SIGINT:'SIGINT: Interrupt (Ctrl-C)'}
     def __init__(self, fname):
         self.elements = []
         current_element = None
-        handler_found = False
-        sourcefiles_found = False
+        parse_functions = True
+        parse_sourcelist = False
         sourcefiles = dict()
         self.signal = None
         for line in file(fname):
             if line.startswith('Received signal:'):
                 self.signal = int(line.split(':')[1])
-            elif handler_found:
+            elif parse_functions:
                 if line.startswith('#'):
                     try:
                         current_element = self._parse_function_line(line)
                     except StopIteration:
-                        handler_found = False
+                        parse_functions = False
                 elif current_element is not None:
                     self._add_variable(current_element.localvars, line)
             elif line.find('signal handler called') >= 0:
-                handler_found = True
+                del self.elements[:]
             elif line.startswith('Source files'):
-                sourcefiles_found = True
-            elif sourcefiles_found:
-                sourcefiles.update(dict((os.path.basename(s.strip()), s.strip()) 
+                parse_sourcelist = True
+            elif parse_sourcelist:
+                sourcefiles.update(dict((os.path.basename(s.strip()), s.strip())
                                         for s in line.split(',') 
                                         if s.rfind('/') > 0 ))
         self.elements = [ RecipeCrash.StackElement(sourcefiles.get(e.filename, 
                                                                    e.filename),
-                                                   e.line, e.func, e.params, e.localvars) 
+                                                   e.line, e.func, e.params, 
+                                                   e.localvars) 
                           for e in self.elements ]
         StandardError.__init__(self, str(self))
 
