@@ -607,6 +607,8 @@ class RecipeCrash(StandardError):
         for line in file(fname):
             if line.startswith('Received signal:'):
                 self.signal = int(line.split(':')[1])
+            elif line.find('signal handler called') >= 0:
+                del self.elements[:]
             elif parse_functions:
                 if line.startswith('#'):
                     try:
@@ -615,8 +617,6 @@ class RecipeCrash(StandardError):
                         parse_functions = False
                 elif current_element is not None:
                     self._add_variable(current_element.localvars, line)
-            elif line.find('signal handler called') >= 0:
-                del self.elements[:]
             elif line.startswith('Source files'):
                 parse_sourcelist = True
             elif parse_sourcelist:
