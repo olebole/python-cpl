@@ -17,8 +17,10 @@ def get_version():
     return cpl_version
 
 module1 = Extension('cpl.CPL_recipe',
-                    include_dirs = ['/usr/local/include/cext'],
+                    include_dirs = [ '/store/01/MUSE/oles/include/',
+                                     '/store/01/MUSE/oles/include/cext'],
                     libraries = [ 'cplcore', 'cpldfs', 'cplui', 'cpldrs', 'gomp' ],
+                    library_dirs = ['/store/01/MUSE/oles/lib'],
                     sources = ['cpl/CPL_recipe.c'])
 
 setup (name = 'cpl',
