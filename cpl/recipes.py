@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 import threading
 import collections
@@ -396,23 +397,13 @@ class Recipe(object):
         return list(m.iteritems())
 
     def _cleanup(self, recipe_dir, tmpfiles, logger):
-        for f in tmpfiles:
-            os.remove(f)
-        if logger is not None:
-            os.remove(logger.logfile)
-        bt = os.path.join(recipe_dir, 'recipe.backtrace')
-        if os.path.exists(bt):
-            ex = RecipeCrash(bt)
-            os.remove(bt)
-        else:
-            ex = None
-        if self.temp_dir and not self.output_dir:
-            try:
-                os.rmdir(recipe_dir)
-            except:
-                pass
-        if ex:
-            raise ex
+        try:
+            bt = os.path.join(recipe_dir, 'recipe.backtrace')
+            if os.path.exists(bt):
+                raise RecipeCrash(bt)
+        finally:
+            if self.temp_dir and not self.output_dir:
+                shutil.rmtree(recipe_dir)
 
     @property
     def __doc__(self):
