@@ -2,15 +2,16 @@ Source: python-cpl
 Section: science
 Priority: extra
 Maintainer: Ole Streicher <launchpad-cpl@ole.ath.cx>
-Build-Depends: debhelper (>= 7), python-support (>= 0.8.1), python-setuptools (>= 0.6a9), cdbs, python-dev, libcpl-dev (>= 5.1.0)
-Standards-Version: 0.1.0
-XS-Python-Version: all
+Build-Depends: python-dev, debhelper (>= 7), python-support (>= 0.8.4), libcpl-dev (>= 5.1.0)
+Standards-Version: 3.8.4
 Homepage: http://www.aip.de/~oles/python-cpl/index.html
 
 Package: python-cpl
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libcpl (>= 5.1.0), python
+Depends: ${misc:Depends}, ${python:Depends}, ${shlibs:Depends}, libcpl (>= 5.1.0)
 Suggests: gdb
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
 Description: Non-official python module to access CPL recipes. 
        It is not meant as part of the CPL or the MUSE pipeline software, but
        may be useful for testing and analysis.
