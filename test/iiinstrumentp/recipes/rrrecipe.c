@@ -28,6 +28,9 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 
 /*-----------------------------------------------------------------------------
                                 Includes
@@ -204,8 +207,9 @@ static int rrrecipe_create(cpl_plugin * plugin)
     cpl_parameterlist_append(recipe->parameters, p);
  
     /* --crashing */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.crashing", 
-            CPL_TYPE_BOOL, "Crash the recipe?", "iiinstrument.rrrecipe", FALSE);
+    p = cpl_parameter_new_enum("iiinstrument.rrrecipe.crashing", 
+	  CPL_TYPE_STRING, "Crash the recipe?", "iiinstrument.rrrecipe", 
+			       "no", 3, "no", "free", "segfault");
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "crashing");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
@@ -363,7 +367,7 @@ static int rrrecipe(cpl_frameset            * frameset,
     /* --crashing */
     param = cpl_parameterlist_find_const(parlist,
                                          "iiinstrument.rrrecipe.crashing");
-    int crashing = cpl_parameter_get_bool(param);
+    const char *crashing = cpl_parameter_get_string(param);
 
     if (!cpl_errorstate_is_equal(prestate)) {
         return (int)cpl_error_set_message(cpl_func, cpl_error_get_code(),
@@ -459,11 +463,13 @@ static int rrrecipe(cpl_frameset            * frameset,
     cpl_propertylist_delete(qclist);
 
     /* Let's see if we can crash the machine by some random code */
-    if (crashing) {
+    if (strcmp(crashing, "free") == 0) {
 	cpl_image_delete(image);
 	cpl_propertylist_delete(qclist);
-	double *crashvar = NULL;
-	*crashvar = 1.99;
+    }
+    if (strcmp(crashing, "segfault") == 0) {
+        double *crashvar = NULL;
+        *crashvar = 1.99;
     }
 
     return (int)cpl_error_get_code();

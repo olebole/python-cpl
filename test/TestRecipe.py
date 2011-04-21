@@ -44,8 +44,11 @@ class RecipeCommon(RecipeTestCase):
 
     def test_author(self):
         '''Author attribute'''
-        self.assertEqual(self.recipe.author, 
-                         ('Firstname Lastname', 'flastname@eso.org'))
+        self.assertEqual(self.recipe.__author__, 'Firstname Lastname')
+
+    def test_email(self):
+        '''Author attribute'''
+        self.assertEqual(self.recipe.__email__, 'flastname@eso.org')
 
     def test_description(self):
         '''Synopsis and description'''
@@ -56,8 +59,8 @@ class RecipeCommon(RecipeTestCase):
 
     def test_copyright(self):
         '''Copyright'''
-        self.assertTrue(isinstance(self.recipe.copyright, str))
-        self.assertTrue(len(self.recipe.copyright) > 0)
+        self.assertTrue(isinstance(self.recipe.__copyright__, str))
+        self.assertTrue(len(self.recipe.__copyright__) > 0)
 
 class RecipeParams(RecipeTestCase):
     def test_str(self):
@@ -349,7 +352,9 @@ class RecipeExec(RecipeTestCase):
 
     def test_crash(self):
         '''Handling of recipe crashes'''
-        self.recipe.param.crashing = True
+        self.recipe.param.crashing = 'free'
+        self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
+        self.recipe.param.crashing = 'segfault'
         self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
 
     def test_parallel(self):
