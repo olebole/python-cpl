@@ -26,7 +26,7 @@ for fname in files:
 tar.close()
 
 # 2. Build distribution dependent files
-for distrib in [ 'lucid', 'maverick' ]:
+for distrib in [ 'lucid', 'maverick', 'natty' ]:
     basedir = os.path.abspath('debian_build_%s' % distrib)
 
     shutil.rmtree(basedir, ignore_errors= True)
