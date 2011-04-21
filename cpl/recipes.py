@@ -575,7 +575,7 @@ class RecipeCrash(StandardError):
 
     .. attribute:: signal
 
-       Signal that caused the crash.
+          Signal that caused the crash.
     '''
 
     StackElement = collections.namedtuple('StackElement', 
@@ -583,11 +583,12 @@ class RecipeCrash(StandardError):
     signals = {signal.SIGSEGV:'SIGSEV: Segmentation Fault', 
                signal.SIGBUS:'SIGBUS: Bus Error',
                signal.SIGHUP:'SIGHUP: Hangup',
-               signal.SIGABRT:'SIGABRT: Abnormal process termination (usually double free())',
+               signal.SIGABRT:'SIGABRT: Abnormal process termination',
                signal.SIGTERM:'SIGTERM: Terminated by user',
                signal.SIGQUIT:'SIGQUIT: Quit',
                signal.SIGFPE:'SIGFPE: Arithmetic Exception',
-               signal.SIGINT:'SIGINT: Interrupt (Ctrl-C)'}
+               signal.SIGINT:'SIGINT: Interrupt (Ctrl-C)',
+               None:'Memory inconsistency detected'}
     def __init__(self, fname):
         self.elements = []
         current_element = None
@@ -595,9 +596,13 @@ class RecipeCrash(StandardError):
         parse_sourcelist = False
         sourcefiles = dict()
         self.signal = None
+        self.lines = []
         for line in file(fname):
+            self.lines.append(line)
             if line.startswith('Received signal:'):
                 self.signal = int(line.split(':')[1])
+            if line.startswith('Memory corruption'):
+                self.signal = None
             elif line.find('signal handler called') >= 0:
                 del self.elements[:]
             elif parse_functions:
@@ -608,8 +613,9 @@ class RecipeCrash(StandardError):
                         parse_functions = False
                 elif current_element is not None:
                     self._add_variable(current_element.localvars, line)
-            elif line.startswith('Source files'):
+            if line.startswith('Source files'):
                 parse_sourcelist = True
+                parse_functions = False
             elif parse_sourcelist:
                 sourcefiles.update(dict((os.path.basename(s.strip()), s.strip())
                                         for s in line.split(',') 

@@ -11,6 +11,8 @@
 #ifdef linux
 #include <sys/prctl.h>
 #define HAVE_PRCTL
+#include <mcheck.h>
+#define HAVE_MCHECK
 #endif
 
 #include <cpl.h>
@@ -817,24 +819,41 @@ exec_serialize_retval(cpl_frameset *frames, cpl_errorstate prestate, int retval,
     }
     return ptr;
 }
+static void backtrace(void) {
+  char cmd[300];
+  snprintf(cmd, sizeof(cmd), 
+	   "cat >> gdb_commands << EOF\n"
+	   "set height 0\nset width 0\nbt full\ninfo sources\ninfo files\n"
+	   "EOF");
+  int res = system(cmd);
+  snprintf(cmd, sizeof(cmd), 
+	   "gdb -batch -x gdb_commands --pid %i --readnow  >> recipe.backtrace 2> /dev/null", 
+	   (int)getpid());
+  res = system(cmd);
+  unlink("gdb_commands");
+  
+}
 
-static int segv_handler(int sig) {
-    char cmd[100];
-    snprintf(cmd, sizeof(cmd), 
-	     "cat >> gdb_commands << EOF\n"
-	     "set height 0\nset width 0\nbt full\ninfo sources\n"
-	     "EOF");
-    int res = system(cmd);
-    snprintf(cmd, sizeof(cmd), 
-	     "echo Received signal: %i > recipe.backtrace", sig);
-    res = system(cmd);
-    snprintf(cmd, sizeof(cmd), 
-	     "gdb -batch -x gdb_commands --pid %i >> recipe.backtrace 2> /dev/null", 
-	     (int)getpid());
-    res = system(cmd);
-    unlink("gdb_commands");
-    signal(sig, SIG_DFL);
-    exit(0);
+static void mcheck_handler(enum mcheck_status status) {
+  char cmd[100];
+  int res;
+  snprintf(cmd, sizeof(cmd), 
+	   "echo Memory corruption > recipe.backtrace");
+  res = system(cmd);
+  backtrace();
+  abort();
+}
+
+static void segv_handler(int sig) {
+  char cmd[100];
+  int res;
+  snprintf(cmd, sizeof(cmd), 
+	   "echo Received signal: %i > recipe.backtrace", sig);
+  res = system(cmd);
+  backtrace();
+
+  signal(sig, SIG_DFL);
+
 }
 
 static void setup_tracing(CPL_recipe *self) {
@@ -850,13 +869,9 @@ static void setup_tracing(CPL_recipe *self) {
     prctl(PR_SET_NAME, cpl_plugin_get_name(self->plugin), 0, 0, 0);
 #endif
 #endif
-
-/* When MALLOC_CHECK_ is set (Linux libc >5.4.23, glibc 2.x), a special
-   implementation of malloc() is used which is designed to be tolerant against
-   simple errors, such as double calls of free() with the same argument, or
-   overruns of a single byte (off-by-one bugs). If MALLOC_CHECK_ is set to 2,
-   abort(3) is called immediately */
-    setenv("MALLOC_CHECK_", "2", 0);
+#ifdef HAVE_MCHECK
+    mcheck(mcheck_handler);
+#endif
 
     signal(SIGSEGV, (sighandler_t) segv_handler);
     signal(SIGINT, (sighandler_t) segv_handler);
@@ -864,6 +879,7 @@ static void setup_tracing(CPL_recipe *self) {
     signal(SIGFPE, (sighandler_t) segv_handler);
     signal(SIGQUIT, (sighandler_t) segv_handler);
     signal(SIGBUS, (sighandler_t) segv_handler);
+    signal(SIGTERM, (sighandler_t) segv_handler);
     signal(SIGABRT, (sighandler_t) segv_handler);
     signal(SIGTERM, (sighandler_t) segv_handler);
 }
