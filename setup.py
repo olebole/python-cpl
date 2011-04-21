@@ -4,35 +4,45 @@ try:
 except:
     from distutils.core import setup, Extension
 
-def get_version():
+author = 'Ole Streicher'
+email = 'python-cpl@liska.ath.cx'
+license_ = 'GPL'
+cpl_version = '0.3.4'
+doc = '''Python interface for the Common Pipeline Library.
+
+Non-official library to access CPL modules via Python. 
+It is not meant as part of the MUSE pipeline software, but 
+may be useful for testing.'''
+description = doc.splitlines()
+long_description = "\n".join(description[2:])
+description = description[0]
+
+def create_version_file():
     changelog = os.path.join('debian', 'changelog')
     if os.path.exists(changelog):
         vline = open(changelog).readline()
         cpl_version = vline.split('(', 1)[1].split('-')[0]
-    else:
-        cpl_version = '0.3.4'
     vfile = open(os.path.join('cpl', 'version.py'), 'w')
-    vfile.write("__version__ = '%s'\n" % cpl_version)
+    vfile.write("version = '%s'\n" % cpl_version)
+    vfile.write("author = '%s'\n" % author)
+    vfile.write("email = '%s'\n" % email)
+    vfile.write("license_ = '%s'\n" % license_)
+    vfile.write("doc = '''%s'''\n" % doc)
     vfile.close()
-    return cpl_version
 
 module1 = Extension('cpl.CPL_recipe',
                     include_dirs = [ '/store/01/MUSE/oles/include/',
                                      '/store/01/MUSE/oles/include/cext'],
-                    libraries = [ 'cplcore', 'cpldfs', 'cplui', 'cpldrs', 'gomp' ],
+                    libraries = [ 'cplcore', 'cpldfs', 'cplui', 'cpldrs', 
+                                  'gomp', 'mcheck' ],
                     library_dirs = ['/store/01/MUSE/oles/lib'],
                     sources = ['cpl/CPL_recipe.c'])
 
+create_version_file()
 setup (name = 'cpl',
-       version = get_version(),
-       author = 'Ole Streicher',
-       author_email = 'python-cpl@liska.ath.cx',
-       description = 'Python interface for the Common Pipeline Library',
-       long_description = \
-           '''Non-official library to access CPL modules via Python. 
-              It is not meant as part of the MUSE pipeline software, but 
-              may be useful for testing''',
-       license = 'Gnu Public License',
+       version = cpl_version, author = author, author_email = email, 
+       description = description, long_description = long_description,  
+       license = license_, url = 'http://www.aip.de/~oles/python-cpl/',
        packages = [ 'cpl'],
        ext_modules = [module1])
 
