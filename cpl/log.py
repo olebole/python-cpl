@@ -154,7 +154,7 @@ class CplLogger(object):
         if caller == None:
             caller = CPL_recipe.get_log_domain()
         logging.getLogger('%s.%s' % (self.name, caller)).log(level, msg)
-        CPL_recipe.log(Logger.verbosity.index(level), caller, msg)
+        CPL_recipe.log(CplLogger.verbosity.index(level), caller, msg)
 
     def debug(self, msg, caller = None):
         '''Put a 'debug' message to the log.
