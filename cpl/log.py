@@ -1,7 +1,8 @@
-import logging
-import threading
-import os
 import datetime
+import logging
+import os
+import sys
+import threading
 
 import CPL_recipe
 
@@ -217,3 +218,7 @@ class CplLogger(object):
         CPL_recipe.log_indent_less()
 
 msg = CplLogger()
+msg.domain = os.path.basename(sys.argv[0])
+msg.level = msg.OFF
+
+lib_version = CPL_recipe.version()
