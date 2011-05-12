@@ -1,3 +1,6 @@
+import os
+import sys
+
 from version import version as __version__
 from version import author as __author__
 from version import email as __email__
