@@ -217,3 +217,4 @@ class CplLogger(object):
         CPL_recipe.log_indent_less()
 
 msg = CplLogger()
+lib_version = CPL_recipe.version()
