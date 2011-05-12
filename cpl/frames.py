@@ -262,8 +262,8 @@ class Result(object):
             hdu = pyfits.open(os.path.abspath(os.path.join(dir, frame)),
                               memmap = delete, 
                               mode = 'update' if delete else 'copyonwrite')
-            hdu.readall()
             if delete:
+                hdu.readall()
                 os.remove(os.path.join(dir, frame))
             tag = tag
             if tag not in self.__dict__:
