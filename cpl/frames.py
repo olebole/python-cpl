@@ -259,7 +259,10 @@ class Result(object):
             raise CplError(res[2][0], res[1], logger)
         self.tags = set()
         for tag, frame in res[0]:
-            hdu = pyfits.open(os.path.abspath(os.path.join(dir, frame)))
+            hdu = pyfits.open(os.path.abspath(os.path.join(dir, frame)),
+                              memmap = delete, 
+                              mode = 'update' if delete else 'copyonwrite')
+            hdu.readall()
             if delete:
                 os.remove(os.path.join(dir, frame))
             tag = tag
