@@ -1,110 +1,149 @@
-'''This module contains support for reading input files and parameters from
-the FITS header of a CPL processed file.
-
-This is done through the FITS headers that were written by the DRS function
-called within the preocessing recipe.
-
-'''
-
 import os
 import pyfits
 
-def _get_header(source):
-    if isinstance(source, str):
-        return pyfits.open(source)[0].header
-    elif isinstance(source, pyfits.HDUList):
-        return source[0].header
-    elif isinstance(source, pyfits.PrimaryHDU):
-        return source.header
-    elif isinstance(source, (pyfits.Header, dict)):
-        return source
-    else:
-        raise ValueError('Cannot assign type %s to header' % 
-                         source.__class__.__name__)
+class ProcessingInfo(object):
+    '''This class contains support for reading input files and parameters from
+    the FITS header of a CPL processed file.
 
-def get_recipe_name(source, index = 1):
-    '''Get the recipe name from a FITS file processed with CPL.
+    This is done through the FITS headers that were written by the DRS function
+    called within the processing recipe.
 
-    :param source: Object pointing to the result file header
-    :type source: :class:`str` or :class:`PyFits.HDUList` 
-                  or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
-    :param index: Record index (optional).
-    :type index: :class:`int`
+    .. attribute:: name 
+
+       Recipe name
+
+    .. attribute:: version 
+
+       Recipe version string
+
+    .. attribute::  pipeline
+
+       Pipeline name
+
+    .. attribute:: cpl_version
+    
+       CPL version string
+
+    .. attribute:: tag
+
+       Tag name
+
+    .. attribute:: calib
+
+       Calibration frames from a FITS file processed with CPL.
+       The result of this function may directly set as :attr:`Recipe.calib`
+       attribute::
+    
+         import cpl
+         myrecipe = cpl.Recipe('muse_bias')
+         myrecipe.calib = cpl.drs.ProcessingInfo('MASTER_BIAS_0.fits').calib
+
+       .. note:: This will not work properly for files that had
+          :attr:`pyfits.HDUlist` inputs since they have assigned a temporary
+          file name only.
+
+    .. attribute:: raw
+
+       Raw (input) frames
+
+       .. note:: This will not work properly for files that had
+          :attr:`pyfits.HDUlist` inputs since they have assigned a temporary
+          file name only.
+
+    .. attribute:: param
+
+       Processing parameters.
+       The result of this function may directly set as :attr:`Recipe.param`
+       attribute::
+    
+         import cpl
+         myrecipe = cpl.Recipe('muse_bias')
+         myrecipe.param = cpl.drs.ProcessingInfo('MASTER_BIAS_0.fits').param
     '''
-    return _get_header(source)['HIERARCH ESO PRO REC%i ID' % index]
 
-def get_recipe_version(source, index = 1):
-    '''Get the recipe version from a FITS file processed with CPL as a string.
+    def __init__(self, source, index = 1, datapaths = None):
+        '''
+        :param source: Object pointing to the result file header
+        :type source: :class:`str` or :class:`PyFits.HDUList` 
+                      or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
+        :param index: Record index (optional).
+        :type index: :class:`int`
+        :param datapaths: Dictionary with frame tags as keys and directory paths
+                        as values to provide a full path for the raw and 
+                        calibration frames. Optional.
+        :type datapaths: :class:`dict`
+        '''
+        if isinstance(source, str):
+            header = pyfits.open(source)[0].header
+        elif isinstance(source, pyfits.HDUList):
+            header = source[0].header
+        elif isinstance(source, pyfits.PrimaryHDU):
+            header = source.header
+        elif isinstance(source, (pyfits.Header, dict)):
+            header = source
+        else:
+            raise ValueError('Cannot assign type %s to header' % 
+                             source.__class__.__name__)
+        try:
+            self.name = header['HIERARCH ESO PRO REC%i ID' % index]
+        except KeyError:
+            self.name = None
+        try:
+            pipe_id = header['HIERARCH ESO PRO REC%i PIPE ID' % index]
+            self.pipeline = pipe_id.split('/')[0]
+            self.version = pipe_id.split('/')[1]
+        except KeyError:
+            self.pipeline =  None
+            self.version = None
+        try:
+            self.cpl_version = header['HIERARCH ESO PRO REC%i DRS ID' % index]
+        except KeyError:
+            self.cpl_version = None
+        try:
+            self.calib = _get_rec_keys(header, index, 'CAL', 'CATG', 'NAME', 
+                                       datapaths)
+        except KeyError:
+            self.calib = None
+        try:
+            self.tag = header['HIERARCH ESO PRO REC%i RAW1 CATG' % index]
+            self.raw = _get_rec_keys(header, index, 'RAW', 'CATG', 'NAME', 
+                                     datapaths)[self.tag]
+        except KeyError:
+            self.tag = None
+            self.input = None
+        try:
+            self.param = _get_rec_keys(header, index, 'PARAM', 'NAME', 'VALUE')
+        except KeyError:
+            self.param = None
+            
+def _get_rec_keys(header, index, key, name, value, datapaths = None):
+    '''Get a dictionary of key/value pairs from the DRS section of the
+    header.
 
-    :param source: Object pointing to the result file header
-    :type source: :class:`str` or :class:`PyFits.HDUList` 
-                  or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
-    :param index: Record index (optional).
-    :type index: :class:`int`
-    '''
-    return _get_header(source)['HIERARCH ESO PRO REC%i PIPE ID' % index]\
-        .split('/')[1]
-
-def get_cpl_version(source, index = 1):
-    '''Get the CPL version from a FITS file processed with CPL as a string.
-
-    :param source: Object pointing to the result file header
-    :type source: :class:`str` or :class:`PyFits.HDUList` 
-                  or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
-    :param index: Record index (optional).
-    :type index: :class:`int`
-    '''
-    return _get_header(source)['HIERARCH ESO PRO REC%i DRS ID' % index]
-
-def get_pipeline(source, index = 1):
-    '''Get the pipeline name from a FITS file processed with CPL as a string.
-
-    :param source: Object pointing to the result file header
-    :type source: :class:`str` or :class:`PyFits.HDUList` 
-                  or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
-    :param index: Record index (optional).
-    :type index: :class:`int`
-    '''
-    return _get_header(source)['HIERARCH ESO PRO REC%i PIPE ID' % index]\
-        .split('/')[0]
-
-def get_tag(source, index = 1):
-    '''Get the pipeline name from a FITS file processed with CPL as a string.
-
-    :param source: Object pointing to the result file header
-    :type source: :class:`str` or :class:`PyFits.HDUList` 
-                  or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
-    :param index: Record index (optional).
-    :type index: :class:`int`
-    '''
-    return _get_header(source)['HIERARCH ESO PRO REC%i RAW1 CATG' % index]
-
-def _get_rec_keys(header, key, name, value, index = 1):
-    '''Get a dictionary of key/value pairs from the DRS section of the header.
-
-    :param header: FITS header
-    :type source: :class:`PyFits.Header` 
-    :param key: Common keyword for the value. Usually 'PARAM' for parameters,
-                'RAW' for raw frames, and 'CAL' for calibration frames.
+    :param key: Common keyword for the value. Usually 'PARAM' for 
+                parameters, 'RAW' for raw frames, and 'CAL' for 
+                calibration frames.
     :type key: :class:`str`
     :param name: Header keyword (last part) for the name of each key
     :type name: :class:`str`
     :param value: Header keyword (last part) for the value of each key
     :type name: :class:`str`
-    :param index: Record index (optional).
-    :type index: :class:`int`
+    :param datapaths: Dictionary with frame tags as keys and directory paths 
+                    as values to provide a full path for the raw and 
+                    calibration frames. Optional.
+    :type datapaths: :class:`dict`
 
     When the header
-
+    
       HIERARCH ESO PRO REC1 PARAM1 NAME = 'nifu'
       HIERARCH ESO PRO REC1 PARAM1 VALUE = '1'
       HIERARCH ESO PRO REC1 PARAM2 NAME = 'combine'
       HIERARCH ESO PRO REC1 PARAM2 VALUE = 'median'
-
+      
     is called with
 
-      _get_rec_keys(header, 'PARAM', 'NAME', 'VALUE', 1)
-   
+      _get_rec_keys('PARAM', 'NAME', 'VALUE')
+
     the returned dictionary will contain the keys
 
       res['nifu'] = '1'
@@ -116,6 +155,8 @@ def _get_rec_keys(header, key, name, value, index = 1):
             prefix = 'HIERARCH ESO PRO REC%i %s%i' % (index, key, i)
             k = header['%s %s' % (prefix, name)]
             fn = header['%s %s' % (prefix, value)]
+            if datapaths and k in datapaths:
+                fn = os.path.join(datapaths[k], fn)
             if k not in  res:
                 res[k] = fn
             elif isinstance(res[k], list):
@@ -125,100 +166,35 @@ def _get_rec_keys(header, key, name, value, index = 1):
         except KeyError:
             break
     return res
-
-def get_calib(source, index = 1):
-    '''Get the calibration frames from a FITS file processed with CPL.
-
-    :param source: Object pointing to the result file header
-    :type source: :class:`str` or :class:`PyFits.HDUList` 
-                  or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
-    :param index: Record index (optional).
-    :type index: :class:`int`
-
-    The header contains the calibration files that was used to create it.  The
-    content is returned as a map with the tag as key and the list of file
-    names as value.
-
-    The result of this function may directly set as :attr:`Recipe.calib`
-    attribute::
     
-      import cpl
-      myrecipe = cpl.Recipe('muse_bias')
-      myrecipe.calib = cpl.drs.get_calib('MASTER_BIAS_0.fits')
-
-    .. note:: This will not work properly for files that had
-    :attr:`pyfits.HDUlist` inputs since they have assigned a temporary file
-    name only.
-    '''
-    return _get_rec_keys(_get_header(source), 'CAL', 'CATG', 'NAME', index)
-
-def get_input(source, index = 1):
-    '''Get the raw frames from a FITS file processed with CPL.
-
-    :param source: Object pointing to the result file header
-    :type source: :class:`str` or :class:`PyFits.HDUList` 
-                  or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
-    :param index: Record index (optional).
-    :type index: :class:`int`
-
-    The content is returned as list of file names.
-
-    .. note:: This will not work properly for files that had
-    :attr:`pyfits.HDUlist` inputs since they have assigned a temporary file
-    name only.
-    '''
-    header = _get_header(source)
-    tag = get_tag(header)
-    return _get_rec_keys(header, 'RAW', 'CATG', 'NAME', index)[tag]
-
-def get_param(source, index = 1):
-    '''Get the processing parameters from a FITS file processed with CPL.
-
-    :param source: Object pointing to the result file header
-    :type source: :class:`str` or :class:`PyFits.HDUList` 
-                  or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
-    :param index: Record index (optional).
-    :type index: :class:`int`
-
-    These files contain configuration parameters that were used to create
-    it. The content is returned as a map with the (full) parameter name as key
-    and its setting as string value.
-
-    The result of this function may directly set as :attr:`Recipe.param`
-    attribute::
-    
-      import cpl
-      myrecipe = cpl.Recipe('muse_bias')
-      myrecipe.param = cpl.drs.get_param('MASTER_BIAS_0.fits')
-
-    '''
-    return _get_rec_keys(_get_header(source), 'PARAM', 'NAME', 'VALUE', index)
-
 if __name__ == '__main__':
     import sys
 
+    datapaths = {
+        'BIAS':'raw', 'DARK':'raw', 'FLAT':'raw', 'ARC':'raw', 'OBJECT':'raw', 
+        'LINE_CATALOG':'aux', 'TRACE_TABLE':'aux', 'GEOMETRY_TABLE':'aux',
+        'MASTER_BIAS':'result', 'MASTER_DARK':'result', 'MASTER_FLAT':'result',
+        'WAVECAL_TABLE':'result', 'PIXTABLE_OBJECT':'result', 
+        }
     for arg in sys.argv[1:]:
         print '---------------------' 
         print 'file: %s' % arg
-        header = pyfits.open(arg)[0].header
+        pi = ProcessingInfo(arg, datapaths = datapaths)
         print 'Recipe: %s, Version %s, CPL version %s ' % (
-            get_recipe_name(header), get_recipe_version(header), 
-            get_cpl_version(header))
+            pi.name, pi.version, pi.cpl_version)
         print 'Parameters:'
-        for k,v in get_param(header).items():
-            print '  %s.%s.%s = %s' % (
-                get_pipeline(header), get_recipe_name(header), k, v)
+        for k,v in pi.param.items():
+            print '  %s.%s.%s = %s' % (pi.pipeline, pi.name, k, v)
         print 'Calibration frames:'
-        for k,v in get_calib(header).items():
+        for k,v in pi.calib.items():
             if isinstance(v, str):
                 print '  %s %s' % (v,k)
             else:
                 for n in v:
                     print '  %s %s' % (n,k)
-        inputs = get_input(header)
         print 'Input frames:'
-        if isinstance(inputs, str):
-            print '  %s %s' % (inputs, get_tag(header))
+        if isinstance(pi.raw, str):
+            print '  %s %s' % (pi.raw, pi.tag)
         else:
-            for n in inputs:
-                print '  %s %s' % (n, get_tag(header))
+            for n in pi.raw:
+                print '  %s %s' % (n, pi.tag)

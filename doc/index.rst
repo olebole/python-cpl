@@ -40,6 +40,7 @@ A PDF version of the user manual can be downloaded from `here <python-cpl.pdf>`_
    result
    msg
    esorex
+   drs
    restrictions
 
 
