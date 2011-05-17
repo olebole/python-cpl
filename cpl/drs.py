@@ -1,6 +1,8 @@
 import os
 import pyfits
 
+import cpl
+
 class ProcessingInfo(object):
     '''This class contains support for reading input files and parameters from
     the FITS header of a CPL processed file.
@@ -116,6 +118,35 @@ class ProcessingInfo(object):
         except KeyError:
             self.param = None
             
+    def create_recipe(self):
+        recipe = cpl.Recipe(self.name)
+        recipe.param = self.param
+        recipe.calib = self.calib
+        recipe.tag = self.tag
+        return recipe
+
+    def printinfo(self):
+        print 'Recipe: %s, Version %s, CPL version %s ' % (
+            self.name, self.version, self.cpl_version)
+        print 'Parameters:'
+        for k,v in self.param.items():
+            print '  %s.%s.%s = %s' % (self.pipeline, self.name, k, v)
+        if self.calib:
+            print 'Calibration frames:'
+        for k,v in self.calib.items():
+            if isinstance(v, str):
+                print '  %s %s' % (v,k)
+            else:
+                for n in v:
+                    print '  %s %s' % (n,k)
+        print 'Input frames:'
+        if isinstance(self.raw, str):
+            print '  %s %s' % (self.raw, self.tag)
+        else:
+            for n in self.raw:
+                print '  %s %s' % (n, self.tag)
+
+
 def _get_rec_keys(header, index, key, name, value, datapaths = None):
     '''Get a dictionary of key/value pairs from the DRS section of the
     header.
@@ -180,21 +211,4 @@ if __name__ == '__main__':
         print '---------------------' 
         print 'file: %s' % arg
         pi = ProcessingInfo(arg, datapaths = datapaths)
-        print 'Recipe: %s, Version %s, CPL version %s ' % (
-            pi.name, pi.version, pi.cpl_version)
-        print 'Parameters:'
-        for k,v in pi.param.items():
-            print '  %s.%s.%s = %s' % (pi.pipeline, pi.name, k, v)
-        print 'Calibration frames:'
-        for k,v in pi.calib.items():
-            if isinstance(v, str):
-                print '  %s %s' % (v,k)
-            else:
-                for n in v:
-                    print '  %s %s' % (n,k)
-        print 'Input frames:'
-        if isinstance(pi.raw, str):
-            print '  %s %s' % (pi.raw, pi.tag)
-        else:
-            for n in pi.raw:
-                print '  %s %s' % (n, pi.tag)
+        pi.printinfo()
