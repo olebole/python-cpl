@@ -32,7 +32,8 @@ class Recipe(object):
     calib: Calibration frame list
     tag: default tag
     tags: list of possible tags
-    author: (author, email) pair
+    __author__: author name
+    __email__: author's email address
     description: (synopsis, description) pair
     version: (versionnumber, versionstring) pair
     '''
@@ -86,9 +87,14 @@ class Recipe(object):
         self._recipe = CPL_recipe.recipe(self.filename, self.name)
 
     @property
-    def author(self):
-        '''Pair (author name, author email address) of two strings.'''
-        return self._recipe.author()
+    def __author__(self):
+        '''Author name'''
+        return self._recipe.author()[0]
+
+    @property
+    def __email__(self):
+        '''Author email'''
+        return self._recipe.author()[1]
 
     @property
     def description(self):
@@ -102,7 +108,7 @@ class Recipe(object):
         return self._recipe.version()
 
     @property
-    def copyright(self):
+    def __copyright__(self):
         '''Copyright string'''
         return self._recipe.copyright()
 
