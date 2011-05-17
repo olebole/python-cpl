@@ -448,7 +448,7 @@ static int rrrecipe(cpl_frameset            * frameset,
     /* HOW TO SAVE A DFS-COMPLIANT PRODUCT TO DISK  */
     if (cpl_dfs_save_image(frameset, NULL, parlist, frameset, NULL, image,
                            CPL_BPP_IEEE_FLOAT, 
-                           RRRECIPE_XXX_PROCATG, qclist, NULL,
+                           "rrrecipe", qclist, NULL,
                            PACKAGE "/" PACKAGE_VERSION,
                            "rrrecipe.fits")) {
         /* Propagate the error */
