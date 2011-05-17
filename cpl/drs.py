@@ -86,10 +86,13 @@ class ProcessingInfo(object):
         else:
             raise ValueError('Cannot assign type %s to header' % 
                              source.__class__.__name__)
-        try:
-            self.name = header['HIERARCH ESO PRO REC%i ID' % index]
-        except KeyError:
-            self.name = None
+        
+        self.name = header['HIERARCH ESO PRO REC%i ID' % index]
+        self.product = header['HIERARCH ESO PRO CATG']
+        self.orig_filename = header['PIPEFILE']
+        if datapaths and self.product in datapaths:
+            self.orig_filename = os.path.join(datapaths[self.product], 
+                                              self.orig_filename)
         try:
             pipe_id = header['HIERARCH ESO PRO REC%i PIPE ID' % index]
             self.pipeline = pipe_id.split('/')[0]
