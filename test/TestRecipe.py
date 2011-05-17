@@ -344,7 +344,6 @@ class RecipeExec(RecipeTestCase):
         self.assertEqual(res[0].header['HIERARCH ESO QC ENUMOPT'], 'third')
         self.assertEqual(res[0].header['HIERARCH ESO QC RANGEOPT'], 0.125)
         
-
     def test_error(self):
         '''Error handling'''
         self.recipe.tag = 'some_unknown_tag'
@@ -536,6 +535,53 @@ class RecipeLog(RecipeTestCase):
         # Check that we can read error messages
         self.assertNotEqual(len(res.log.error), 0)
         self.assertTrue(isinstance(res.log.error[0], str))
-        
+
+class ProcessingInfo(RecipeTestCase):
+    def setUp(self):
+        RecipeTestCase.setUp(self)
+        '''Parameter storage in the result'''
+        self.recipe.param.stropt = 'more'
+        self.recipe.param.boolopt = False
+        self.recipe.param.intopt = 123
+        self.recipe.param.floatopt = -0.25
+        self.recipe.param.enumopt = 'third'
+        self.recipe.param.rangeopt = 0.125
+        self.recipe.calib.FLAT = pyfits.HDUList([
+                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
+                                                          self.image_size))])
+        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
+        self.pinfo = cpl.drs.ProcessingInfo(res)
+
+    def test_param(self):
+        '''Parameter information'''
+        self.assertEqual(len(self.pinfo.param), len(self.recipe.param))
+        for p in self.recipe.param:
+            self.assertEqual(self.pinfo.param[p.name], 
+                             p.value if p.value is not None else p.default)
+
+    def test_calib(self):
+        '''Calibration frame information'''
+        self.assertEqual(len(self.pinfo.calib), 1)
+        self.assertRegexpMatches(self.pinfo.calib['FLAT'], 'FLAT-.+\.fits')
+
+    def test_tag(self):
+        '''Input tag information'''
+        self.assertEqual(self.pinfo.tag, self.recipe.tag)
+
+    def test_raw(self):
+        '''Raw file information'''
+        self.assertRegexpMatches(self.pinfo.raw, 
+                                 'RRRECIPE_DOCATG_RAW-.+\.fits')
+
+    def test_name(self):
+        '''Recipe and pipeline name information'''
+        self.assertEqual(self.pinfo.name, self.recipe.name)
+        self.assertEqual(self.pinfo.pipeline, 'iiinstrument')
+
+    def test_version(self):
+        '''Version information'''
+        self.assertEqual(self.pinfo.version[0], self.recipe.version[0])
+        self.assertEqual(self.pinfo.cpl_version, 'cpl-%s' % cpl.lib_version)
+
 if __name__ == '__main__':
     unittest.main()
