@@ -121,7 +121,21 @@ class ProcessingInfo(object):
             self.tag = None
             self.input = None
         try:
-            self.param = _get_rec_keys(header, index, 'PARAM', 'NAME', 'VALUE')
+            param = _get_rec_keys(header, index, 'PARAM', 'NAME', 'VALUE')
+            self.param = dict()
+            for k,v in param.items():
+                try:
+                    self.param[k] = int(v)
+                except ValueError:
+                    try:
+                        self.param[k] = float(v)
+                    except ValueError:
+                        if v == 'true':
+                            self.param[k] = True
+                        elif v == 'false':
+                            self.param[k] = False
+                        else:
+                            self.param[k] = v
         except KeyError:
             self.param = None
             
