@@ -9,4 +9,5 @@ _templates
 build
 CVS
 debian_build/
+cpl/version.py
 python-cpl_*
