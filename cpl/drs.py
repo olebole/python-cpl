@@ -151,22 +151,21 @@ class ProcessingInfo(object):
             self.name, self.version, self.cpl_version)
         print 'Parameters:'
         for k,v in self.param.items():
-            print '  %s.%s.%s = %s' % (self.pipeline, self.name, k, v)
+            print ' %s.%s.%s = %s' % (self.pipeline, self.name, k, v)
         if self.calib:
             print 'Calibration frames:'
         for k,v in self.calib.items():
             if isinstance(v, str):
-                print '  %s %s' % (v,k)
+                print ' %s %s' % (v,k)
             else:
                 for n in v:
-                    print '  %s %s' % (n,k)
+                    print ' %s %s' % (n,k)
         print 'Input frames:'
         if isinstance(self.raw, str):
-            print '  %s %s' % (self.raw, self.tag)
+            print ' %s %s' % (self.raw, self.tag)
         else:
             for n in self.raw:
-                print '  %s %s' % (n, self.tag)
-
+                print ' %s %s' % (n, self.tag)
 
 def _get_rec_keys(header, index, key, name, value, datapaths = None):
     '''Get a dictionary of key/value pairs from the DRS section of the
