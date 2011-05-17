@@ -93,7 +93,11 @@ class ProcessingInfo(object):
         try:
             pipe_id = header['HIERARCH ESO PRO REC%i PIPE ID' % index]
             self.pipeline = pipe_id.split('/')[0]
-            self.version = pipe_id.split('/')[1]
+            version = pipe_id.split('/')[1]
+            num_version = 0
+            for i in version.split('.'):
+                num_version = num_version * 100 + int(i)
+            self.version = (num_version, version)
         except KeyError:
             self.pipeline =  None
             self.version = None
