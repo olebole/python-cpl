@@ -13,8 +13,8 @@ Binary packages
 ---------------
 
 * `Ubuntu repository <https://launchpad.net/~olebole/+archive/astro>`_ (10.04
-  and 10.10). This repository also contains the required packages that are not
-  in the standard distribution (CPL etc.)
+  LTS, 10.10, and 11.04). This repository also contains the required packages
+  that are not in the standard distribution (CPL etc.)
 * `Python egg <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ planned
 
 Source code
