@@ -385,6 +385,14 @@ class RecipeExec(RecipeTestCase):
             return x.THE_PRO_CATG_VALUE
         self.assertRaises(cpl.CplError, get, res)
 
+    def test_md5sum(self):
+        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        res = self.recipe(self.raw_frame)
+        self.assertNotEqual(res.THE_PRO_CATG_VALUE[0].header['DATAMD5'], 
+                            'Not computed')
+        self.assertEqual(len(res.THE_PRO_CATG_VALUE[0].header['DATAMD5']), 
+                         len('9d123996fa9a7bda315d07e063043454'))
+
 class RecipeEsorex(CplTestCase):
     def tearDown(self):
         cpl.msg.level = cpl.msg.OFF
@@ -550,7 +558,7 @@ class ProcessingInfo(RecipeTestCase):
                 pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
                                                           self.image_size))])
         res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
-        self.pinfo = cpl.drs.ProcessingInfo(res)
+        self.pinfo = cpl.dfs.ProcessingInfo(res)
 
     def test_param(self):
         '''Parameter information'''
@@ -570,8 +578,7 @@ class ProcessingInfo(RecipeTestCase):
 
     def test_raw(self):
         '''Raw file information'''
-        self.assertRegexpMatches(self.pinfo.raw, 
-                                 'RRRECIPE_DOCATG_RAW-.+\.fits')
+        self.assertRegexpMatches(self.pinfo.raw, 'RRRECIPE_DOCATG_RAW-.+\.fits')
 
     def test_name(self):
         '''Recipe and pipeline name information'''
