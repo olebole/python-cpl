@@ -64,9 +64,22 @@ class LogServer(threading.Thread):
 class LogList(list):
     '''List of log messages.
 
-    Accessing this list directly will return the :class:`logging.LogRecord`
-    instances. To get them formatted as string, use the :attr:`error`,
-    :attr:`warning`, :attr:`info` or :attr:`debug` attributes.
+    Accessing this :class:`list` directly will return the
+    :class:`logging.LogRecord` instances. 
+
+    Example::
+
+      res = muse_bias(bias_frames)
+      for logrecord in res.log:
+          print '%s: %s' % (entry.funcname, entry.msg)
+
+    To get them formatted as string, use the :attr:`error`, :attr:`warning`,
+    :attr:`info` or :attr:`debug` attributes::
+
+      res = muse_bias(bias_frames)
+      for line in res.log.info:
+          print line
+
     '''
     def filter(self, level):
         return [ '%s: %s' % (entry.funcName, entry.msg) for entry in self 
