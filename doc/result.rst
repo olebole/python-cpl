@@ -85,10 +85,13 @@ Execution log
 
    .. attribute:: cpl.Result.error
 
-       If one or more error was set during the recipe run, they are stored in
-       this attribute. Not that an error here does not indicate a failed
-       recipe execution, since a failed execution would result in a non-zero 
-       return code, and an exception would be thrown.
+       If one or more error was set during the recipe run, the first error is
+       stored in this attribute. The following errors are chained and can be
+       accessed with the :attr:`cpl.CplError.next` attribute.  
+
+       .. note:: An error here does not indicate a failed recipe execution,
+          since a failed execution would result in a non-zero return code, and
+          an exception would be thrown.
 
        .. seealso:: :class:`cpl.CplError`
 
