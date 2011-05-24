@@ -31,11 +31,9 @@ def create_version_file():
     vfile.close()
 
 module1 = Extension('cpl.CPL_recipe',
-                    include_dirs = [ '/store/01/MUSE/oles/include/',
-                                     '/store/01/MUSE/oles/include/cext'],
+                    include_dirs = ['/usr/local/include/cext'],
                     libraries = [ 'cplcore', 'cpldfs', 'cplui', 'cpldrs', 
                                   'gomp', 'mcheck' ],
-                    library_dirs = ['/store/01/MUSE/oles/lib'],
                     sources = ['cpl/CPL_recipe.c'])
 
 create_version_file()
