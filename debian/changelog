@@ -1,3 +1,9 @@
+python-cpl (0.3.4-1~$DISTRIB1) $DISTRIB; urgency=low
+
+  * Include DFS related class dfs.ProcessingInfo
+
+ -- Ole Streicher <python-cpl@liska.ath.cx>  Mon, 24 May 2011 15:54:00 +0100
+
 python-cpl (0.3.3-6~$DISTRIB1) $DISTRIB; urgency=low
 
   * Better parsing of functions in tracedump
