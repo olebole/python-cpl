@@ -1,7 +1,7 @@
-:mod:`cpl.drs` DRS header parsing
+:mod:`cpl.dfs` DFS header parsing
 =================================
 
-.. automodule:: cpl.drs
+.. automodule:: cpl.dfs
 
 .. autoclass:: ProcessingInfo
 .. automethod:: ProcessingInfo.__init__

@@ -11,7 +11,7 @@ from recipes import Recipe, RecipeCrash
 from parameters import Parameter
 from frames import FrameConfig, Result, CplError
 from log import msg, lib_version
-import drs
+import dfs
 import esorex
 
 msg.domain = os.path.basename(sys.argv[0])

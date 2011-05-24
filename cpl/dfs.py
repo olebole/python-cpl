@@ -8,7 +8,7 @@ class ProcessingInfo(object):
     '''This class contains support for reading input files and parameters from
     the FITS header of a CPL processed file.
 
-    This is done through the FITS headers that were written by the DRS function
+    This is done through the FITS headers that were written by the DFS function
     called within the processing recipe.
 
     .. attribute:: name 
@@ -39,7 +39,7 @@ class ProcessingInfo(object):
     
          import cpl
          myrecipe = cpl.Recipe('muse_bias')
-         myrecipe.calib = cpl.drs.ProcessingInfo('MASTER_BIAS_0.fits').calib
+         myrecipe.calib = cpl.dfs.ProcessingInfo('MASTER_BIAS_0.fits').calib
 
        .. note:: This will not work properly for files that had
           :attr:`pyfits.HDUlist` inputs since they have assigned a temporary
@@ -61,7 +61,7 @@ class ProcessingInfo(object):
     
          import cpl
          myrecipe = cpl.Recipe('muse_bias')
-         myrecipe.param = cpl.drs.ProcessingInfo('MASTER_BIAS_0.fits').param
+         myrecipe.param = cpl.dfs.ProcessingInfo('MASTER_BIAS_0.fits').param
     '''
 
     def __init__(self, source, datapaths = None):
@@ -189,7 +189,7 @@ class ProcessingInfo(object):
                 print ' %s %s' % (n, self.tag)
 
 def _get_rec_keys(header, key, name, value, datapaths = None):
-    '''Get a dictionary of key/value pairs from the DRS section of the
+    '''Get a dictionary of key/value pairs from the DFS section of the
     header.
 
     :param key: Common keyword for the value. Usually 'PARAM' for 
