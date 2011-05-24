@@ -44,11 +44,13 @@ These attributes and methods are available for all recipes.
 
    Shared library file name.
 
-.. autoattribute:: Recipe.author
+.. autoattribute:: Recipe.__author__
+
+.. autoattribute:: Recipe.__email__
+
+.. autoattribute:: Recipe.__copyright__
 
 .. autoattribute:: Recipe.description
-
-.. autoattribute:: Recipe.copyright
 
 .. attribute:: Recipe.output_dir
 
