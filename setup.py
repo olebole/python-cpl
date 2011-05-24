@@ -23,11 +23,11 @@ def create_version_file():
         vline = open(changelog).readline()
         cpl_version = vline.split('(', 1)[1].split('-')[0]
     vfile = open(os.path.join('cpl', 'version.py'), 'w')
-    vfile.write("version = '%s'\n" % cpl_version)
-    vfile.write("author = '%s'\n" % author)
-    vfile.write("email = '%s'\n" % email)
-    vfile.write("license_ = '%s'\n" % license_)
-    vfile.write("doc = '''%s'''\n" % doc)
+    vfile.write("version = %s\n" % repr(cpl_version))
+    vfile.write("author = %s\n" % repr(author))
+    vfile.write("email = %s\n" % repr(email))
+    vfile.write("license_ = %s\n" % repr(license_))
+    vfile.write("doc = %s\n" % repr(doc))
     vfile.close()
 
 module1 = Extension('cpl.CPL_recipe',
