@@ -64,13 +64,11 @@ class ProcessingInfo(object):
          myrecipe.param = cpl.drs.ProcessingInfo('MASTER_BIAS_0.fits').param
     '''
 
-    def __init__(self, source, index = 1, datapaths = None):
+    def __init__(self, source, datapaths = None):
         '''
         :param source: Object pointing to the result file header
         :type source: :class:`str` or :class:`PyFits.HDUList` 
                       or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
-        :param index: Record index (optional).
-        :type index: :class:`int`
         :param datapaths: Dictionary with frame tags as keys and directory paths
                         as values to provide a full path for the raw and 
                         calibration frames. Optional.
@@ -88,14 +86,14 @@ class ProcessingInfo(object):
             raise ValueError('Cannot assign type %s to header' % 
                              source.__class__.__name__)
         
-        self.name = header['HIERARCH ESO PRO REC%i ID' % index]
+        self.name = header['HIERARCH ESO PRO REC1 ID']
         self.product = header['HIERARCH ESO PRO CATG']
         self.orig_filename = header['PIPEFILE']
         if datapaths and self.product in datapaths:
             self.orig_filename = os.path.join(datapaths[self.product], 
                                               self.orig_filename)
         try:
-            pipe_id = header['HIERARCH ESO PRO REC%i PIPE ID' % index]
+            pipe_id = header['HIERARCH ESO PRO REC1 PIPE ID']
             self.pipeline = pipe_id.split('/')[0]
             version = pipe_id.split('/')[1]
             num_version = 0
@@ -106,23 +104,22 @@ class ProcessingInfo(object):
             self.pipeline =  None
             self.version = None
         try:
-            self.cpl_version = header['HIERARCH ESO PRO REC%i DRS ID' % index]
+            self.cpl_version = header['HIERARCH ESO PRO REC1 DRS ID']
         except KeyError:
             self.cpl_version = None
         try:
-            self.calib = _get_rec_keys(header, index, 'CAL', 'CATG', 'NAME', 
-                                       datapaths)
+            self.calib = _get_rec_keys(header, 'CAL', 'CATG', 'NAME', datapaths)
         except KeyError:
             self.calib = None
         try:
-            self.tag = header['HIERARCH ESO PRO REC%i RAW1 CATG' % index]
-            self.raw = _get_rec_keys(header, index, 'RAW', 'CATG', 'NAME', 
+            self.tag = header['HIERARCH ESO PRO REC1 RAW1 CATG']
+            self.raw = _get_rec_keys(header, 'RAW', 'CATG', 'NAME', 
                                      datapaths)[self.tag]
         except KeyError:
             self.tag = None
             self.input = None
         try:
-            param = _get_rec_keys(header, index, 'PARAM', 'NAME', 'VALUE')
+            param = _get_rec_keys(header, 'PARAM', 'NAME', 'VALUE')
             self.param = dict()
             for k,v in param.items():
                 try:
@@ -191,7 +188,7 @@ class ProcessingInfo(object):
             for n in self.raw:
                 print ' %s %s' % (n, self.tag)
 
-def _get_rec_keys(header, index, key, name, value, datapaths = None):
+def _get_rec_keys(header, key, name, value, datapaths = None):
     '''Get a dictionary of key/value pairs from the DRS section of the
     header.
 
@@ -227,7 +224,7 @@ def _get_rec_keys(header, index, key, name, value, datapaths = None):
     res = dict()
     for i in range(1, 2**16):
         try:
-            prefix = 'HIERARCH ESO PRO REC%i %s%i' % (index, key, i)
+            prefix = 'HIERARCH ESO PRO REC1 %s%i' % (key, i)
             k = header['%s %s' % (prefix, name)]
             fn = header['%s %s' % (prefix, value)]
             if datapaths and k in datapaths:
