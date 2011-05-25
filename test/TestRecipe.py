@@ -385,12 +385,25 @@ class RecipeExec(RecipeTestCase):
             return x.THE_PRO_CATG_VALUE
         self.assertRaises(cpl.CplError, get, res)
 
-    def test_md5sum(self):
+    def test_md5sum_result(self):
+        '''MD5sum of the result file'''
         self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
         res = self.recipe(self.raw_frame)
-        self.assertNotEqual(res.THE_PRO_CATG_VALUE[0].header['DATAMD5'], 
-                            'Not computed')
-        self.assertEqual(len(res.THE_PRO_CATG_VALUE[0].header['DATAMD5']), 
+        key = "DATAMD5";
+        md5sum = res.THE_PRO_CATG_VALUE[0].header[key]
+        self.assertNotEqual(md5sum, 'Not computed')
+        self.assertEqual(len(md5sum), 
+                         len('9d123996fa9a7bda315d07e063043454'))
+
+    def test_md5sum_calib(self):
+        '''Created MD5sum for a HDUList calib file'''
+        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        self.recipe.calib.FLAT = self.flat_frame
+        res = self.recipe(self.raw_frame)
+        key = "HIERARCH ESO PRO REC1 CAL1 DATAMD5";
+        md5sum = res.THE_PRO_CATG_VALUE[0].header[key]
+        self.assertNotEqual(md5sum, 'Not computed')
+        self.assertEqual(len(md5sum), 
                          len('9d123996fa9a7bda315d07e063043454'))
 
 class RecipeEsorex(CplTestCase):
