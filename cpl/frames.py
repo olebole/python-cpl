@@ -3,6 +3,8 @@ import sys
 import tempfile
 import pyfits
 
+import md5sum
+
 class FrameConfig(object):
     '''Frame configuration. 
 
@@ -207,6 +209,7 @@ def mkabspath(frames, tmpdir):
                 pass
             frames[i] = ( frame[0], filename )
             tmpfiles.append(filename)
+            md5sum.update_md5(frame[1])
             frame[1].writeto(filename)
         else:
             frames[i] = ( frame[0], os.path.abspath(frame[1]) )
