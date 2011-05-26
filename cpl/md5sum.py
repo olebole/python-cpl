@@ -16,4 +16,6 @@ def verify_md5(hdulist):
     return hdulist[0].header.get('DATAMD5') == datamd5(hdulist)
 
 def update_md5(hdulist):
-    hdulist[0].header.update('DATAMD5', datamd5(hdulist), 'MD5 checksum')
+    sum = datamd5(hdulist)
+    hdulist[0].header.update('DATAMD5', sum, 'MD5 checksum')
+    return sum
