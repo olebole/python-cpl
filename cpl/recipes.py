@@ -107,6 +107,10 @@ class Recipe(object):
         return self._recipe.version()
 
     @property
+    def __version__(self):
+        return self._recipe.version()[1]
+
+    @property
     def __copyright__(self):
         '''Copyright string'''
         return self._recipe.copyright()
