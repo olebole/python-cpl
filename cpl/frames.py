@@ -158,6 +158,9 @@ class FrameList(object):
     def __repr__(self):
         return `list(self)`
 
+    def __eq__(self, other):
+        return dict(self) == other
+
     @property
     def __doc__(self):
         r = 'Frames for recipe %s.\n\nAttributes:\n' % (
