@@ -17,7 +17,7 @@ description = doc.splitlines()
 long_description = "\n".join(description[2:])
 description = description[0]
 
-def create_version_file():
+def create_version_file(cpl_version = cpl_version):
     changelog = os.path.join('debian', 'changelog')
     if os.path.exists(changelog):
         vline = open(changelog).readline()
