@@ -203,17 +203,14 @@ def mkabspath(frames, tmpdir):
     tmpfiles = list()
     for i, frame in enumerate(frames):
         if isinstance(frame[1], pyfits.HDUList):
-            tmpf = tempfile.mkstemp(prefix = '%s-' % frame[0],  
-                                    suffix = '.fits', dir = tmpdir)
-            os.close(tmpf[0])
-            filename = os.path.abspath(tmpf[1])
+            md5 = md5sum.update_md5(frame[1])
+            filename = os.path.abspath(os.path.join(tmpdir, '%s.fits' % md5))
             try:
                 os.remove(filename)
             except:
                 pass
             frames[i] = ( frame[0], filename )
             tmpfiles.append(filename)
-            md5sum.update_md5(frame[1])
             frame[1].writeto(filename)
         else:
             frames[i] = ( frame[0], os.path.abspath(frame[1]) )
