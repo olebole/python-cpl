@@ -62,6 +62,19 @@ class ProcessingInfo(object):
          import cpl
          myrecipe = cpl.Recipe('muse_bias')
          myrecipe.param = cpl.dfs.ProcessingInfo('MASTER_BIAS_0.fits').param
+
+    .. attribute:: md5sum
+
+       MD5 sum of the data portions of the output file (header keyword 
+       'DATAMD5').
+
+    .. attribute:: md5sums
+
+       MD5 sums of the input and calibration files. :class:`dict` with the
+       file name as key and the corresponding MD5 sum as value.
+
+       .. note:: Due to a design decision in CPL, the raw input files are not
+          accompanied with the MD5 sum.
     '''
 
     def __init__(self, source, datapaths = None):
@@ -103,11 +116,27 @@ class ProcessingInfo(object):
             self.pipeline =  None
             self.version = None
         self.cpl_version = header.get('HIERARCH ESO PRO REC1 DRS ID')
+        self.md5sum = header.get('DATAMD5')
+        self.md5sums = {}
         self.calib = _get_rec_keys(header, 'CAL', 'CATG', 'NAME', datapaths)
+        for cat, md5 in _get_rec_keys(header, 'CAL', 'CATG', 'DATAMD5').items():
+            if isinstance(md5, list):
+                for m, f in zip(md5, self.calib[cat]):
+                    if m is not None: 
+                        self.md5sums[f] = m
+            elif md5 is not None:
+                self.md5sums[self.calib[cat]] = md5
         raw = _get_rec_keys(header, 'RAW', 'CATG', 'NAME', datapaths)
         if raw:
             self.tag = raw.keys()[0]
             self.raw = raw[self.tag]
+            md5 = _get_rec_keys(header, 'RAW', 'CATG', 'DATAMD5')[self.tag]
+            if isinstance(md5, list):
+                for m, f in zip(md5, self.raw):
+                    if m is not None: 
+                        self.md5sums[f] = m
+            elif md5 is not None:
+                self.md5sums[self.raw] = md5
         else:
             self.tag = None
             self.input = None
@@ -205,7 +234,7 @@ def _get_rec_keys(header, key, name, value, datapaths = None):
         try:
             prefix = 'HIERARCH ESO PRO REC1 %s%i' % (key, i)
             k = header['%s %s' % (prefix, name)]
-            fn = header['%s %s' % (prefix, value)]
+            fn = header.get('%s %s' % (prefix, value))
             if datapaths and k in datapaths:
                 fn = os.path.join(datapaths[k], fn)
             if k not in  res:

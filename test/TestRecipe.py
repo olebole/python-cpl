@@ -389,7 +389,7 @@ class RecipeExec(RecipeTestCase):
         '''MD5sum of the result file'''
         self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
         res = self.recipe(self.raw_frame)
-        key = "DATAMD5";
+        key = 'DATAMD5'
         md5sum = res.THE_PRO_CATG_VALUE[0].header[key]
         self.assertNotEqual(md5sum, 'Not computed')
         self.assertEqual(len(md5sum), 
@@ -400,7 +400,7 @@ class RecipeExec(RecipeTestCase):
         self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
         self.recipe.calib.FLAT = self.flat_frame
         res = self.recipe(self.raw_frame)
-        key = "HIERARCH ESO PRO REC1 CAL1 DATAMD5";
+        key = 'HIERARCH ESO PRO REC1 CAL1 DATAMD5'
         md5sum = res.THE_PRO_CATG_VALUE[0].header[key]
         self.assertNotEqual(md5sum, 'Not computed')
         self.assertEqual(len(md5sum), 
@@ -570,8 +570,8 @@ class ProcessingInfo(RecipeTestCase):
         self.recipe.calib.FLAT = pyfits.HDUList([
                 pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
                                                           self.image_size))])
-        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
-        self.pinfo = cpl.dfs.ProcessingInfo(res)
+        self.res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
+        self.pinfo = cpl.dfs.ProcessingInfo(self.res)
 
     def test_param(self):
         '''Parameter information'''
@@ -602,6 +602,13 @@ class ProcessingInfo(RecipeTestCase):
         '''Version information'''
         self.assertEqual(self.pinfo.version[0], self.recipe.version[0])
         self.assertEqual(self.pinfo.cpl_version, 'cpl-%s' % cpl.lib_version)
+
+    def test_md5(self):
+        '''MD5 checksums'''
+        md5sum = self.res[0].header.get('DATAMD5')
+        self.assertEqual(md5sum, self.pinfo.md5sum)
+        md5sum = self.res[0].header.get('HIERARCH ESO PRO REC1 CAL1 DATAMD5')
+        self.assertEqual(md5sum, self.pinfo.md5sums[self.pinfo.calib['FLAT']])
 
 if __name__ == '__main__':
     unittest.main()
