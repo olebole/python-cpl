@@ -110,6 +110,9 @@ class Parameter(object):
             "value" if self.value is not None else "default",
             `self.value if self.value is not None else self.default`)
 
+    def __getitem__(self,i):
+        return (self.name, self.value or self.default)[i]
+
 
 class ParameterList(object):
     def __init__(self, recipe, other = None):

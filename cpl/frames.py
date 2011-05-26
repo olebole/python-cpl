@@ -71,6 +71,9 @@ class FrameConfig(object):
         if not self.min:
             r += ' (optional)'
         return r
+
+    def __getitem__(self, i):
+        return (self.tag, self.frames)[i]
     
 
 class FrameList(object):
