@@ -100,15 +100,15 @@ class Parameter(object):
         self._value = None
 
     def __str__(self):
-        return "%s%s" % (
-            str(self.value if self.value is not None else self.default), 
+        return '%s%s' % (
+            `self.value if self.value is not None else self.default`, 
             ' (default)' if self.value is None else '')
 
     def __repr__(self):
-        return "Parameter('%s', %s=%s)" % (
-            self.name, 
+        return 'Parameter(%s, %s=%s)' % (
+            `self.name`, 
             "value" if self.value is not None else "default",
-            self.value if self.value is not None else self.default)
+            `self.value if self.value is not None else self.default`)
 
 
 class ParameterList(object):
@@ -209,7 +209,7 @@ class ParameterList(object):
         return self._dict.keys()
 
     def __repr__(self):
-        return list(self).__repr__()
+        return `list(self)`
 
     @property
     def __doc__(self):
@@ -218,7 +218,7 @@ class ParameterList(object):
         maxlen = max(len(p.name) for p in self.param)
         for p in self:
             r += ' %s: %s (default: %s)\n' % (
-                p.name.rjust(maxlen), p.__doc__, str(p.default))
+                p.name.rjust(maxlen), p.__doc__, `p.default`)
         return r        
 
     def _aslist(self, **ndata):

@@ -56,8 +56,7 @@ class FrameConfig(object):
         return str(self.frames)
 
     def __repr__(self):
-        return "FrameDef('%s', frames=%s)" % (
-            self.tag, self.frames.__repr__())
+        return 'FrameDef(%s, frames=%s)' % (`self.tag`, `self.frames`)
 
     def _doc(self):
         if self.max == 1:
@@ -155,7 +154,7 @@ class FrameList(object):
         return self._dict.keys()
 
     def __repr__(self):
-        return list(self).__repr__()
+        return `list(self)`
 
     @property
     def __doc__(self):

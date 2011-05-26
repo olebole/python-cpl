@@ -140,7 +140,7 @@ class Recipe(object):
         if self.tags is None or t in self.tags:
             self._tag = t 
         else:
-            raise KeyError("Tag '%s' not in %s" % (t, str(self.tags)))
+            raise KeyError("Tag %s not in %s" % (`t`, str(self.tags)))
 
     @property
     def calib(self):
@@ -338,7 +338,7 @@ class Recipe(object):
             raise ValueError('No raw frames specified.')
         if len(raw_frames) > 1:
             raise ValueError('More than one raw frame tag specified: %s', 
-                            str(raw_frames))
+                            `raw_frames`)
         input_len = -1 if isinstance(raw_frames[0][1], pyfits.HDUList) else \
             len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
         calib_frames = self.calib._aslist(**ndata)
@@ -419,23 +419,23 @@ class Recipe(object):
         maxlen = max(len(p.name) for p in self.param)
         for p in self.param:
             r += ' %s: %s (default: %s)\n' % (
-                p.name.rjust(maxlen), p.__doc__, str(p.default))
+                p.name.rjust(maxlen), p.__doc__, `p.default`)
         r += '\n'
         if self._recipe.frameConfig() is not None:
-            c = 'Calibration frames: %s\n\n' % str([f.tag for f in self.calib])
+            c = 'Calibration frames: %s\n\n' % `[f.tag for f in self.calib]`
         else:
             c = ''
         if self.tags is not None:
             t = 'Raw and product frames:\n'
             maxlen = max(len(f) for f in self.tags)
             for f in self.tags:
-                t += ' %s --> %s\n' % (f.rjust(maxlen), str(self.output(f)))
+                t += ' %s --> %s\n' % (f.rjust(maxlen), `self.output(f)`)
         else:
             t = ''
-        return s + r + c + t + '\n\n'
+        print s + r + c + t + '\n\n'
 
     def __repr__(self):
-        return "Recipe('%s')" % self.name
+        return 'Recipe(%s, version = %s)' % (`self.name`, `self.version[0]`)
 
     @staticmethod
     def list():
