@@ -9,7 +9,8 @@ from version import doc as __doc__
 
 from recipes import Recipe, RecipeCrash
 from parameters import Parameter
-from frames import FrameConfig, Result, CplError
+from frames import FrameConfig
+from result import Result, CplError
 from log import msg, lib_version
 import dfs
 import esorex

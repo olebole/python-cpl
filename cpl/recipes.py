@@ -8,8 +8,8 @@ import signal
 import pyfits
 import CPL_recipe
 import esorex
-from frames import FrameList, Result
-from frames import mkabspath, expandframelist
+from frames import FrameList, mkabspath, expandframelist
+from result import Result
 from parameters import ParameterList
 from log import LogServer, msg
 
