@@ -3,13 +3,12 @@ import shutil
 import tempfile
 import threading
 import collections
-import signal
 
 import pyfits
 import CPL_recipe
 import esorex
 from frames import FrameList, mkabspath, expandframelist
-from result import Result
+from result import Result, RecipeCrash
 from parameters import ParameterList
 from log import LogServer, msg
 
@@ -406,7 +405,8 @@ class Recipe(object):
         try:
             bt = os.path.join(recipe_dir, 'recipe.backtrace')
             if os.path.exists(bt):
-                raise RecipeCrash(bt)
+                with file(bt) as bt_file:
+                    raise RecipeCrash(bt_file)
         finally:
             if self.temp_dir and not self.output_dir:
                 shutil.rmtree(recipe_dir)
@@ -532,143 +532,4 @@ class Threaded(threading.Thread):
     def set_maxthreads(n):
         with Threaded.pool_sema:
             Threaded.pool_sema = threading.BoundedSemaphore(n)
-
-class RecipeCrash(StandardError):
-    '''Recipe crash exception
-
-    If the CPL recipe crashes with a SIGSEV or a SIGBUS, the C stack trace is
-    tried to conserved in this exception. The stack trace is obtained with the
-    GNU debugger gdb. If the debugger is not available, or if the debugger
-    cannot be attached to the crashed recipe, the Exception remains empty.
-
-    When converted to a string, the Exception will return a stack trace
-    similar to the Python stack trace.
-
-    The exception is raised on recipe invocation, or when accessing the result
-    frames if the recipe was started in background
-    (:attr:`cpl.Recipe.threaded` set to :attr:`True`).
-
-    Attributes:
-
-    .. attribute:: elements
-
-       List of stack elements, with the most recent element (the one that
-       caused the crash) at the end. Each stack element is a 
-       :class:`collections.namedtuple` with the following attributes:
-
-       .. attribute:: filename
- 
-          Source file name, including full path, if available.
-
-       .. attribute:: line
-
-          Line number, if available
-
-       .. attribute:: func
-
-          Function name, if available
-
-       .. attribute:: params
-
-          Dictionary parameters the function was called with.  The key here is
-          the parameter name, the value is a string describing the value set.
-
-       .. attribute:: localvars
-
-          Dictionary of local variables of the function, if available.  The
-          key here is the parameter name, the value is a string describing the
-          value set.
-
-    .. attribute:: signal
-
-          Signal that caused the crash.
-    '''
-
-    StackElement = collections.namedtuple('StackElement', 
-                                          'filename line func params localvars')
-    signals = {signal.SIGSEGV:'SIGSEV: Segmentation Fault', 
-               signal.SIGBUS:'SIGBUS: Bus Error',
-               signal.SIGHUP:'SIGHUP: Hangup',
-               signal.SIGABRT:'SIGABRT: Abnormal process termination',
-               signal.SIGTERM:'SIGTERM: Terminated by user',
-               signal.SIGQUIT:'SIGQUIT: Quit',
-               signal.SIGFPE:'SIGFPE: Arithmetic Exception',
-               signal.SIGINT:'SIGINT: Interrupt (Ctrl-C)',
-               None:'Memory inconsistency detected'}
-    def __init__(self, fname):
-        self.elements = []
-        current_element = None
-        parse_functions = True
-        parse_sourcelist = False
-        sourcefiles = dict()
-        self.signal = None
-        self.lines = []
-        for line in file(fname):
-            self.lines.append(line)
-            if line.startswith('Received signal:'):
-                self.signal = int(line.split(':')[1])
-            if line.startswith('Memory corruption'):
-                self.signal = None
-            elif line.find('signal handler called') >= 0:
-                del self.elements[:]
-            elif parse_functions:
-                if line.startswith('#'):
-                    try:
-                        current_element = self._parse_function_line(line)
-                    except StopIteration:
-                        parse_functions = False
-                elif current_element is not None:
-                    self._add_variable(current_element.localvars, line)
-            if line.startswith('Source files'):
-                parse_sourcelist = True
-                parse_functions = False
-            elif parse_sourcelist:
-                sourcefiles.update(dict((os.path.basename(s.strip()), s.strip())
-                                        for s in line.split(',') 
-                                        if s.rfind('/') > 0 ))
-        self.elements = [ RecipeCrash.StackElement(sourcefiles.get(e.filename, 
-                                                                   e.filename),
-                                                   e.line, e.func, e.params, 
-                                                   e.localvars) 
-                          for e in self.elements ]
-        StandardError.__init__(self, str(self))
-
-    def _add_variable(self, vars, line):
-        s = line.strip().split('=', 1)
-        if len(s) > 1:
-            vars[s[0].strip()] = s[1].strip()
-
-    def _parse_function_line(self, line):
-        s = line.split()
-        funcname = s[3] if s[1].startswith('0x') else s[1]
-        if funcname.startswith('Py'):
-            raise StopIteration()
-        pars = {}
-        for fp in line[line.find('(')+1:line.rfind(')')].split(','):
-            self._add_variable(pars, fp)
-        l = line[line.rfind(')')+1:].split()
-        if not l:
-            return None
-        source = l[-1].split(':')
-        filename = source[0]
-        lineno = int(source[1]) if len(source) > 1 else None
-        current_element = RecipeCrash.StackElement(filename, lineno, 
-                                                   funcname, pars, {})
-        self.elements.insert(0, current_element)
-        return current_element
-        
-    def __repr__(self):
-        return 'RecipeCrash()'
-
-    def __str__(self):
-        s = 'Recipe Traceback (most recent call last):\n'
-        for e in self.elements:
-            s += '  File "%s", %sin %s\n' % ((e.filename), 
-                                             'line %i, ' % e.line if e.line 
-                                             else '', 
-                                             e.func)
-            if os.path.exists(e.filename) and e.line:
-                s += '    %s\n' % file(e.filename).readlines()[e.line-1].strip()
-        s += RecipeCrash.signals.get(self.signal, '%s: Unknown' % str(self.signal))
-        return s
 

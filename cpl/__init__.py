@@ -7,10 +7,10 @@ from version import email as __email__
 from version import license_ as __license__
 from version import doc as __doc__
 
-from recipes import Recipe, RecipeCrash
+from recipes import Recipe
 from parameters import Parameter
 from frames import FrameConfig
-from result import Result, CplError
+from result import Result, CplError, RecipeCrash
 from log import msg, lib_version
 import dfs
 import esorex
