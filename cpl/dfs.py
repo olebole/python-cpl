@@ -94,7 +94,7 @@ class ProcessingInfo(object):
                                               self.orig_filename)
         pipe_id = header.get('HIERARCH ESO PRO REC1 PIPE ID')
         if pipe_id:
-            self.pipeline,version = pipe_id.split('/')
+            self.pipeline, version = pipe_id.split('/')
             num_version = 0
             for i in version.split('.'):
                 num_version = num_version * 100 + int(i)
@@ -114,18 +114,7 @@ class ProcessingInfo(object):
         param = _get_rec_keys(header, 'PARAM', 'NAME', 'VALUE')
         self.param = dict()
         for k,v in param.items():
-            try:
-                self.param[k] = int(v)
-            except ValueError:
-                try:
-                    self.param[k] = float(v)
-                except ValueError:
-                    if v == 'true':
-                        self.param[k] = True
-                    elif v == 'false':
-                        self.param[k] = False
-                    else:
-                        self.param[k] = v
+            self.param[k] = _best_type(v)
             
     def create_recipe(self):
         recipe = cpl.Recipe(self.name)
@@ -229,6 +218,20 @@ def _get_rec_keys(header, key, name, value, datapaths = None):
             break
     return res
     
+def _best_type(value):
+    '''Convert the value to the best applicable type: :class:`int`, 
+    :class:`float`, :class:`bool` or :class`str`.
+
+    :param value: Value to convert.
+    :type value: :class:`str`
+    '''
+    for t in int, float:
+        try:
+            return t(value)
+        except ValueError:
+            pass
+    return {'true':True, 'false':False}.get(value, value)
+
 if __name__ == '__main__':
     import sys
 
