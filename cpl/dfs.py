@@ -92,50 +92,40 @@ class ProcessingInfo(object):
         if datapaths and self.product in datapaths:
             self.orig_filename = os.path.join(datapaths[self.product], 
                                               self.orig_filename)
-        try:
-            pipe_id = header['HIERARCH ESO PRO REC1 PIPE ID']
-            self.pipeline = pipe_id.split('/')[0]
-            version = pipe_id.split('/')[1]
+        pipe_id = header.get('HIERARCH ESO PRO REC1 PIPE ID')
+        if pipe_id:
+            self.pipeline,version = pipe_id.split('/')
             num_version = 0
             for i in version.split('.'):
                 num_version = num_version * 100 + int(i)
             self.version = (num_version, version)
-        except KeyError:
+        else:
             self.pipeline =  None
             self.version = None
-        try:
-            self.cpl_version = header['HIERARCH ESO PRO REC1 DRS ID']
-        except KeyError:
-            self.cpl_version = None
-        try:
-            self.calib = _get_rec_keys(header, 'CAL', 'CATG', 'NAME', datapaths)
-        except KeyError:
-            self.calib = None
-        try:
-            self.tag = header['HIERARCH ESO PRO REC1 RAW1 CATG']
-            self.raw = _get_rec_keys(header, 'RAW', 'CATG', 'NAME', 
-                                     datapaths)[self.tag]
-        except KeyError:
+        self.cpl_version = header.get('HIERARCH ESO PRO REC1 DRS ID')
+        self.calib = _get_rec_keys(header, 'CAL', 'CATG', 'NAME', datapaths)
+        raw = _get_rec_keys(header, 'RAW', 'CATG', 'NAME', datapaths)
+        if raw:
+            self.tag = raw.keys()[0]
+            self.raw = raw[self.tag]
+        else:
             self.tag = None
             self.input = None
-        try:
-            param = _get_rec_keys(header, 'PARAM', 'NAME', 'VALUE')
-            self.param = dict()
-            for k,v in param.items():
+        param = _get_rec_keys(header, 'PARAM', 'NAME', 'VALUE')
+        self.param = dict()
+        for k,v in param.items():
+            try:
+                self.param[k] = int(v)
+            except ValueError:
                 try:
-                    self.param[k] = int(v)
+                    self.param[k] = float(v)
                 except ValueError:
-                    try:
-                        self.param[k] = float(v)
-                    except ValueError:
-                        if v == 'true':
-                            self.param[k] = True
-                        elif v == 'false':
-                            self.param[k] = False
-                        else:
-                            self.param[k] = v
-        except KeyError:
-            self.param = None
+                    if v == 'true':
+                        self.param[k] = True
+                    elif v == 'false':
+                        self.param[k] = False
+                    else:
+                        self.param[k] = v
             
     def create_recipe(self):
         recipe = cpl.Recipe(self.name)
