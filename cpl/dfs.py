@@ -159,7 +159,7 @@ class ProcessingInfo(object):
         scriptfile.write('# Recipe: %s.%s, Version %s, CPL version %s\n' % 
                          (self.pipeline, self.name, self.version[1], 
                           self.cpl_version))
-        scriptfile.write('%s = cpl.Recipe(%s, version = %i)\n' % 
+        scriptfile.write('%s = cpl.Recipe(%s, version = %s)\n' % 
                          (self.name, `self.name`, `self.version[0]`))
         scriptfile.write('\n# Parameters:\n')
         for k,v in self.param.items():
