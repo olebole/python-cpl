@@ -1,10 +1,10 @@
 import os 
-import md5
+import hashlib
 
 def datamd5(hdulist):
     '''Calculate the MD5SUM of all data regions of a HDUList.
     '''
-    sum = md5.md5()
+    sum = hashlib.md5()
     for hdu in hdulist:
         if hdu.data is not None:
             sum.update(hdu.data)
