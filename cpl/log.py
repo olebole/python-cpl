@@ -232,3 +232,4 @@ class CplLogger(object):
 
 msg = CplLogger()
 lib_version = CPL_recipe.version()
+lib_description = CPL_recipe.description()

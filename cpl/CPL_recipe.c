@@ -25,6 +25,14 @@ CPL_version(PyObject *self) {
     return Py_BuildValue("s", cpl_version_get_version());
 }
 
+#define CPL_description_doc \
+    "Get the string of version numbers of CPL and its libraries."
+
+static PyObject *
+CPL_description(PyObject *self) {
+    return Py_BuildValue("s", cpl_get_description(CPL_DESCRIPTION_DEFAULT));
+}
+
 #define CPL_list_doc \
     "List all CPL recipe names contained in a shared library."
 
@@ -250,6 +258,7 @@ CPL_memory_is_empty(PyObject *self) {
 
 static PyMethodDef CPL_methods[] = {
     {"version", (PyCFunction)CPL_version, METH_NOARGS, CPL_version_doc},
+    {"description", (PyCFunction)CPL_description, METH_NOARGS, CPL_version_doc},
     {"list", CPL_list, METH_VARARGS, CPL_list_doc},
     {"set_msg_level", CPL_set_msg_level, METH_VARARGS, CPL_set_msg_level_doc},
     {"get_msg_level", (PyCFunction)CPL_get_msg_level, METH_NOARGS, 
