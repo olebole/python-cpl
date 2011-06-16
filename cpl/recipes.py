@@ -65,6 +65,9 @@ class Recipe(object):
         self.name = name
         if not filename:
             filename = Recipe.get_recipefilename(name, version)
+            if not filename:
+                raise IOError('Recipe %s not found at path %s' 
+                              % (`filename`, `Recipe.path`))
         self.filename = filename
         self._recipe = CPL_recipe.recipe(filename, name)
         if version and version not in self.version:
