@@ -417,6 +417,8 @@ class Recipe(object):
         finally:
             if self.temp_dir and not self.output_dir:
                 shutil.rmtree(recipe_dir)
+            else:
+                os.remove(logger.logfile)
 
     @property
     def __doc__(self):
