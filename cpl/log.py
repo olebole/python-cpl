@@ -28,12 +28,14 @@ class LogServer(threading.Thread):
 
     def run(self):
         try:
-            logfile = open(self.logfile)
+            logfile = open(self.logfile, buffering = 0)
         except:
             pass
         try:
-            for line in logfile:
+            line = logfile.readline()
+            while line:
                 self.log(line)
+                line = logfile.readline()
         except:
             pass
 
