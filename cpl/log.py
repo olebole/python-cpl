@@ -47,6 +47,11 @@ class LogServer(threading.Thread):
             lvl = level.get(s[10:17].strip(), logging.NOTSET)
             func = s[19:].split(':', 1)[0]
             msg = s[19:].split(':', 1)[1][1:-1]
+            if msg.startswith('[tid='):
+                threadid = int(msg[5:8])
+                msg = msg[10:] if threadid > 0 else msg[12:]
+            else:
+                threadid = None
             record = logging.LogRecord('%s.%s' % (self.name, func), 
                                        lvl, None, None, msg, None, None, func)
             created = float(creation_date.strftime('%s'))
@@ -56,6 +61,8 @@ class LogServer(threading.Thread):
             record.relativeCreated += 1000*(created - record.created + 1) 
             record.created = created
             record.msecs = 0.0
+            record.threadid = threadid
+            record.threadName = ('Cpl-%03i' % threadid) if threadid else 'CplThread'
             self.entries.append(record)
             log = logging.getLogger('%s.%s' % (self.name, func))
             if log.isEnabledFor(lvl) and log.filter(record):
