@@ -57,6 +57,12 @@ class Result(object):
         self.error = CplError(res[2][0], res[1], logger) if res[1] else None
         self.log = logger.entries if logger else None
 
+    def __getitem__(self, key):
+        if key in self.tags:
+            return self.__dict__[key]
+        else:
+            raise KeyError(key)
+
 class Stat(object):
     def __init__(self, stat):
         self.return_code = stat[0]
