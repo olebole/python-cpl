@@ -406,6 +406,31 @@ class RecipeExec(RecipeTestCase):
         self.assertEqual(len(md5sum), 
                          len('9d123996fa9a7bda315d07e063043454'))
 
+class RecipeRes(RecipeTestCase):
+    def setUp(self):
+        RecipeTestCase.setUp(self)
+        self.res = self.recipe(self.raw_frame)
+
+    def test_attribute(self):
+        '''The result as an attribute'''
+        self.assertTrue(isinstance(self.res.THE_PRO_CATG_VALUE, 
+                                   pyfits.HDUList))
+
+    def test_dict(self):
+        '''The result as an attribute'''
+        self.assertTrue(isinstance(self.res['THE_PRO_CATG_VALUE'], 
+                                   pyfits.HDUList))
+
+    def test_len(self):
+        '''Length of the result'''
+        self.assertEqual(len(self.res), 1)
+
+    def test_iter(self):
+        '''Iterate over the result'''
+        for tag, hdu in self.res:
+            self.assertEqual(tag, 'THE_PRO_CATG_VALUE')
+            self.assertTrue(isinstance(hdu, pyfits.HDUList))
+
 class RecipeEsorex(CplTestCase):
     def tearDown(self):
         cpl.msg.level = cpl.msg.OFF
@@ -515,7 +540,7 @@ class RecipeLog(RecipeTestCase):
         self.assertNotEqual(len(self.other_handler.logs), 0)
 
     def test_result(self):
-        ''''log' attribute of the result object'''
+        '''"log" attribute of the result object'''
         res = self.recipe(self.raw_frame)
         # Check that we get a not-empty list back
         self.assertTrue(isinstance(res.log, list))
@@ -535,7 +560,7 @@ class RecipeLog(RecipeTestCase):
         self.assertEqual(len(res.log.error), 0)
 
     def test_error(self):
-        ''''log' attribute of the CplError object'''
+        '''"log" attribute of the CplError object'''
         try:
             self.recipe('test.fits')
         except cpl.CplError as res:

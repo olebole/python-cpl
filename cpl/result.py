@@ -63,6 +63,15 @@ class Result(object):
         else:
             raise KeyError(key)
 
+    def __contains__(self, key):
+        return key in self.tags
+
+    def __len__(self):
+        return len(self.tags)
+
+    def __iter__(self):
+        return iter((key, self.__dict__[key]) for key in self.tags)
+
 class Stat(object):
     def __init__(self, stat):
         self.return_code = stat[0]
