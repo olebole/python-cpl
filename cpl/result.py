@@ -6,21 +6,27 @@ import pyfits
 
 class Result(object):
     def __init__(self, recipedefs, dir, res, delete = True, 
-                 input_len = 0, logger = None):
+                 input_len = 0, logger = None, output_format = pyfits.HDUList):
         '''Build an object containing all result frames.
 
         Calling :meth:`cpl.Recipe.__call__` returns an object that contains
         all result ('production') frames in attributes. All results for one
         tag are summarized in one attribute of the same name. 
 
-        The attribute content is either a :class:`pyfits.HDUList` or a
+        If the argument `output_format` is :class:`pyfits.HDUList` (default),
+        then the attribute content is either a :class:`pyfits.HDUList` or a
         class:`list` of HDU lists, depending on the recipe and the call: If
         the recipe produces one out put frame of a tag per input file, the
         attribute contains a list if the recipe was called with a list, and if
         the recipe was called with a single input frame, the result attribute
         will also contain a single input frame. If the recipe combines all
         input frames to one output frame, a single :class:`pyfits.HDUList` es
-        returned, independent of the input parameters. 
+        returned, independent of the input parameters.
+
+        Similarly, if the argument `output_format` is set to :class:`str`, the
+        attribute content is either a :class:`str` or a class:`list` of
+        :class:`str`, containing the paths of output files. In this case,
+        removing the output files is suppressed.
 
         .. todo:: This behaviour is made on some heuristics based on the
            number and type of the input frames. The heuristics will go wrong
@@ -39,20 +45,23 @@ class Result(object):
             raise CplError(res[2][0], res[1], logger)
         self.tags = set()
         for tag, frame in res[0]:
-            hdu = pyfits.open(os.path.abspath(os.path.join(dir, frame)),
-                              memmap = delete, 
-                              mode = 'update' if delete else 'copyonwrite')
-            if delete:
-                hdu.readall()
-                os.remove(os.path.join(dir, frame))
+            outframe = os.path.abspath(os.path.join(dir, frame))
+            if output_format == pyfits.HDUList:
+                outframe = pyfits.open(outframe, memmap = delete, 
+                                       mode = 'update' if delete 
+                                       else 'copyonwrite')
+                if delete:
+                    outframe.readall()
+                    os.remove(os.path.join(dir, frame))
             tag = tag
             if tag not in self.__dict__:
-                self.__dict__[tag] = hdu if input_len != 1 else [ hdu ]
+                self.__dict__[tag] = outframe if input_len != 1 \
+                    else [ outframe ]
                 self.tags.add(tag)
             elif isinstance(self.__dict__[tag], pyfits.HDUList):
-                self.__dict__[tag] = [ self.__dict__[tag], hdu ]
+                self.__dict__[tag] = [ self.__dict__[tag], outframe ]
             else:
-                self.__dict__[tag].append(hdu)
+                self.__dict__[tag].append(outframe)
         self.stat = Stat(res[2])
         self.error = CplError(res[2][0], res[1], logger) if res[1] else None
         self.log = logger.entries if logger else None

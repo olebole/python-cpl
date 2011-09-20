@@ -296,6 +296,15 @@ class RecipeExec(RecipeTestCase):
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 
+    def test_frames_str_output(self):
+        '''Output file name instead of a pyfits.HDUList'''
+        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        res = self.recipe(self.raw_frame, output_format = str)
+        self.assertTrue(isinstance(res, cpl.Result))
+        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, str))
+        hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
+        self.assertTrue(isinstance(hdu, pyfits.HDUList))
+
     def test_param_keyword(self):
         '''Parameter handling via keyword arg'''
         res = self.recipe(self.raw_frame, 
