@@ -40,19 +40,26 @@ class Result(object):
            more sophisticated. And this is not usable for non-MUSE recipes
            anyway. So, we will skip this to probably some distant future.
         '''
-        self.dir = dir
+        self.dir = os.path.abspath(dir)
         if res[2][0]:
             raise CplError(res[2][0], res[1], logger)
         self.tags = set()
         for tag, frame in res[0]:
-            outframe = os.path.abspath(os.path.join(dir, frame))
+            if delete: # Move the file to the base dir to avoid NFS problems
+                outframe = os.path.join(
+                    os.path.dirname(self.dir), 
+                    '%s.%s' % (os.path.basename(self.dir), frame))
+                os.rename(os.path.join(self.dir, frame), outframe)
+            else:
+                outframe = os.path.join(self.dir, frame)
             if output_format == pyfits.HDUList:
-                outframe = pyfits.open(outframe, memmap = delete, 
-                                       mode = 'update' if delete 
-                                       else 'copyonwrite')
+                hdulist = pyfits.open(outframe, memmap = delete, 
+                                      mode = 'update' if delete 
+                                      else 'copyonwrite')
                 if delete:
-                    outframe.readall()
-                    os.remove(os.path.join(dir, frame))
+                    hdulist.readall()
+                    os.remove(outframe)
+                outframe = hdulist
             tag = tag
             if tag not in self.__dict__:
                 self.__dict__[tag] = outframe if input_len != 1 \
