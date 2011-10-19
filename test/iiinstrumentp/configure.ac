@@ -86,9 +86,6 @@ AM_WITH_DMALLOC
 
 
 AC_CONFIG_FILES(Makefile
-		Makefile.purify
-                doxygen/Doxyfile
                 iiinstrument/Makefile
-                iiinstrument/tests/Makefile
                 recipes/Makefile)
 AC_OUTPUT

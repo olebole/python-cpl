@@ -23,48 +23,9 @@ ACLOCAL_AMFLAGS = -I m4macros
 
 DISTCLEANFILES = *~
 
+SUBDIRS = iiinstrument recipes
 
-COMPILE_FIRST = 
-
-TOPSUBDIRS = iiinstrument recipes
-
-COMPILE_LAST =
-
-
-HTML_SUBDIRS =
-
-SUBDIRS = $(COMPILE_FIRST) $(TOPSUBDIRS) $(COMPILE_LAST)
-
-EXTRA_DIST = m4macros/eso.m4 m4macros/cpl.m4 admin/html.am \
-	doxygen/Doxyfile.in setup 
-
-
-pkgdata_DATA = ChangeLog AUTHORS NEWS README TODO
-
-
-if MAINTAINER_MODE
-
-DISTCHECK_CONFIGURE_FLAGS = --enable-maintainer-mode
-
-MAINTAINERCLEANFILES = Makefile.in aclocal.m4 config.h.in configure stamp-h.in
-
-clean-local: clean-html
-
-dist-hook: html
-	@if test -d $(top_srcdir)/html; then \
-	  echo "cp -pr $(top_srcdir)/html $(distdir)"; \
-	  cp -pr $(top_srcdir)/html $(distdir); \
-	fi
-	find $(distdir) -type d ! -perm -222 -exec chmod u+w {} \; -o \
-	-type f ! -perm -222 -exec chmod u+w {} \; || chmod -R u+w $(distdir)
-
-else
-
-clean-local:
-
-endif
-
-uninstall-local: uninstall-html
+EXTRA_DIST = m4macros/eso.m4 m4macros/cpl.m4
 
 libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck

@@ -19,17 +19,7 @@
 
 AUTOMAKE_OPTIONS = 1.8 foreign
 
-SUBDIRS = . tests
-
 DISTCLEANFILES = *~
-
-
-if MAINTAINER_MODE
-
-MAINTAINERCLEANFILES = Makefile.in
-
-endif
-
 
 CPPFLAGS = -DCX_LOG_DOMAIN=\"IiinstrumentLib\"
 

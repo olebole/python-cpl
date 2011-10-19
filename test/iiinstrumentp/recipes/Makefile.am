@@ -21,14 +21,6 @@ AUTOMAKE_OPTIONS = 1.8 foreign
 
 DISTCLEANFILES = *~
 
-
-if MAINTAINER_MODE
-
-MAINTAINERCLEANFILES = Makefile.in
-
-endif
-
-
 INCLUDES = $(all_includes)
 
 noinst_HEADERS = 
