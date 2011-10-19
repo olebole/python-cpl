@@ -41,6 +41,7 @@ class Result(object):
            anyway. So, we will skip this to probably some distant future.
         '''
         self.dir = os.path.abspath(dir)
+        logger.join()
         if res[2][0]:
             raise CplError(res[2][0], res[1], logger)
         self.tags = set()
