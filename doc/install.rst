@@ -5,7 +5,7 @@ Prequisites
 -----------
 
 * `CPL <http://www.eso.org/sci/data-processing/software/cpl/>`_ 5
-  (:program:`Esorex` is not needed)
+  (:program:`Esorex` is not needed),
 * `Python <http://www.python.org/>`_ 2.6 or 2.7, 
 * `Pyfits <http://www.pyfits.org/>`_
 
@@ -15,12 +15,14 @@ Binary packages
 * `Ubuntu repository <https://launchpad.net/~olebole/+archive/astro>`_ (10.04
   LTS, 10.10, and 11.04). This repository also contains the required packages
   that are not in the standard distribution (CPL etc.)
+* Debian package planned
 * `Python egg <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ planned
 
 Source code
 -----------
 
-* `Releases and prereleases <http://github.com/olebole/python-cpl/downloads>`_
+* `Current release 0.3.5 
+   <http://www.aip.de/~ole/python-cpl/python-cpl-0.3.5.tar.gz>`_
 * `Git repository <http://github.com/olebole/python-cpl>`_. To access, do a::
 
     git clone git://github.com/olebole/python-cpl.git
@@ -29,22 +31,37 @@ Source code
   To update to the current version of an existing repository, do a 
   ``git pull`` in the :file:`python-cpl` directory.
 
-  For more detailed information, check the manual page of :manpage:`git(1)` and the
-  `github <http://github.com/olebole/python-cpl>`_ page of the project.
+  For more detailed information, check the manual page of :manpage:`git(1)` 
+  and the `github <http://github.com/olebole/python-cpl>`_ page of the project.
 
 Compilation
 -----------
 
-* Additionally to the software mentioned above, a C compiler is needed.
+Additionally to the software mentioned above, a C compiler is needed.
 
-* Determine where you want to install the compiled python package. Standard is
-  :file:`/usr/local`. In the source directory of cpl-python, run::
+Define the installation path of the package. On default, this is
+:file:`/usr/local`. If using a non-standard installation path, add the
+directory :file:`{PREFIX}/lib/python2.7/site-packages/`
+(:file:`lib64/python2.7/site-packages/` on 64 bit systems) to your environment
+variable :envvar:`PYTHONPATH` where where :file:`{PREFIX}` is the installation
+path for the package.
 
-    python setup.py install --prefix=PREFIX
+In the source directory of cpl-python, run::
 
-  where :file:`{PREFIX}` is the installation path for the package. The package
-  will be installed in the subdir :file:`lib/python2.6/site-packages/`
-  (:file:`lib64/python2.6/site-packages/` on 64 bit systems) of :file:`{PREFIX}`
+  python setup.py install --prefix=PREFIX
 
-* Add the directory :file:`{PREFIX}/lib[64]/python2.6/site-packages/` to your
-  environment variable :envvar:`PYTHONPATH`.
+Test suite
+----------
+
+There are a number of tests defined in :file:`test/TestRecipe.py`. To run
+them, you need first to compile the recipe in :file:`test/iiinstrumentp/`::
+
+  cd test/iiinstrumentp/
+  ./bootstrap
+  ./configure
+  make
+  cd ..
+  python TestRecipe.py
+
+The tests may print a memory corruption detection by glibc. This is normal,
+since the tests also check the behaviour of this behaviour in the recipe.
