@@ -484,6 +484,10 @@ class RecipeLog(RecipeTestCase):
         self.other_handler = RecipeLog.THandler()
         logging.getLogger('othername').addHandler(self.other_handler)
 
+    def tearDown(self):
+        logging.getLogger('cpl.rrrecipe').removeHandler(self.handler)
+        logging.getLogger('othername').removeHandler(self.other_handler)
+
     class THandler(logging.Handler):
         def __init__(self):
             logging.Handler.__init__(self)
