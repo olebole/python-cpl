@@ -18,7 +18,7 @@ class RecipeTestCase(CplTestCase):
         self.recipe = cpl.Recipe('rrrecipe')
         self.recipe.temp_dir = tempfile.mkdtemp()
         self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
-        self.image_size = (1024, 1024)
+        self.image_size = (16, 16)
         self.raw_frame = pyfits.HDUList([
                 pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
                                                                self.image_size))])
