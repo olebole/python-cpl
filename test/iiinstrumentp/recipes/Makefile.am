@@ -36,6 +36,6 @@ noinst_HEADERS =
 plugin_LTLIBRARIES = rrrecipe.la 
 
 rrrecipe_la_SOURCES = rrrecipe.c 
-rrrecipe_la_LIBADD = $(LIBIIINSTRUMENT)
+rrrecipe_la_LIBADD = $(LIBCPLDFS) $(LIBIIINSTRUMENT)
 rrrecipe_la_LDFLAGS = -module -avoid-version
 rrrecipe_la_DEPENDENCIES = $(LIBIIINSTRUMENT)
