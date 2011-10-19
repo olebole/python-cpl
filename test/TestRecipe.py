@@ -442,6 +442,7 @@ class RecipeRes(RecipeTestCase):
 
 class RecipeEsorex(CplTestCase):
     def tearDown(self):
+        CplTestCase.tearDown(self)
         cpl.msg.level = cpl.msg.OFF
 
     def test_read_sof(self):
@@ -485,6 +486,7 @@ class RecipeLog(RecipeTestCase):
         logging.getLogger('othername').addHandler(self.other_handler)
 
     def tearDown(self):
+        RecipeTestCase.tearDown(self)
         logging.getLogger('cpl.rrrecipe').removeHandler(self.handler)
         logging.getLogger('othername').removeHandler(self.other_handler)
 
