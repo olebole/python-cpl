@@ -4,6 +4,7 @@ AC_INIT([IIINSTRUMENT Instrument Pipeline], [0.0.1], [flastname@eso.org],
 [iiinstrument])
 AC_PREREQ([2.59])
 
+AC_CONFIG_MACRO_DIR([m4macros])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_AUX_DIR([admin])
 

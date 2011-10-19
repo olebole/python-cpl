@@ -69,4 +69,3 @@ uninstall-local: uninstall-html
 libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
-include $(top_srcdir)/admin/html.am
