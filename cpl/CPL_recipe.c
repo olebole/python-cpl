@@ -834,31 +834,29 @@ static void backtrace(void) {
 	   "cat >> gdb_commands << EOF\n"
 	   "set height 0\nset width 0\nbt full\ninfo sources\ninfo files\n"
 	   "EOF");
-  int res = system(cmd);
+  system(cmd);
   snprintf(cmd, sizeof(cmd), 
 	   "gdb -batch -x gdb_commands --pid %i --readnow  >> recipe.backtrace 2> /dev/null", 
 	   (int)getpid());
-  res = system(cmd);
+  system(cmd);
   unlink("gdb_commands");
   
 }
 
 static void mcheck_handler(enum mcheck_status status) {
   char cmd[100];
-  int res;
   snprintf(cmd, sizeof(cmd), 
 	   "echo Memory corruption > recipe.backtrace");
-  res = system(cmd);
+  system(cmd);
   backtrace();
   abort();
 }
 
 static void segv_handler(int sig) {
   char cmd[100];
-  int res;
   snprintf(cmd, sizeof(cmd), 
 	   "echo Received signal: %i > recipe.backtrace", sig);
-  res = system(cmd);
+  system(cmd);
   backtrace();
 
   signal(sig, SIG_DFL);
