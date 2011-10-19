@@ -1,8 +1,20 @@
 #!/usr/bin/make -f
 
 %:
-	dh $@ --with python2
+	dh $@ --with python2 --with autoreconf
+
+override_dh_autoreconf:
+	(cd test/iiinstrumentp && ./bootstrap)
+
+override_dh_auto_configure:
+	dh_auto_configure
+	(cd test/iiinstrumentp && ./configure)
+
+override_dh_auto_build:
+	dh_auto_build
+	(cd test/iiinstrumentp && make)
+	python setup.py build_ext -i
 
 override_dh_auto_test:
-	( cd test/iiinstrumentp/ ; autoreconf && ./configure && make ) 
-	python test/TestRecipe.py
+	PYTHONPATH=$(pwd) python test/TestRecipe.py
+
