@@ -141,11 +141,7 @@ bt_init ()
 
     # Check existance of the helpers directory
     if test ! -d $bt_auxdir; then
-	bt_error "Helpers directory '$bt_auxdir' does not exist!"
-	bt_error "Please recheckout this module!"
-	bt_error "For cvs use checkout once and after that update again"
-
-	exit 1
+	mkdir -p $bt_auxdir
     fi
 
 
