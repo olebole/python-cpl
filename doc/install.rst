@@ -4,7 +4,7 @@ Installation
 Prequisites
 -----------
 
-* `CPL <http://www.eso.org/sci/data-processing/software/cpl/>`_ 5
+* `CPL <http://www.eso.org/sci/software/cpl/>`_ 5
   (:program:`Esorex` is not needed),
 * `Python <http://www.python.org/>`_ 2.6 or 2.7, 
 * `Pyfits <http://www.pyfits.org/>`_

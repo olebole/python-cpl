@@ -2,7 +2,7 @@
 configuration files.
 
 Esorex is a standard execution environment for CPL recipes provided by
-ESO. See http://www.eso.org/sci/data-processing/software/cpl/esorex.html for
+ESO. See http://www.eso.org/sci/software/cpl/esorex.html for
 details.
 '''
 
