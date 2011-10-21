@@ -40,7 +40,7 @@ class RecipeStatic(CplTestCase):
 class RecipeCommon(RecipeTestCase):
     def test_name(self):
         '''Recipe name'''
-        self.assertEqual(self.recipe.name, 'rrrecipe')
+        self.assertEqual(self.recipe.__name__, 'rrrecipe')
 
     def test_author(self):
         '''Author attribute'''
@@ -635,7 +635,7 @@ class ProcessingInfo(RecipeTestCase):
 
     def test_name(self):
         '''Recipe and pipeline name information'''
-        self.assertEqual(self.pinfo.name, self.recipe.name)
+        self.assertEqual(self.pinfo.name, self.recipe.__name__)
         self.assertEqual(self.pinfo.pipeline, 'iiinstrument')
 
     def test_version(self):

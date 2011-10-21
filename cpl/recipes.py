@@ -25,8 +25,8 @@ class Recipe(object):
 
     Attributes:
 
-    name: Recipe name
-    filename: Shared library file name
+    __name__: Recipe name
+    __filename__: Shared library file name
     param: Parameter list
     calib: Calibration frame list
     tag: default tag
@@ -62,13 +62,13 @@ class Recipe(object):
 
         '''
         self._recipe = None
-        self.name = name
+        self.__name__ = name
         if not filename:
             filename = Recipe.get_recipefilename(name, version)
             if not filename:
                 raise IOError('Recipe %s not found at path %s' 
                               % (`filename`, `Recipe.path`))
-        self.filename = filename
+        self.__file__ = filename
         self._recipe = CPL_recipe.recipe(filename, name)
         if version and version not in self.version:
             raise IOError('wrong version %s (requested %s) for %s in %s' %
@@ -86,7 +86,7 @@ class Recipe(object):
 
         All recipe settings remain unchanged.
         '''
-        self._recipe = CPL_recipe.recipe(self.filename, self.name)
+        self._recipe = CPL_recipe.recipe(self.__file__, self.__name__)
 
     @property
     def __author__(self):
@@ -338,11 +338,11 @@ class Recipe(object):
         tmpfiles = []
         recipe_dir = self.output_dir or ( 
             tempfile.mkdtemp(dir = self.temp_dir, 
-                             prefix = self.name + "-") 
+                             prefix = self.__name__ + "-") 
             if self.temp_dir else os.getcwd())
         threaded = ndata.get('threaded', self.threaded)
         loglevel = ndata.get('loglevel', msg.DEBUG)
-        logname = ndata.get('logname', 'cpl.%s' % self.name)
+        logname = ndata.get('logname', 'cpl.%s' % self.__name__)
         output_format = ndata.get('output_format', pyfits.HDUList)
         parlist = self.param._aslist(**ndata)
         raw_frames = self._get_raw_frames(*data, **ndata)
@@ -450,7 +450,7 @@ class Recipe(object):
         print s + r + c + t + '\n\n'
 
     def __repr__(self):
-        return 'Recipe(%s, version = %s)' % (`self.name`, `self.version[0]`)
+        return 'Recipe(%s, version = %s)' % (`self.__name__`, `self.version[0]`)
 
     @staticmethod
     def list():
