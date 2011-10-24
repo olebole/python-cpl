@@ -5,8 +5,8 @@ import signal
 import pyfits
 
 class Result(object):
-    def __init__(self, recipedefs, dir, res, delete = True, 
-                 input_len = 0, logger = None, output_format = pyfits.HDUList):
+    def __init__(self, recipedefs, dir, res, input_len = 0, logger = None, 
+                 output_format = pyfits.HDUList, delete = True):
         '''Build an object containing all result frames.
 
         Calling :meth:`cpl.Recipe.__call__` returns an object that contains
