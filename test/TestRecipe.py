@@ -15,8 +15,9 @@ class CplTestCase(unittest.TestCase):
 class RecipeTestCase(CplTestCase):
     def setUp(self):
         CplTestCase.setUp(self)
+        self.temp_dir = tempfile.mkdtemp()
         self.recipe = cpl.Recipe('rrrecipe')
-        self.recipe.temp_dir = tempfile.mkdtemp()
+        self.recipe.temp_dir = self.temp_dir
         self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
         self.image_size = (16, 16)
         self.raw_frame = pyfits.HDUList([
@@ -27,7 +28,7 @@ class RecipeTestCase(CplTestCase):
                                         'RRRECIPE_DOCATG_RAW')
 
     def tearDown(self):
-        shutil.rmtree(self.recipe.temp_dir)
+        shutil.rmtree(self.temp_dir)
 
 class RecipeStatic(CplTestCase):
     def test_list(self):
@@ -298,12 +299,28 @@ class RecipeExec(RecipeTestCase):
 
     def test_frames_str_output(self):
         '''Output file name instead of a pyfits.HDUList'''
-        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
         res = self.recipe(self.raw_frame, output_format = str)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, str))
         hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
         self.assertTrue(isinstance(hdu, pyfits.HDUList))
+
+    def test_output_dir_attribute(self):
+        '''Write an output dir specified as attribute'''
+        output_dir = os.path.join(self.temp_dir, 'out')
+        self.recipe.output_dir = output_dir
+        res = self.recipe(self.raw_frame)
+        self.assertTrue(os.path.isdir(output_dir))
+        self.assertTrue(os.path.isfile(os.path.join(output_dir,
+                                                    'rrrecipe.fits')))
+
+    def test_output_dir_keyword(self):
+        '''Write an output dir specified as call keyword arg'''
+        output_dir = os.path.join(self.temp_dir, 'out')
+        res = self.recipe(self.raw_frame, output_dir = output_dir)
+        self.assertTrue(os.path.isdir(output_dir))
+        self.assertTrue(os.path.isfile(os.path.join(output_dir,
+                                                    'rrrecipe.fits')))
 
     def test_param_keyword(self):
         '''Parameter handling via keyword arg'''
