@@ -297,30 +297,34 @@ class RecipeExec(RecipeTestCase):
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 
-    def test_frames_str_output(self):
-        '''Output file name instead of a pyfits.HDUList'''
-        res = self.recipe(self.raw_frame, output_format = str)
-        self.assertTrue(isinstance(res, cpl.Result))
-        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, str))
-        hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
-        self.assertTrue(isinstance(hdu, pyfits.HDUList))
-
     def test_output_dir_attribute(self):
         '''Write an output dir specified as attribute'''
         output_dir = os.path.join(self.temp_dir, 'out')
         self.recipe.output_dir = output_dir
         res = self.recipe(self.raw_frame)
+        self.assertTrue(isinstance(res, cpl.Result))
+        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, str))
+        self.assertEqual(os.path.basename(res.THE_PRO_CATG_VALUE), 
+                         'rrrecipe.fits')
         self.assertTrue(os.path.isdir(output_dir))
-        self.assertTrue(os.path.isfile(os.path.join(output_dir,
-                                                    'rrrecipe.fits')))
+        self.assertTrue(os.path.isfile(res.THE_PRO_CATG_VALUE))
+        hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
+        self.assertTrue(isinstance(hdu, pyfits.HDUList))
 
     def test_output_dir_keyword(self):
         '''Write an output dir specified as call keyword arg'''
         output_dir = os.path.join(self.temp_dir, 'out')
         res = self.recipe(self.raw_frame, output_dir = output_dir)
+        self.recipe.output_dir = output_dir
+        res = self.recipe(self.raw_frame)
         self.assertTrue(os.path.isdir(output_dir))
-        self.assertTrue(os.path.isfile(os.path.join(output_dir,
-                                                    'rrrecipe.fits')))
+        self.assertTrue(isinstance(res, cpl.Result))
+        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, str))
+        self.assertEqual(os.path.basename(res.THE_PRO_CATG_VALUE), 
+                         'rrrecipe.fits')
+        self.assertTrue(os.path.isfile(res.THE_PRO_CATG_VALUE))
+        hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
+        self.assertTrue(isinstance(hdu, pyfits.HDUList))
 
     def test_param_keyword(self):
         '''Parameter handling via keyword arg'''

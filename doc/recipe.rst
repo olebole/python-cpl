@@ -34,13 +34,13 @@ Common attributes and methods
 
 These attributes and methods are available for all recipes.
 
-.. attribute:: Recipe.name 
+.. attribute:: Recipe.__name__
 
    Recipe name
 
 .. autoattribute:: Recipe.version
 
-.. attribute:: Recipe.filename
+.. attribute:: Recipe.__file__
 
    Shared library file name.
 
@@ -54,13 +54,20 @@ These attributes and methods are available for all recipes.
 
 .. attribute:: Recipe.output_dir
 
-   Output directory if specified, or :keyword:`None`.
+   Output directory if specified, or :keyword:`None`. The recipe will write
+   the output files into this directory and return their file names. If the
+   directory does not exist, it will be created before the recipe is
+   executed. Output files within the output directory will be silently
+   overwritten. If no output directory is set, the recipe call will
+   result in :class:`pyfits.HDUList` result objects. The output directory may
+   be also set as parameter in the recipe call. 
 
 .. attribute:: Recipe.temp_dir
 
    Base directory for temporary directories where the recipe is
    executed. The working dir is created as a subdir with a random file
-   name. Defaults to :literal:`'.'`.
+   name. If set to :keyword:`None`, the system temp dir is used. 
+   Defaults to :literal:`'.'`. 
 
 .. attribute:: Recipe.threaded
 

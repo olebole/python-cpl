@@ -304,16 +304,13 @@ class Recipe(object):
         :param raw_name = data: Data with a specific tag 'name'.
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
         :type threaded: :class:`bool`
-        :param output_format: Format of the output frames. Supported values
-            here are :class:`pyfits.HDUList` (default), or :class:`str`. 
-            In the latter case, the file names are returned and the
-            files are not removed after the function call.
-        :type output_format: :class:`class`
         :param loglevel: set the log level for python :mod:`logging` (optional).
         :type loglevel: :class:`int`
         :param logname: set the log name for the used python 
             :class:`logging.Logger` (optional, default is 'cpl.' + recipename).
         :type logname: :class:`str`
+        :param output_dir: Set or overwrite the :attr:`output_dir` attribute.
+        :type output_dir: :class:`str`
         :param param: overwrite the CPL parameters of the recipe specified
             as keys with their dictionary values (optional). 
         :type param: :class:`dict`
@@ -339,12 +336,11 @@ class Recipe(object):
         threaded = ndata.get('threaded', self.threaded)
         loglevel = ndata.get('loglevel', msg.DEBUG)
         logname = ndata.get('logname', 'cpl.%s' % self.__name__)
-        output_format = ndata.get('output_format', pyfits.HDUList)
         output_dir = ndata.get('output_dir', self.output_dir)
-        recipe_dir = output_dir or ( 
-            tempfile.mkdtemp(dir = self.temp_dir, 
-                             prefix = self.__name__ + "-") 
-            if self.temp_dir else os.getcwd())
+        output_format = str if output_dir else pyfits.HDUList
+        if output_dir is None:
+            output_dir = tempfile.mkdtemp(dir = self.temp_dir, 
+                                          prefix = self.__name__ + "-") 
         parlist = self.param._aslist(**ndata)
         raw_frames = self._get_raw_frames(*data, **ndata)
         if len(raw_frames) < 1:
@@ -357,34 +353,33 @@ class Recipe(object):
         calib_frames = self.calib._aslist(**ndata)
         framelist = expandframelist(raw_frames + calib_frames)
         logger = None
-        delete = (self.temp_dir and not output_dir 
-                  and output_format == pyfits.HDUList)
+        delete = output_format == pyfits.HDUList
         try:
-            if (not os.access(recipe_dir, os.F_OK)):
-                os.makedirs(recipe_dir)
-            mkabspath(framelist, recipe_dir)
-            logger = LogServer(os.path.join(recipe_dir, 'log'), logname,
+            if (not os.access(output_dir, os.F_OK)):
+                os.makedirs(output_dir)
+            mkabspath(framelist, output_dir)
+            logger = LogServer(os.path.join(output_dir, 'log'), logname,
                                loglevel)
         except:
-            self._cleanup(recipe_dir, logger, delete)
+            self._cleanup(output_dir, logger, delete)
             raise
         if not threaded:
-            return self._exec(recipe_dir, parlist, framelist, input_len, 
+            return self._exec(output_dir, parlist, framelist, input_len, 
                               logger, output_format, delete)
         else:
             return  Threaded(
-                self._exec, recipe_dir, parlist, framelist, input_len, 
+                self._exec, output_dir, parlist, framelist, input_len, 
                 logger, output_format, delete)
 
-    def _exec(self, recipe_dir, parlist, framelist, input_len, 
+    def _exec(self, output_dir, parlist, framelist, input_len, 
               logger, output_format, delete):
         try:
-            return Result(self._recipe.frameConfig(), recipe_dir,
-                          self._recipe.run(recipe_dir, parlist, framelist,
+            return Result(self._recipe.frameConfig(), output_dir,
+                          self._recipe.run(output_dir, parlist, framelist,
                                            logger.logfile, logger.level),
-                          input_len, logger, output_format, delete)
+                          input_len, logger, output_format)
         finally:
-            self._cleanup(recipe_dir, logger, delete)
+            self._cleanup(output_dir, logger, delete)
 
     def _get_raw_frames(self, *data, **ndata):
         '''Return the input frames.
@@ -415,15 +410,15 @@ class Recipe(object):
 
         return list(m.iteritems())
 
-    def _cleanup(self, recipe_dir, logger, delete):
+    def _cleanup(self, output_dir, logger, delete):
         try:
-            bt = os.path.join(recipe_dir, 'recipe.backtrace')
+            bt = os.path.join(output_dir, 'recipe.backtrace')
             if os.path.exists(bt):
                 with file(bt) as bt_file:
                     raise RecipeCrash(bt_file)
         finally:
             if delete:
-                shutil.rmtree(recipe_dir)
+                shutil.rmtree(output_dir)
             else:
                 os.remove(logger.logfile)
 
