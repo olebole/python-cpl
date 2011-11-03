@@ -1,6 +1,6 @@
 Format: http://anonscm.debian.org/viewvc/dep/web/deps/dep5.mdwn?revision=202
 Upstream-Name: cpl
-Upstream-Author:Ole Streicher <debian@liska.ath.cx>
+Upstream-Author:Ole Streicher <python-cpl@liska.ath.cx>
 Source: https://github.com/olebole/python-cpl/downloads
 
 Files: *

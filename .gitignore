@@ -7,7 +7,10 @@ _build
 _static
 _templates
 build
+dist
+cpl.egg-info
 CVS
 debian_build/
 cpl/version.py
+cpl/CPL_recipe.so
 python-cpl_*

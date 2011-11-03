@@ -5,8 +5,8 @@ import signal
 import pyfits
 
 class Result(object):
-    def __init__(self, recipedefs, dir, res, delete = True, 
-                 input_len = 0, logger = None, output_format = pyfits.HDUList):
+    def __init__(self, recipedefs, dir, res, input_len = 0, logger = None, 
+                 output_format = pyfits.HDUList):
         '''Build an object containing all result frames.
 
         Calling :meth:`cpl.Recipe.__call__` returns an object that contains
@@ -46,7 +46,8 @@ class Result(object):
             raise CplError(res[2][0], res[1], logger)
         self.tags = set()
         for tag, frame in res[0]:
-            if delete: # Move the file to the base dir to avoid NFS problems
+            if (output_format == pyfits.HDUList): 
+                # Move the file to the base dir to avoid NFS problems
                 outframe = os.path.join(
                     os.path.dirname(self.dir), 
                     '%s.%s' % (os.path.basename(self.dir), frame))
@@ -54,12 +55,9 @@ class Result(object):
             else:
                 outframe = os.path.join(self.dir, frame)
             if output_format == pyfits.HDUList:
-                hdulist = pyfits.open(outframe, memmap = delete, 
-                                      mode = 'update' if delete 
-                                      else 'copyonwrite')
-                if delete:
-                    hdulist.readall()
-                    os.remove(outframe)
+                hdulist = pyfits.open(outframe, memmap = True, mode = 'update')
+                hdulist.readall()
+                os.remove(outframe)
                 outframe = hdulist
             tag = tag
             if tag not in self.__dict__:

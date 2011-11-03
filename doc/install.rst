@@ -21,8 +21,7 @@ Binary packages
 Source code
 -----------
 
-* `Current release 0.3.5 
-   <http://www.aip.de/~ole/python-cpl/python-cpl-0.3.5.tar.gz>`_
+* `Current release 0.3.5 <http://www.aip.de/~oles/python-cpl/python-cpl-0.3.5.tar.gz>`_
 * `Git repository <http://github.com/olebole/python-cpl>`_. To access, do a::
 
     git clone git://github.com/olebole/python-cpl.git
