@@ -1,4 +1,4 @@
 # format version number, currently 3; this line is compulsory!
 version=3
-http://www.aip.de/~oles/python-cpl .+/python-cpl-(.*)\.tar\.gz debian uupdate
+http://www.aip.de/~oles/python-cpl/install.html .+/python-cpl-(.*)\.tar\.gz debian uupdate
 
