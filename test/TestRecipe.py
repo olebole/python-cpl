@@ -623,7 +623,7 @@ class ProcessingInfo(RecipeTestCase):
     def test_calib(self):
         '''Calibration frame information'''
         self.assertEqual(len(self.pinfo.calib), 1)
-        self.assertRegexpMatches(self.pinfo.calib['FLAT'], '.+\.fits')
+        self.assertEqual(self.pinfo.calib['FLAT'][-5:], '.fits')
 
     def test_tag(self):
         '''Input tag information'''
@@ -631,7 +631,7 @@ class ProcessingInfo(RecipeTestCase):
 
     def test_raw(self):
         '''Raw file information'''
-        self.assertRegexpMatches(self.pinfo.raw, '.+\.fits')
+        self.assertEqual(self.pinfo.raw[-5:], '.fits')
 
     def test_name(self):
         '''Recipe and pipeline name information'''
