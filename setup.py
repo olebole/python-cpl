@@ -25,19 +25,20 @@ def create_version_file(cpl_version = cpl_version):
     vfile.write("license_ = %s\n" % repr(license_))
     vfile.write("doc = %s\n" % repr(doc))
     vfile.close()
-
+include_dirs = os.environ.get('INC_DIRS', '').split(':')
+library_dirs = os.environ.get('LIB_DIRS', '').split(':')
 module1 = Extension('cpl.CPL_recipe',
-                    include_dirs = ['/usr/local/include/cext'],
+                    include_dirs = include_dirs,
+                    library_dirs = library_dirs,
                     libraries = [ 'cplcore', 'cpldfs', 'cplui', 'cpldrs', 
                                   'gomp', 'mcheck' ],
                     sources = ['cpl/CPL_recipe.c'])
-
 
 create_version_file()
 setup (name = 'python-cpl',
        version = cpl_version, author = author, author_email = email, 
        description = description, long_description = long_description,  
        license = license_, url = 'http://www.aip.de/~oles/python-cpl/',
-       packages = [ 'cpl'],
+       packages = ['cpl'],
        ext_modules = [module1])
 
