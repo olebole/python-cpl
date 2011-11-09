@@ -38,6 +38,20 @@ class RecipeStatic(CplTestCase):
         self.assertEqual(len(l), 1)
         self.assertEqual(l[0], ('rrrecipe', ['0.0.1']))
 
+    def test_create_recipe(self):
+        recipe = cpl.Recipe('rrrecipe')
+        self.assertTrue(isinstance(recipe, cpl.Recipe))
+
+    def test_create_recipe_version(self):
+        recipe = cpl.Recipe('rrrecipe', version = '0.0.1')
+        self.assertTrue(isinstance(recipe, cpl.Recipe))        
+
+    def test_create_recipe_wrong_name(self):
+        self.assertRaises(IOError, cpl.Recipe, 'wrongname')
+
+    def test_create_recipe_wrong_version(self):
+        self.assertRaises(IOError, cpl.Recipe, 'rrrecipe', version='0.0.10')
+
 class RecipeCommon(RecipeTestCase):
     def test_name(self):
         '''Recipe name'''
