@@ -65,10 +65,10 @@ class RecipeStatic(CplTestCase):
 
     def test_create_recipe_wrong_filename(self):
         '''Create a recipe specified by a wrong filename'''
-        self.assertRaises(IOError,
-                          cpl.Recipe('rrrecipe', filename = os.path.join(
-                    os.path.dirname(os.path.abspath(__file__)),
-                    'iiinstrumentp', 'recipes', '.libs', 'rrrecipe.o')))
+        self.assertRaises(IOError, cpl.Recipe, 'rrrecipe', 
+                          filename = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                'iiinstrumentp', 'recipes', '.libs', 'rrrecipe.o'))
 
 class RecipeCommon(RecipeTestCase):
     def test_name(self):
