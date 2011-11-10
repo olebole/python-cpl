@@ -828,18 +828,19 @@ exec_serialize_retval(cpl_frameset *frames, cpl_errorstate prestate, int retval,
     }
     return ptr;
 }
-static void backtrace(void) {
+static int backtrace(void) {
   char cmd[300];
   snprintf(cmd, sizeof(cmd), 
 	   "cat >> gdb_commands << EOF\n"
 	   "set height 0\nset width 0\nbt full\ninfo sources\ninfo files\n"
 	   "EOF");
-  system(cmd);
+  int retval = system(cmd);
   snprintf(cmd, sizeof(cmd), 
 	   "gdb -batch -x gdb_commands --pid %i --readnow  >> recipe.backtrace 2> /dev/null", 
 	   (int)getpid());
-  system(cmd);
+  retval |= system(cmd);
   unlink("gdb_commands");
+  return retval;
   
 }
 
@@ -847,20 +848,22 @@ static void mcheck_handler(enum mcheck_status status) {
   char cmd[100];
   snprintf(cmd, sizeof(cmd), 
 	   "echo Memory corruption > recipe.backtrace");
-  system(cmd);
-  backtrace();
+  int retval = system(cmd);
+  if (retval == 0) {
+      backtrace();
+  }
   abort();
 }
 
-static void segv_handler(int sig) {
+static int segv_handler(int sig) {
   char cmd[100];
   snprintf(cmd, sizeof(cmd), 
 	   "echo Received signal: %i > recipe.backtrace", sig);
-  system(cmd);
+  int retval = system(cmd);
   backtrace();
 
   signal(sig, SIG_DFL);
-
+  return retval;
 }
 
 static void setup_tracing(CPL_recipe *self) {
