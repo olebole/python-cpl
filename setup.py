@@ -7,7 +7,7 @@ except:
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
-cpl_version = '0.3.5'
+cpl_version = '0.3.5.1'
 doc = '''Python interface for the Common Pipeline Library.
 
 Non-official library to access CPL modules via Python. 
