@@ -1,3 +1,4 @@
+setup.cfg
 cpl/version.py
 cpl/CPL_recipe.so
 test/iiinstrumentp/libtool
