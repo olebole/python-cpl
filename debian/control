@@ -1,6 +1,6 @@
 Source: python-cpl
 Section: python
-Priority: extra
+Priority: optional
 Maintainer: Ole Streicher <debian@liska.ath.cx>
 Build-Depends: python-all-dev (>= 2.6.6-3~), debhelper (>= 7.0.50~), 
  dh-autoreconf, libcpl-dev (>= 5.1.0), python-numpy, python-pyfits
@@ -11,7 +11,6 @@ Package: python-cpl
 Architecture: any
 Depends: ${misc:Depends}, ${python:Depends}, ${shlibs:Depends}
 Suggests: gdb
-Provides: ${python:Provides}
 Description: Control pipeline recipes from the European Southern Observatory
  This module can list, configure and execute CPL-based recipes from Python.
  The input, calibration and output data can be specified as FITS files
