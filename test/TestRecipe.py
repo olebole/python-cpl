@@ -39,18 +39,36 @@ class RecipeStatic(CplTestCase):
         self.assertEqual(l[0], ('rrrecipe', ['0.0.1']))
 
     def test_create_recipe(self):
+        '''Create a recipe specified by its name'''
         recipe = cpl.Recipe('rrrecipe')
         self.assertTrue(isinstance(recipe, cpl.Recipe))
 
     def test_create_recipe_version(self):
+        '''Create a recipe specified by its name and version'''
         recipe = cpl.Recipe('rrrecipe', version = '0.0.1')
         self.assertTrue(isinstance(recipe, cpl.Recipe))        
 
     def test_create_recipe_wrong_name(self):
+        '''Create a recipe specified by a wrong name'''
         self.assertRaises(IOError, cpl.Recipe, 'wrongname')
 
     def test_create_recipe_wrong_version(self):
+        '''Create a recipe specified by a wrong version'''
         self.assertRaises(IOError, cpl.Recipe, 'rrrecipe', version='0.0.10')
+
+    def test_create_recipe_filename(self):
+        '''Create a recipe specified by a the name and the filename'''
+        recipe = cpl.Recipe('rrrecipe', filename = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                'iiinstrumentp', 'recipes', '.libs', 'rrrecipe.so'))
+        self.assertTrue(isinstance(recipe, cpl.Recipe))
+
+    def test_create_recipe_wrong_filename(self):
+        '''Create a recipe specified by a wrong filename'''
+        self.assertRaises(IOError,
+                          cpl.Recipe('rrrecipe', filename = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    'iiinstrumentp', 'recipes', '.libs', 'rrrecipe.o')))
 
 class RecipeCommon(RecipeTestCase):
     def test_name(self):
