@@ -3,8 +3,12 @@
 %:
 	dh $@ --with python2 
 
-override_dh_auto_test:
+build_test_recipe:
 	(cd test/iiinstrumentp && ./bootstrap && ./configure && make)
-	python setup.py build_ext -i
-	MALLOC_CHECK_=0 PYTHONPATH=$(pwd) python test/TestRecipe.py
 
+override_dh_auto_test: build_test_recipe
+	for PYTHON in $(shell pyversions -r); do \
+	    $$PYTHON setup.py build_ext -i && \
+	    MALLOC_CHECK_=0 PYTHONPATH=$$(pwd) $$PYTHON test/TestRecipe.py \
+	        || exit $$? ; \
+	done
