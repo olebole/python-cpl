@@ -357,6 +357,9 @@ class Recipe(object):
         try:
             if (not os.access(output_dir, os.F_OK)):
                 os.makedirs(output_dir)
+            bt = os.path.join(output_dir, 'recipe.backtrace')
+            if os.path.exists(bt):
+                os.remove(bt)
             mkabspath(framelist, output_dir)
             logger = LogServer(os.path.join(output_dir, 'log'), logname,
                                loglevel)
