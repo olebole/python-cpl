@@ -844,6 +844,7 @@ static int backtrace(void) {
   
 }
 
+#ifdef HAVE_MCHECK
 static void mcheck_handler(enum mcheck_status status) {
   char cmd[100];
   snprintf(cmd, sizeof(cmd), 
@@ -854,6 +855,7 @@ static void mcheck_handler(enum mcheck_status status) {
   }
   abort();
 }
+#endif
 
 static int segv_handler(int sig) {
   char cmd[100];
@@ -882,6 +884,8 @@ static void setup_tracing(CPL_recipe *self) {
 #ifdef HAVE_MCHECK
     mcheck(mcheck_handler);
 #endif
+
+    typedef void (*sighandler_t)(int);
 
     signal(SIGSEGV, (sighandler_t) segv_handler);
     signal(SIGINT, (sighandler_t) segv_handler);
