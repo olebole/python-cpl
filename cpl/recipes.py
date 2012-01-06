@@ -361,7 +361,10 @@ class Recipe(object):
             logger = LogServer(os.path.join(output_dir, 'log'), logname,
                                loglevel)
         except:
-            self._cleanup(output_dir, logger, delete)
+            try:
+                self._cleanup(output_dir, logger, delete)
+            except:
+                pass
             raise
         if not threaded:
             return self._exec(output_dir, parlist, framelist, input_len, 
@@ -420,7 +423,7 @@ class Recipe(object):
         finally:
             if delete:
                 shutil.rmtree(output_dir)
-            else:
+            elif logger:
                 os.remove(logger.logfile)
 
     @property
