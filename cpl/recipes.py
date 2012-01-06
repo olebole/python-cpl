@@ -357,9 +357,6 @@ class Recipe(object):
         try:
             if (not os.access(output_dir, os.F_OK)):
                 os.makedirs(output_dir)
-            bt = os.path.join(output_dir, 'recipe.backtrace')
-            if os.path.exists(bt):
-                os.remove(bt)
             mkabspath(framelist, output_dir)
             logger = LogServer(os.path.join(output_dir, 'log'), logname,
                                loglevel)
@@ -415,9 +412,10 @@ class Recipe(object):
 
     def _cleanup(self, output_dir, logger, delete):
         try:
-            bt = os.path.join(output_dir, 'recipe.backtrace')
+            bt = os.path.join(output_dir, 'recipe.backtrace-unprocessed')
             if os.path.exists(bt):
                 with file(bt) as bt_file:
+                    os.rename(bt, os.path.join(output_dir, 'recipe.backtrace'))
                     raise RecipeCrash(bt_file)
         finally:
             if delete:

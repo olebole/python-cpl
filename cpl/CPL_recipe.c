@@ -836,7 +836,7 @@ static int backtrace(void) {
 	   "EOF");
   int retval = system(cmd);
   snprintf(cmd, sizeof(cmd), 
-	   "gdb -batch -x gdb_commands --pid %i --readnow  >> recipe.backtrace 2> /dev/null", 
+	   "gdb -batch -x gdb_commands --pid %i --readnow  >> recipe.backtrace-unprocessed 2> /dev/null", 
 	   (int)getpid());
   retval |= system(cmd);
   unlink("gdb_commands");
@@ -848,7 +848,7 @@ static int backtrace(void) {
 static void mcheck_handler(enum mcheck_status status) {
   char cmd[100];
   snprintf(cmd, sizeof(cmd), 
-	   "echo Memory corruption > recipe.backtrace");
+	   "echo Memory corruption > recipe.backtrace-unprocessed");
   int retval = system(cmd);
   if (retval == 0) {
       backtrace();
@@ -860,7 +860,7 @@ static void mcheck_handler(enum mcheck_status status) {
 static int segv_handler(int sig) {
   char cmd[100];
   snprintf(cmd, sizeof(cmd), 
-	   "echo Received signal: %i > recipe.backtrace", sig);
+	   "echo Received signal: %i > recipe.backtrace-unprocessed", sig);
   int retval = system(cmd);
   backtrace();
 
