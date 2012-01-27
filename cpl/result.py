@@ -64,7 +64,7 @@ class Result(object):
                 self.__dict__[tag] = outframe if input_len != 1 \
                     else [ outframe ]
                 self.tags.add(tag)
-            elif isinstance(self.__dict__[tag], pyfits.HDUList):
+            elif isinstance(self.__dict__[tag], (pyfits.HDUList, str)):
                 self.__dict__[tag] = [ self.__dict__[tag], outframe ]
             else:
                 self.__dict__[tag].append(outframe)
