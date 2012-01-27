@@ -1,6 +1,7 @@
 import collections
 import os
 import signal
+import logging
 
 import pyfits
 
@@ -235,7 +236,8 @@ class RecipeCrash(StandardError):
                signal.SIGFPE:'SIGFPE: Arithmetic Exception',
                signal.SIGINT:'SIGINT: Interrupt (Ctrl-C)',
                None:'Memory inconsistency detected'}
-    def __init__(self, bt_file):
+    def __init__(self, bt_file, logname = None):
+        self.name = name
         self.elements = []
         current_element = None
         parse_functions = True
@@ -272,6 +274,8 @@ class RecipeCrash(StandardError):
                                                    e.localvars) 
                           for e in self.elements ]
         StandardError.__init__(self, str(self))
+        if logname:
+            self.log(logname)
 
     def _add_variable(self, vars, line):
         s = line.strip().split('=', 1)
@@ -297,6 +301,32 @@ class RecipeCrash(StandardError):
         self.elements.insert(0, current_element)
         return current_element
         
+    def log(self, logname):
+        '''Put the content of the crash into the log.
+        '''
+        log = logging.getLogger('%s.%s' % (self.logname, 
+                                           self.elements[-1].func))
+        log.error('Recipe crashed. Traceback (most recent call last):')
+        for e in self.elements:
+            log.error('  File "%s", %sin %s\n' % ((e.filename), 
+                                               'line %i, ' % e.line if e.line 
+                                               else '', 
+                                               e.func))
+            if os.path.exists(e.filename) and e.line:
+                log.error('    %s\n' 
+                          % file(e.filename).readlines()[e.line-1].strip())
+            if e.params:
+                log.error('  Parameters:')
+                for p, v in e.params.items():
+                    log.error('    %s = %s' % (p, v))
+            if e.localvars:
+                log.error('  Local variables:')
+                for p, v in e.localvars.items():
+                    log.error('    %s = %s' % (p, v))
+                
+        log.error(RecipeCrash.signals.get(self.signal, 
+                                          '%s: Unknown' % str(self.signal)))
+
     def __repr__(self):
         return 'RecipeCrash()'
 
