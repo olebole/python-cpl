@@ -974,7 +974,7 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 					  retval, &clock_end);
 	long n_bytes = write(fd[1], ptr, ((long *)ptr)[0]);
 	close(fd[1]);
-	exit(n_bytes != ((long *)ptr)[0]);
+	_exit(n_bytes != ((long *)ptr)[0]);
     }
     
     close(fd[1]);
