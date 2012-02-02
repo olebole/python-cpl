@@ -21,6 +21,7 @@ class LogServer(threading.Thread):
         threading.Thread.__init__(self)
         self.logfile = filename
         self.name = name
+        self.logger = logging.getLogger(name)
         self.level = CplLogger.verbosity.index(level)
         self.entries = LogList()
         os.mkfifo(self.logfile)
@@ -52,8 +53,9 @@ class LogServer(threading.Thread):
                 msg = msg[10:] if threadid > 0 else msg[12:]
             else:
                 threadid = None
-            record = logging.LogRecord('%s.%s' % (self.name, func), 
-                                       lvl, None, None, msg, None, None, func)
+            log = self.logger.getChild(func)
+            record = logging.LogRecord(log.name, lvl, None, None, msg, 
+                                       None, None, func)
             created = float(creation_date.strftime('%s'))
             if record.created < created:
                 created -= 86400
@@ -64,7 +66,6 @@ class LogServer(threading.Thread):
             record.threadid = threadid
             record.threadName = ('Cpl-%03i' % threadid) if threadid else 'CplThread'
             self.entries.append(record)
-            log = logging.getLogger('%s.%s' % (self.name, func))
             if log.isEnabledFor(lvl) and log.filter(record):
                 log.handle(record)
         except:

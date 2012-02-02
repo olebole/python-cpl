@@ -236,8 +236,7 @@ class RecipeCrash(StandardError):
                signal.SIGFPE:'SIGFPE: Arithmetic Exception',
                signal.SIGINT:'SIGINT: Interrupt (Ctrl-C)',
                None:'Memory inconsistency detected'}
-    def __init__(self, bt_file, logname = None):
-        self.name = name
+    def __init__(self, bt_file):
         self.elements = []
         current_element = None
         parse_functions = True
@@ -274,8 +273,6 @@ class RecipeCrash(StandardError):
                                                    e.localvars) 
                           for e in self.elements ]
         StandardError.__init__(self, str(self))
-        if logname:
-            self.log(logname)
 
     def _add_variable(self, vars, line):
         s = line.strip().split('=', 1)
@@ -301,11 +298,10 @@ class RecipeCrash(StandardError):
         self.elements.insert(0, current_element)
         return current_element
         
-    def log(self, logname):
+    def log(self, logger):
         '''Put the content of the crash into the log.
         '''
-        log = logging.getLogger('%s.%s' % (self.logname, 
-                                           self.elements[-1].func))
+        log = logger.getChild(self.elements[-1].func)
         log.error('Recipe crashed. Traceback (most recent call last):')
         for e in self.elements:
             log.error('  File "%s", %sin %s\n' % ((e.filename), 

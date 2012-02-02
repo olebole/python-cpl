@@ -419,7 +419,10 @@ class Recipe(object):
             if os.path.exists(bt):
                 with file(bt) as bt_file:
                     os.rename(bt, os.path.join(output_dir, 'recipe.backtrace'))
-                    raise RecipeCrash(bt_file, logname = logger.name)
+                    ex = RecipeCrash(bt_file)
+                    ex.log(logger.logger)
+                    raise ex
+
         finally:
             if delete:
                 shutil.rmtree(output_dir)
