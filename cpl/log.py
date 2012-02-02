@@ -53,7 +53,7 @@ class LogServer(threading.Thread):
                 msg = msg[10:] if threadid > 0 else msg[12:]
             else:
                 threadid = None
-            log = self.logger.getChild(func)
+            log = logging.getLogger('%s.%s' % (self.logger.name, func))
             record = logging.LogRecord(log.name, lvl, None, None, msg, 
                                        None, None, func)
             created = float(creation_date.strftime('%s'))
