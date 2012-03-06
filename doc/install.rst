@@ -53,7 +53,7 @@ In the source directory of cpl-python, run::
 Test suite
 ----------
 
-The test suite can be downloaded as tar file `python-cpl-tests-0.3.6.tar.gz <python-cpl-tests-0.3.6.tar.gz>`_.
+The test suite can be downloaded as tar file `python-cpl-test-0.3.6.tar.gz <python-cpl-test-0.3.6.tar.gz>`_.
 There are a number of tests defined in :file:`test/TestRecipe.py`. To run
 them, you need first to compile the recipe in :file:`test/iiinstrumentp/`::
 
