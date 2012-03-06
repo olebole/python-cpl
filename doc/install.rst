@@ -4,7 +4,7 @@ Installation
 Prequisites
 -----------
 
-* `CPL <http://www.eso.org/sci/software/cpl/>`_ 5
+* `CPL <http://www.eso.org/sci/software/cpl/>`_ 5 or later
   (:program:`Esorex` is not needed),
 * `Python <http://www.python.org/>`_ 2.6 or 2.7, 
 * `Pyfits <http://www.pyfits.org/>`_
@@ -12,16 +12,17 @@ Prequisites
 Binary packages
 ---------------
 
-* `Ubuntu repository <https://launchpad.net/~olebole/+archive/astro>`_ (10.04
-  LTS, 10.10, and 11.04). This repository also contains the required packages
+* `Ubuntu repository <https://launchpad.net/~olebole/+archive/astro>`_
+  (11.04). This repository also contains the required packages
   that are not in the standard distribution (CPL etc.)
-* Debian package planned
+* Debian package in "Wheezy" (Testing)
+  `<http://packages.debian.org/wheezy/python-cpl>`_
 * `Python egg <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ planned
 
 Source code
 -----------
 
-* Current release `python-cpl-0.3.5.1.tar.gz <python-cpl-0.3.5.1.tar.gz>`_
+* Current release `python-cpl-0.3.6.tar.gz <python-cpl-0.3.6.tar.gz>`_
 * `Git repository <http://github.com/olebole/python-cpl>`_. To access, do a::
 
     git clone git://github.com/olebole/python-cpl.git
@@ -52,7 +53,7 @@ In the source directory of cpl-python, run::
 Test suite
 ----------
 
-The test suite can be downloaded as tar file `python-cpl-tests-0.3.5.1.tar.gz <python-cpl-tests-0.3.5.1.tar.gz>`_.
+The test suite can be downloaded as tar file `python-cpl-tests-0.3.6.tar.gz <python-cpl-tests-0.3.6.tar.gz>`_.
 There are a number of tests defined in :file:`test/TestRecipe.py`. To run
 them, you need first to compile the recipe in :file:`test/iiinstrumentp/`::
 
