@@ -31,6 +31,11 @@ class FrameConfig(object):
     .. attribute:: max 
 
        Maximal number of frames, or :attr:`None` if not specified
+
+    .. attribute:: frames
+
+       List of frames (file names or pyfits.HDUList objects) that are 
+       assigned to this frame type.
     '''
     def __init__(self, tag, min_frames = 0, max_frames = 0, frames = None):
         self.tag = tag

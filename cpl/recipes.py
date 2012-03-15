@@ -154,7 +154,7 @@ class Recipe(object):
         for the recipe.  It is iterable and then returns all calibration frames:
         
         >>> for f in muse_scibasic.calib:
-        ...     print f.tag, f.min, f.max, f.files
+        ...     print f.tag, f.min, f.max, f.frames
         TRACE_TABLE 1 1 None
         WAVECAL_TABLE 1 1 None
         MASTER_BIAS 1 1 master_bias_0.fits
