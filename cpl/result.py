@@ -164,12 +164,12 @@ class CplError(StandardError):
         if self.code is None:
             s = 'Unspecified'
         else:
-            s = "%s (%i) in %s() (%s:%s)" % (self.msg, self.code, 
+            s = "%s (%i) in %s() (%s:%i)" % (self.msg, self.code, 
                                              self.function, self.file, 
                                              self.line) 
         if self.next:
             for e in self.next:
-                s += "\n    %s (%i) in %s() (%s:%s)" % (e.msg, e.code, 
+                s += "\n    %s (%i) in %s() (%s:%i)" % (e.msg, e.code, 
                                                         e.function, e.file, 
                                                         e.line) 
         return s
