@@ -7,7 +7,7 @@ def datamd5(hdulist):
     sum = hashlib.md5()
     for hdu in hdulist:
         if hdu.data is not None:
-            sum.update(hdu.data)
+            sum.update(hdu.data.data)
             pad = '\0' * (2880 - hdu.data.nbytes % 2880)
             sum.update(pad)
     return sum.hexdigest()
