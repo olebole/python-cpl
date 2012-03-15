@@ -933,6 +933,10 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     recipe->frames = get_frames(soflist);
     clear_parameters(recipe->parameters);
     set_parameters(recipe->parameters, parlist);
+    if (cpl_error_get_code() != CPL_ERROR_NONE) {
+	PyErr_SetString(PyExc_IOError, "CPL error on inititalization");
+	return NULL;	
+    }
     int fd[2];
     if (pipe(fd) == -1) {
 	PyErr_SetString(PyExc_IOError, "Cannot pipe()");
