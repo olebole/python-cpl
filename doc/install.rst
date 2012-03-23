@@ -50,6 +50,9 @@ In the source directory of cpl-python, run::
 
   python setup.py install --prefix=PREFIX
 
+To specify non-standard include and library paths for CPL, the environment
+variables LIBRARY_PATH and INCLUDE_PATH may be used.
+
 Test suite
 ----------
 
