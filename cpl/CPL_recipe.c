@@ -911,8 +911,9 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     const char *dirname;
     const char *logfile;
     int loglevel;
-    if (!PyArg_ParseTuple(args, "sOOsi", &dirname, &parlist, &soflist,
-			  &logfile, &loglevel))
+    int memory_dump;
+    if (!PyArg_ParseTuple(args, "sOOsii", &dirname, &parlist, &soflist,
+			  &logfile, &loglevel, &memory_dump))
         return NULL;
     if (!PySequence_Check(parlist)) {
 	PyErr_SetString(PyExc_TypeError, "Second parameter not a list");
@@ -973,6 +974,10 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	} else {
 	    retval = CPL_ERROR_FILE_NOT_CREATED;
 	    cpl_error_set(__func__, retval);
+	}
+	if ((memory_dump > 1) 
+	    || ((memory_dump > 0) && (!cpl_memory_is_empty()))) {
+	  cpl_memory_dump();
 	}
 	void *ptr = exec_serialize_retval(recipe->frames, prestate,
 					  retval, &clock_end);

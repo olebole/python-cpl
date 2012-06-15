@@ -35,6 +35,9 @@ class Recipe(object):
     __email__: author's email address
     description: (synopsis, description) pair
     version: (versionnumber, versionstring) pair
+    memory_dump: If set to 1, a memory dump is issued to stdout if the memory was not
+      totally freed after the execution. If set to 2, the dump is always issued.
+      Standard is 0: nothing dumped.
     '''
 
     path = [ '.' ]
@@ -79,6 +82,7 @@ class Recipe(object):
         self.tag = self.tags[0] if self.tags else None
         self.output_dir = None
         self.temp_dir = '.'
+        self.memory_dump = 0
         self.threaded = threaded
 
     def reload(self):
@@ -379,7 +383,7 @@ class Recipe(object):
         try:
             return Result(self._recipe.frameConfig(), output_dir,
                           self._recipe.run(output_dir, parlist, framelist,
-                                           logger.logfile, logger.level),
+                                           logger.logfile, logger.level, self.memory_dump),
                           input_len, logger, output_format)
         finally:
             self._cleanup(output_dir, logger, delete)
