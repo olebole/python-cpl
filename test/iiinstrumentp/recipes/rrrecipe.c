@@ -31,6 +31,9 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 /*-----------------------------------------------------------------------------
 				Includes
@@ -214,6 +217,15 @@ static int rrrecipe_create(cpl_plugin * plugin)
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
+    /* --sleep */
+    p = cpl_parameter_new_value("iiinstrument.rrrecipe.sleep",
+            CPL_TYPE_DOUBLE, "Sleep for specified time [seconds]", 
+				"iiinstrument.rrrecipe", 
+				0.1);
+    cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "sleep");
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
+    cpl_parameterlist_append(recipe->parameters, p);
+
     return 0;
 }
 
@@ -359,7 +371,7 @@ static int rrrecipe(cpl_frameset            * frameset,
 					 "iiinstrument.rrrecipe.enum_option");
     const char *enum_option = cpl_parameter_get_string(param);
 
-    /* --floatopt */
+    /* --rangeopt */
     param = cpl_parameterlist_find_const(parlist,
 					 "iiinstrument.rrrecipe.range_option");
     double range_option = cpl_parameter_get_double(param);
@@ -368,6 +380,11 @@ static int rrrecipe(cpl_frameset            * frameset,
     param = cpl_parameterlist_find_const(parlist,
 					 "iiinstrument.rrrecipe.crashing");
     const char *crashing = cpl_parameter_get_string(param);
+
+    /* --sleep */
+    param = cpl_parameterlist_find_const(parlist,
+					 "iiinstrument.rrrecipe.sleep");
+    double sleep_secs = cpl_parameter_get_double(param);
 
     if (!cpl_errorstate_is_equal(prestate)) {
 	return (int)cpl_error_set_message(cpl_func, cpl_error_get_code(),
@@ -415,13 +432,15 @@ static int rrrecipe(cpl_frameset            * frameset,
 
     /* NOW PERFORMING THE DATA REDUCTION */
     /* Let's just load an image for the example */
-    usleep(10000);
     image = cpl_image_load(cpl_frame_get_filename(rawframe),
 			   CPL_TYPE_FLOAT, 0, 0);
     if (image == NULL) {
 	return (int)cpl_error_set_message(cpl_func, cpl_error_get_code(),
 				     "Could not load the image");
     }
+
+    /* Do some fake processing */
+    usleep((unsigned int)(1e6*sleep_secs));
 
     /* Add QC parameters  */
     qclist = cpl_propertylist_new();
