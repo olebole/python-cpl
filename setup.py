@@ -1,8 +1,5 @@
 import os
-try:
-    from setuptools import setup, Extension
-except:
-    from distutils.core import setup, Extension
+from distutils.core import setup, Extension
 
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
