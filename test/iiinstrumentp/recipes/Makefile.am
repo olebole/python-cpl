@@ -25,9 +25,9 @@ INCLUDES = $(all_includes)
 
 noinst_HEADERS = 
 
-plugin_LTLIBRARIES = rrrecipe.la 
+plugin_LTLIBRARIES = rtest.la 
 
-rrrecipe_la_SOURCES = rrrecipe.c 
-rrrecipe_la_LIBADD = $(LIBCPLDFS) $(LIBIIINSTRUMENT)
-rrrecipe_la_LDFLAGS = -module -avoid-version
-rrrecipe_la_DEPENDENCIES = $(LIBIIINSTRUMENT)
+rtest_la_SOURCES = rtest.c 
+rtest_la_LIBADD = $(LIBCPLDFS) $(LIBIIINSTRUMENT)
+rtest_la_LDFLAGS = -module -avoid-version
+rtest_la_DEPENDENCIES = $(LIBIIINSTRUMENT)

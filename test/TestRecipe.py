@@ -8,6 +8,9 @@ import numpy
 import pyfits
 import cpl
 
+recipe_name = 'rtest'
+raw_tag = 'RRRECIPE_DOCATG_RAW'
+
 class CplTestCase(unittest.TestCase):
     def setUp(self):
         cpl.Recipe.path = os.path.dirname(os.path.abspath(__file__))
@@ -16,16 +19,15 @@ class RecipeTestCase(CplTestCase):
     def setUp(self):
         CplTestCase.setUp(self)
         self.temp_dir = tempfile.mkdtemp()
-        self.recipe = cpl.Recipe('rrrecipe')
+        self.recipe = cpl.Recipe(recipe_name)
         self.recipe.temp_dir = self.temp_dir
-        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        self.recipe.tag = raw_tag
         self.image_size = (16, 16)
         self.raw_frame = pyfits.HDUList([
                 pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
                                                                self.image_size))])
         self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
-        self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', 
-                                        'RRRECIPE_DOCATG_RAW')
+        self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', raw_tag)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -36,16 +38,16 @@ class RecipeStatic(CplTestCase):
         l = cpl.Recipe.list()
         self.assertTrue(isinstance(l, list))
         self.assertEqual(len(l), 1)
-        self.assertEqual(l[0], ('rrrecipe', ['0.0.1']))
+        self.assertEqual(l[0], (recipe_name, ['0.0.1']))
 
     def test_create_recipe(self):
         '''Create a recipe specified by its name'''
-        recipe = cpl.Recipe('rrrecipe')
+        recipe = cpl.Recipe(recipe_name)
         self.assertTrue(isinstance(recipe, cpl.Recipe))
 
     def test_create_recipe_version(self):
         '''Create a recipe specified by its name and version'''
-        recipe = cpl.Recipe('rrrecipe', version = '0.0.1')
+        recipe = cpl.Recipe(recipe_name, version = '0.0.1')
         self.assertTrue(isinstance(recipe, cpl.Recipe))        
 
     def test_create_recipe_wrong_name(self):
@@ -54,34 +56,34 @@ class RecipeStatic(CplTestCase):
 
     def test_create_recipe_wrong_version(self):
         '''Create a recipe specified by a wrong version'''
-        self.assertRaises(IOError, cpl.Recipe, 'rrrecipe', version='0.0.10')
+        self.assertRaises(IOError, cpl.Recipe, recipe_name, version='0.0.10')
 
     def test_create_recipe_filename(self):
         '''Create a recipe specified by a the name and the filename'''
-        recipe = cpl.Recipe('rrrecipe', filename = os.path.join(
+        recipe = cpl.Recipe(recipe_name, filename = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
-                'iiinstrumentp', 'recipes', '.libs', 'rrrecipe.so'))
+                'iiinstrumentp', 'recipes', '.libs', 'rtest.so'))
         self.assertTrue(isinstance(recipe, cpl.Recipe))
 
     def test_create_recipe_wrong_filename(self):
         '''Create a recipe specified by a wrong filename'''
-        self.assertRaises(IOError, cpl.Recipe, 'rrrecipe', 
+        self.assertRaises(IOError, cpl.Recipe, recipe_name, 
                           filename = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
-                'iiinstrumentp', 'recipes', '.libs', 'rrrecipe.o'))
+                'iiinstrumentp', 'recipes', '.libs', 'rtest.o'))
 
 class RecipeCommon(RecipeTestCase):
     def test_name(self):
         '''Recipe name'''
-        self.assertEqual(self.recipe.__name__, 'rrrecipe')
+        self.assertEqual(self.recipe.__name__, recipe_name)
 
     def test_author(self):
         '''Author attribute'''
-        self.assertEqual(self.recipe.__author__, 'Firstname Lastname')
+        self.assertEqual(self.recipe.__author__, 'Ole Streicher')
 
     def test_email(self):
         '''Author attribute'''
-        self.assertEqual(self.recipe.__email__, 'flastname@eso.org')
+        self.assertEqual(self.recipe.__email__, 'python-cpl@liska.ath.cx')
 
     def test_description(self):
         '''Synopsis and description'''
@@ -101,7 +103,7 @@ class RecipeParams(RecipeTestCase):
         self.assertTrue(isinstance(self.recipe.param.stropt, cpl.Parameter))
         self.assertEqual(self.recipe.param.stropt.name, 'stropt')
         self.assertEqual(self.recipe.param.stropt.context, 
-                         'iiinstrument.rrrecipe')
+                         'iiinstrument.rtest')
         self.assertEqual(self.recipe.param.stropt.default, None)
         self.assertEqual(self.recipe.param.stropt.value, None)
         self.assertEqual(self.recipe.param.stropt.range, None)
@@ -177,14 +179,14 @@ class RecipeParams(RecipeTestCase):
         self.assertEqual(self.recipe.param.boolopt, 
                          self.recipe.param['boolopt'])
         self.assertEqual(self.recipe.param.boolopt, 
-                         self.recipe.param['iiinstrument.rrrecipe.bool_option'])
+                         self.recipe.param['iiinstrument.rtest.bool_option'])
 
     def test_dotted_par(self):
         '''Use a parameter that has a dot in its alias'''
         self.assertEqual(self.recipe.param.dot_opt, 
                          self.recipe.param['dot.opt'])
         self.assertEqual(self.recipe.param.dot_opt, 
-                         self.recipe.param['iiinstrument.rrrecipe.dotted.opt'])
+                         self.recipe.param['iiinstrument.rtest.dotted.opt'])
 
     def test_iterate(self):
         '''Iteration over all parameters'''
@@ -206,9 +208,9 @@ class RecipeParams(RecipeTestCase):
         self.assertEqual(self.recipe.param.boolopt.value, False)
 
         # Check that we can assign a dictionary with the long names
-        self.recipe.param = { 'iiinstrument.rrrecipe.string_option':'dless', 
-                      'iiinstrument.rrrecipe.float_option':1.5, 
-                      'iiinstrument.rrrecipe.bool_option':True }
+        self.recipe.param = { 'iiinstrument.rtest.string_option':'dless', 
+                      'iiinstrument.rtest.float_option':1.5, 
+                      'iiinstrument.rtest.bool_option':True }
         self.assertEqual(self.recipe.param.stropt.value, 'dless')
         self.assertEqual(self.recipe.param.floatopt.value, 1.5)
         self.assertEqual(self.recipe.param.boolopt.value, True)
@@ -302,13 +304,13 @@ class RecipeExec(RecipeTestCase):
         '''The 'tag' parameter'''
         self.recipe.tag = None
         self.recipe.calib.FLAT = self.flat_frame
-        res = self.recipe(self.raw_frame, tag = 'RRRECIPE_DOCATG_RAW')
+        res = self.recipe(self.raw_frame, tag = raw_tag)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 
     def test_frames_tag_attribute(self):
         '''The 'tag' attribute'''
-        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        self.recipe.tag = raw_tag
         res = self.recipe(self.raw_frame)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
@@ -337,7 +339,7 @@ class RecipeExec(RecipeTestCase):
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, str))
         self.assertEqual(os.path.basename(res.THE_PRO_CATG_VALUE), 
-                         'rrrecipe.fits')
+                         'rtest.fits')
         self.assertTrue(os.path.isdir(output_dir))
         self.assertTrue(os.path.isfile(res.THE_PRO_CATG_VALUE))
         hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
@@ -353,7 +355,7 @@ class RecipeExec(RecipeTestCase):
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, str))
         self.assertEqual(os.path.basename(res.THE_PRO_CATG_VALUE), 
-                         'rrrecipe.fits')
+                         'rtest.fits')
         self.assertTrue(os.path.isfile(res.THE_PRO_CATG_VALUE))
         hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
         self.assertTrue(isinstance(hdu, pyfits.HDUList))
@@ -461,7 +463,7 @@ class RecipeExec(RecipeTestCase):
 
     def test_md5sum_result(self):
         '''MD5sum of the result file'''
-        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        self.recipe.tag = raw_tag
         res = self.recipe(self.raw_frame)
         key = 'DATAMD5'
         md5sum = res.THE_PRO_CATG_VALUE[0].header[key]
@@ -471,7 +473,7 @@ class RecipeExec(RecipeTestCase):
 
     def test_md5sum_calib(self):
         '''Created MD5sum for a HDUList calib file'''
-        self.recipe.tag = 'RRRECIPE_DOCATG_RAW'
+        self.recipe.tag = raw_tag
         self.recipe.calib.FLAT = self.flat_frame
         res = self.recipe(self.raw_frame)
         key = 'HIERARCH ESO PRO REC1 CAL1 DATAMD5'
@@ -546,13 +548,13 @@ class RecipeLog(RecipeTestCase):
     def setUp(self):
         RecipeTestCase.setUp(self)
         self.handler = RecipeLog.THandler()
-        logging.getLogger('cpl.rrrecipe').addHandler(self.handler)
+        logging.getLogger('cpl.rtest').addHandler(self.handler)
         self.other_handler = RecipeLog.THandler()
         logging.getLogger('othername').addHandler(self.other_handler)
 
     def tearDown(self):
         RecipeTestCase.tearDown(self)
-        logging.getLogger('cpl.rrrecipe').removeHandler(self.handler)
+        logging.getLogger('cpl.rtest').removeHandler(self.handler)
         logging.getLogger('othername').removeHandler(self.other_handler)
 
     class THandler(logging.Handler):
@@ -586,12 +588,12 @@ class RecipeLog(RecipeTestCase):
             lognames.add(r.name)
         # Check that we had at least one expected entry
         self.assertTrue('cpl_dfs_product_save' in funcnames)
-        self.assertTrue('cpl.rrrecipe.cpl_dfs_product_save' in lognames)
+        self.assertTrue('cpl.rtest.cpl_dfs_product_save' in lognames)
         
     def test_logging_INFO(self):
         '''Filtering INFO messages'''
         self.handler.clear()
-        logging.getLogger('cpl.rrrecipe').setLevel(logging.INFO)
+        logging.getLogger('cpl.rtest').setLevel(logging.INFO)
         self.recipe(self.raw_frame)
         # check that the logs are not empty
         self.assertNotEqual(len(self.handler.logs), 0)
@@ -599,7 +601,7 @@ class RecipeLog(RecipeTestCase):
     def test_logging_WARN(self):
         '''Filtering WARN messages'''
         self.handler.clear()
-        logging.getLogger('cpl.rrrecipe').setLevel(logging.WARN)
+        logging.getLogger('cpl.rtest').setLevel(logging.WARN)
         self.recipe(self.raw_frame)
         # check that the logs are not empty
         self.assertNotEqual(len(self.handler.logs), 0)
@@ -608,7 +610,7 @@ class RecipeLog(RecipeTestCase):
         '''Filtering of error messages'''
         # There is no error msg written by the recipe, so it should be empty.
         self.handler.clear()
-        logging.getLogger('cpl.rrrecipe').setLevel(logging.ERROR)
+        logging.getLogger('cpl.rtest').setLevel(logging.ERROR)
         self.recipe(self.raw_frame)
         self.assertEqual(len(self.handler.logs), 0)
 

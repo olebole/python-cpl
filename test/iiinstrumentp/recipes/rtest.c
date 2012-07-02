@@ -1,7 +1,8 @@
-/* $Id: rrrecipe.c,v 1.28 2007/07/30 07:08:59 llundin Exp $
+/* $Id: rtest.c,v 1.28 2007/07/30 07:08:59 llundin Exp $
  *
  * This file is part of the IIINSTRUMENT Pipeline
  * Copyright (C) 2002,2003 European Southern Observatory
+ * Copyright (C) 2011,2012 Ole Streicher
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
-/*
- * $Author: llundin $
- * $Date: 2007/07/30 07:08:59 $
- * $Revision: 1.28 $
- * $Name:  $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -49,25 +43,17 @@
 			    Private function prototypes
  -----------------------------------------------------------------------------*/
 
-static int rrrecipe_create(cpl_plugin *);
-static int rrrecipe_exec(cpl_plugin *);
-static int rrrecipe_destroy(cpl_plugin *);
-static int rrrecipe(cpl_frameset *, const cpl_parameterlist *);
+static int rtest_create(cpl_plugin *);
+static int rtest_exec(cpl_plugin *);
+static int rtest_destroy(cpl_plugin *);
+static int rtest(cpl_frameset *, const cpl_parameterlist *);
 
 /*-----------------------------------------------------------------------------
 			    Static variables
  -----------------------------------------------------------------------------*/
 
-static char rrrecipe_description[] =
-"This example text is used to describe the recipe.\n"
-"The description should include the required FITS-files and\n"
-"their associated tags, e.g.\n"
-"IIINSTRUMENT-RRRECIPE-raw-file.fits " RRRECIPE_RAW "\n"
-"and any optional files, e.g.\n"
-"IIINSTRUMENT-RRRECIPE-flat-file.fits " IIINSTRUMENT_CALIB_FLAT "\n"
-"\n"
-"Additionally, it should describe functionality of the expected output."
-"\n";
+static char rtest_description[] =
+"Recipe to test CPL frameworks like esorex or python-cpl.\n";
 
 /*-----------------------------------------------------------------------------
 				Function code
@@ -93,15 +79,15 @@ int cpl_plugin_get_info(cpl_pluginlist * list)
 		    CPL_PLUGIN_API,
 		    IIINSTRUMENT_BINARY_VERSION,
 		    CPL_PLUGIN_TYPE_RECIPE,
-		    "rrrecipe",
-		    "Short description of rrrecipe",
-		    rrrecipe_description,
-		    "Firstname Lastname",
-		    PACKAGE_BUGREPORT,
+		    "rtest",
+		    "Framework test recipe",
+		    rtest_description,
+		    "Ole Streicher",
+		    "python-cpl@liska.ath.cx",
 		    iiinstrument_get_license(),
-		    rrrecipe_create,
-		    rrrecipe_exec,
-		    rrrecipe_destroy)) {
+		    rtest_create,
+		    rtest_exec,
+		    rtest_destroy)) {
 	cpl_msg_error(cpl_func, "Plugin initialization failed");
 	(void)cpl_error_set_where(cpl_func);
 	return 1;
@@ -125,31 +111,13 @@ int cpl_plugin_get_info(cpl_pluginlist * list)
   Defining the command-line/configuration parameters for the recipe.
  */
 /*----------------------------------------------------------------------------*/
-static int rrrecipe_create(cpl_plugin * plugin)
+static int rtest_create(cpl_plugin * plugin)
 {
-    cpl_recipe    * recipe;
-    cpl_parameter * p;
+    cpl_ensure_code((plugin != NULL), CPL_ERROR_NULL_INPUT);
+    cpl_ensure_code((cpl_plugin_get_type(plugin) == CPL_PLUGIN_TYPE_RECIPE),
+		    CPL_ERROR_TYPE_MISMATCH);
 
-    /* Do not create the recipe if an error code is already set */
-    if (cpl_error_get_code() != CPL_ERROR_NONE) {
-	cpl_msg_error(cpl_func, "%s():%d: An error is already set: %s",
-		      cpl_func, __LINE__, cpl_error_get_where());
-	return (int)cpl_error_get_code();
-    }
-
-    if (plugin == NULL) {
-	cpl_msg_error(cpl_func, "Null plugin");
-	cpl_ensure_code(0, (int)CPL_ERROR_NULL_INPUT);
-    }
-
-    /* Verify plugin type */
-    if (cpl_plugin_get_type(plugin) != CPL_PLUGIN_TYPE_RECIPE) {
-	cpl_msg_error(cpl_func, "Plugin is not a recipe");
-	cpl_ensure_code(0, (int)CPL_ERROR_TYPE_MISMATCH);
-    }
-
-    /* Get the recipe */
-    recipe = (cpl_recipe *)plugin;
+    cpl_recipe *recipe = (cpl_recipe *)plugin;
 
     /* Create the parameters list in the cpl_recipe object */
     recipe->parameters = cpl_parameterlist_new();
@@ -159,69 +127,83 @@ static int rrrecipe_create(cpl_plugin * plugin)
     }
 
     /* Fill the parameters list */
+    cpl_parameter * p;
     /* --stropt */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.string_option",
-	    CPL_TYPE_STRING, "the string option", "iiinstrument.rrrecipe",NULL);
+    p = cpl_parameter_new_value("iiinstrument.rtest.string_option",
+	    CPL_TYPE_STRING,
+	    "A string option; saved as ESO QC STROPT",
+	    "iiinstrument.rtest",NULL);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "stropt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --boolopt */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.bool_option",
-	    CPL_TYPE_BOOL, "a flag", "iiinstrument.rrrecipe", TRUE);
+    p = cpl_parameter_new_value("iiinstrument.rtest.bool_option",
+	    CPL_TYPE_BOOL,
+	    "A flag; saved as ESO QC BOOLOPT",
+	    "iiinstrument.rtest", TRUE);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "boolopt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --floatopt */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.float_option",
-	    CPL_TYPE_DOUBLE, "a flag", "iiinstrument.rrrecipe", 0.1);
+    p = cpl_parameter_new_value("iiinstrument.rtest.float_option",
+	    CPL_TYPE_DOUBLE,
+	    "A double option; saved as ESO QC FLOATOPT",
+	    "iiinstrument.rtest", 0.1);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "floatopt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --inttopt */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.int_option",
-	    CPL_TYPE_INT, "a flag", "iiinstrument.rrrecipe", 2);
+    p = cpl_parameter_new_value("iiinstrument.rtest.int_option",
+	    CPL_TYPE_INT,
+	    "An interger; saved as ESO QC INTOPT",
+	    "iiinstrument.rtest", 2);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "intopt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --enumopt */
-    p = cpl_parameter_new_enum("iiinstrument.rrrecipe.enum_option",
-	    CPL_TYPE_STRING, "the string option", "iiinstrument.rrrecipe",
-			       "first", 3, "first", "second", "third");
+    p = cpl_parameter_new_enum("iiinstrument.rtest.enum_option",
+	    CPL_TYPE_STRING,
+	    "An enumeration option, saved as ESO QC ENUMOPT",
+	    "iiinstrument.rtest", "first", 3, "first", "second", "third");
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "enumopt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --rangeopt */
-    p = cpl_parameter_new_range("iiinstrument.rrrecipe.range_option",
-	    CPL_TYPE_DOUBLE, "a flag", "iiinstrument.rrrecipe", 0.1, -0.5, 0.5);
+    p = cpl_parameter_new_range("iiinstrument.rtest.range_option",
+	    CPL_TYPE_DOUBLE,
+	    "A double option with a range, saved as ESO QC RANGEOPT",
+	    "iiinstrument.rtest", 0.1, -0.5, 0.5);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "rangeopt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --dot.opt */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.dotted.opt",
-	    CPL_TYPE_INT, "a flag", "iiinstrument.rrrecipe", 0);
+    p = cpl_parameter_new_value("iiinstrument.rtest.dotted.opt",
+	    CPL_TYPE_INT,
+	    "An (integer) option with a dot in its name",
+	    "iiinstrument.rtest", 0);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "dot.opt");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --crashing */
-    p = cpl_parameter_new_enum("iiinstrument.rrrecipe.crashing",
-	  CPL_TYPE_STRING, "Crash the recipe?", "iiinstrument.rrrecipe",
+    p = cpl_parameter_new_enum("iiinstrument.rtest.crashing",
+	  CPL_TYPE_STRING, "Crash the recipe?", "iiinstrument.rtest",
 			       "no", 3, "no", "free", "segfault");
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "crashing");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
     /* --sleep */
-    p = cpl_parameter_new_value("iiinstrument.rrrecipe.sleep",
-            CPL_TYPE_DOUBLE, "Sleep for specified time [seconds]", 
-				"iiinstrument.rrrecipe", 
-				0.1);
+    p = cpl_parameter_new_value("iiinstrument.rtest.sleep",
+	    CPL_TYPE_DOUBLE,
+	    "Simulate some computing by sleeping for specified time [seconds]",
+	    "iiinstrument.rtest", 0.1);
     cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "sleep");
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
@@ -236,56 +218,22 @@ static int rrrecipe_create(cpl_plugin * plugin)
   @return   0 if everything is ok
  */
 /*----------------------------------------------------------------------------*/
-static int rrrecipe_exec(cpl_plugin * plugin)
+static int rtest_exec(cpl_plugin * plugin)
 {
+    cpl_ensure_code((plugin != NULL), CPL_ERROR_NULL_INPUT);
+    cpl_ensure_code((cpl_plugin_get_type(plugin) == CPL_PLUGIN_TYPE_RECIPE),
+		    CPL_ERROR_TYPE_MISMATCH);
 
-    cpl_recipe * recipe;
-    int recipe_status;
-    cpl_errorstate initial_errorstate = cpl_errorstate_get();
+    cpl_recipe *recipe = (cpl_recipe *)plugin;
 
-    /* Return immediately if an error code is already set */
-    if (cpl_error_get_code() != CPL_ERROR_NONE) {
-	cpl_msg_error(cpl_func, "%s():%d: An error is already set: %s",
-		      cpl_func, __LINE__, cpl_error_get_where());
-	return (int)cpl_error_get_code();
-    }
+    cpl_ensure_code((recipe->parameters != NULL), (int)CPL_ERROR_NULL_INPUT);
+    cpl_ensure_code((recipe->frames != NULL), (int)CPL_ERROR_NULL_INPUT);
 
-    if (plugin == NULL) {
-	cpl_msg_error(cpl_func, "Null plugin");
-	cpl_ensure_code(0, (int)CPL_ERROR_NULL_INPUT);
-    }
-
-    /* Verify plugin type */
-    if (cpl_plugin_get_type(plugin) != CPL_PLUGIN_TYPE_RECIPE) {
-	cpl_msg_error(cpl_func, "Plugin is not a recipe");
-	cpl_ensure_code(0, (int)CPL_ERROR_TYPE_MISMATCH);
-    }
-
-    /* Get the recipe */
-    recipe = (cpl_recipe *)plugin;
-
-    /* Verify parameter and frame lists */
-    if (recipe->parameters == NULL) {
-	cpl_msg_error(cpl_func, "Recipe invoked with NULL parameter list");
-	cpl_ensure_code(0, (int)CPL_ERROR_NULL_INPUT);
-    }
-    if (recipe->frames == NULL) {
-	cpl_msg_error(cpl_func, "Recipe invoked with NULL frame set");
-	cpl_ensure_code(0, (int)CPL_ERROR_NULL_INPUT);
-    }
-
-    /* Invoke the recipe */
-    recipe_status = rrrecipe(recipe->frames, recipe->parameters);
+    int recipe_status = rtest(recipe->frames, recipe->parameters);
 
     /* Ensure DFS-compliance of the products */
     if (cpl_dfs_update_product_header(recipe->frames)) {
 	if (!recipe_status) recipe_status = (int)cpl_error_get_code();
-    }
-
-    if (!cpl_errorstate_is_equal(initial_errorstate)) {
-	/* Dump the error history since recipe execution start.
-	   At this point the recipe cannot recover from the error */
-	cpl_errorstate_dump(initial_errorstate, CPL_FALSE, NULL);
     }
 
     return recipe_status;
@@ -298,24 +246,13 @@ static int rrrecipe_exec(cpl_plugin * plugin)
   @return   0 if everything is ok
  */
 /*----------------------------------------------------------------------------*/
-static int rrrecipe_destroy(cpl_plugin * plugin)
+static int rtest_destroy(cpl_plugin * plugin)
 {
-    cpl_recipe * recipe;
+    cpl_ensure_code((plugin != NULL), CPL_ERROR_NULL_INPUT);
+    cpl_ensure_code((cpl_plugin_get_type(plugin) == CPL_PLUGIN_TYPE_RECIPE),
+		    CPL_ERROR_TYPE_MISMATCH);
 
-    if (plugin == NULL) {
-	cpl_msg_error(cpl_func, "Null plugin");
-	cpl_ensure_code(0, (int)CPL_ERROR_NULL_INPUT);
-    }
-
-    /* Verify plugin type */
-    if (cpl_plugin_get_type(plugin) != CPL_PLUGIN_TYPE_RECIPE) {
-	cpl_msg_error(cpl_func, "Plugin is not a recipe");
-	cpl_ensure_code(0, (int)CPL_ERROR_TYPE_MISMATCH);
-    }
-
-    /* Get the recipe */
-    recipe = (cpl_recipe *)plugin;
-
+    cpl_recipe *recipe = (cpl_recipe *)plugin;
     cpl_parameterlist_delete(recipe->parameters);
 
     return 0;
@@ -329,61 +266,53 @@ static int rrrecipe_destroy(cpl_plugin * plugin)
   @return   0 if everything is ok
  */
 /*----------------------------------------------------------------------------*/
-static int rrrecipe(cpl_frameset            * frameset,
+static int rtest(cpl_frameset            * frameset,
 		    const cpl_parameterlist * parlist)
 {
-    const cpl_parameter *   param;
-    const cpl_frame     *   rawframe;
-    const cpl_frame     *   flat;
-    double                  qc_param;
-    cpl_propertylist    *   plist;
-    cpl_propertylist    *   qclist;
-    cpl_image           *   image;
-
     /* Use the errorstate to detect an error in a function that does not
        return an error code. */
-    cpl_errorstate          prestate = cpl_errorstate_get();
+    cpl_errorstate prestate = cpl_errorstate_get();
 
-    /* HOW TO RETRIEVE INPUT PARAMETERS */
+    const cpl_parameter *param;
     /* --stropt */
     param = cpl_parameterlist_find_const(parlist,
-					 "iiinstrument.rrrecipe.string_option");
+					 "iiinstrument.rtest.string_option");
     const char *str_option = cpl_parameter_get_string(param);
     cpl_ensure_code(str_option != NULL, CPL_ERROR_NULL_INPUT);
 
     /* --boolopt */
     param = cpl_parameterlist_find_const(parlist,
-					 "iiinstrument.rrrecipe.bool_option");
+					 "iiinstrument.rtest.bool_option");
     int bool_option = cpl_parameter_get_bool(param);
 
     /* --floatopt */
     param = cpl_parameterlist_find_const(parlist,
-					 "iiinstrument.rrrecipe.float_option");
+					 "iiinstrument.rtest.float_option");
     double float_option = cpl_parameter_get_double(param);
 
     /* --intopt */
     param = cpl_parameterlist_find_const(parlist,
-					 "iiinstrument.rrrecipe.int_option");
+					 "iiinstrument.rtest.int_option");
     int int_option = cpl_parameter_get_int(param);
 
     /* --enumopt */
     param = cpl_parameterlist_find_const(parlist,
-					 "iiinstrument.rrrecipe.enum_option");
+					 "iiinstrument.rtest.enum_option");
     const char *enum_option = cpl_parameter_get_string(param);
 
     /* --rangeopt */
     param = cpl_parameterlist_find_const(parlist,
-					 "iiinstrument.rrrecipe.range_option");
+					 "iiinstrument.rtest.range_option");
     double range_option = cpl_parameter_get_double(param);
 
     /* --crashing */
     param = cpl_parameterlist_find_const(parlist,
-					 "iiinstrument.rrrecipe.crashing");
+					 "iiinstrument.rtest.crashing");
     const char *crashing = cpl_parameter_get_string(param);
 
     /* --sleep */
     param = cpl_parameterlist_find_const(parlist,
-					 "iiinstrument.rrrecipe.sleep");
+					 "iiinstrument.rtest.sleep");
     double sleep_secs = cpl_parameter_get_double(param);
 
     if (!cpl_errorstate_is_equal(prestate)) {
@@ -396,57 +325,54 @@ static int rrrecipe(cpl_frameset            * frameset,
     cpl_ensure_code(iiinstrument_dfs_set_groups(frameset) == CPL_ERROR_NONE,
 		    cpl_error_get_code());
 
-    /* HOW TO ACCESS INPUT DATA */
-    /*  - A required file */
-    rawframe = cpl_frameset_find_const(frameset, RRRECIPE_RAW);
+    /*  - raw input file */
+    const cpl_frame *rawframe = cpl_frameset_find_const(frameset, RRRECIPE_RAW);
     if (rawframe == NULL) {
 	/* cpl_frameset_find_const() does not set an error code, when a frame
 	   is not found, so we will set one here. */
 	return (int)cpl_error_set_message(cpl_func, CPL_ERROR_DATA_NOT_FOUND,
-					  "SOF does not have any file tagged "
-					  "with %s", RRRECIPE_RAW);
-    }
-    /* - A recommended file */
-    flat = cpl_frameset_find(frameset, IIINSTRUMENT_CALIB_FLAT);
-    if (flat == NULL) {
-	cpl_msg_warning(cpl_func, "SOF does not have any file tagged with %s",
-			IIINSTRUMENT_CALIB_FLAT);
+					  "No file tagged with %s", RRRECIPE_RAW);
     }
 
-    /* HOW TO GET THE VALUE OF A FITS KEYWORD */
-    /*  - Load only DETector related keys */
-    plist = cpl_propertylist_load_regexp(cpl_frame_get_filename(rawframe),
-					 0, "ESO DET ", 0);
+    cpl_propertylist *plist
+	= cpl_propertylist_load_regexp(cpl_frame_get_filename(rawframe),
+				       0, "ESO DET ", 0);
     if (plist == NULL) {
 	/* In this case an error message is added to the error propagation */
+	cpl_msg_error(cpl_func, "Could not read plist from %s",
+		      cpl_frame_get_filename(rawframe));
 	return (int)cpl_error_set_message(cpl_func, cpl_error_get_code(),
 					  "Could not read the FITS header");
     }
 
-    qc_param = iiinstrument_pfits_get_dit(plist);
+    double qc_param = iiinstrument_pfits_get_dit(plist);
+    cpl_errorstate_set(prestate);
+
     cpl_propertylist_delete(plist);
+
+    /* - calibration input file */
+    const cpl_frame *flat = cpl_frameset_find(frameset,IIINSTRUMENT_CALIB_FLAT);
+    if (flat == NULL) {
+	cpl_msg_warning(cpl_func, "No file tagged with %s",
+			IIINSTRUMENT_CALIB_FLAT);
+    }
 
     /* Check for a change in the CPL error state */
     /* - if it did change then propagate the error and return */
     cpl_ensure_code(cpl_errorstate_is_equal(prestate), cpl_error_get_code());
 
-    /* NOW PERFORMING THE DATA REDUCTION */
-    /* Let's just load an image for the example */
-    image = cpl_image_load(cpl_frame_get_filename(rawframe),
-			   CPL_TYPE_FLOAT, 0, 0);
-    if (image == NULL) {
-	return (int)cpl_error_set_message(cpl_func, cpl_error_get_code(),
-				     "Could not load the image");
-    }
+    /* Load raw image */
+    cpl_image *image = cpl_image_load(cpl_frame_get_filename(rawframe),
+				      CPL_TYPE_FLOAT, 0, 0);
 
     /* Do some fake processing */
     usleep((unsigned int)(1e6*sleep_secs));
 
     /* Add QC parameters  */
-    qclist = cpl_propertylist_new();
+    cpl_propertylist *qclist = cpl_propertylist_new();
 
     cpl_propertylist_append_double(qclist, "ESO QC QCPARAM", qc_param);
-    cpl_propertylist_append_string(qclist, "ESO PRO CATG", RRRECIPE_XXX_PROCATG);
+    cpl_propertylist_append_string(qclist, "ESO PRO CATG","THE_PRO_CATG_VALUE");
     if (str_option != NULL) {
 	cpl_propertylist_append_string(qclist, "ESO QC STROPT", str_option);
     } else {
@@ -465,12 +391,11 @@ static int rrrecipe(cpl_frameset            * frameset,
 
     prestate = cpl_errorstate_get();
 
-    /* HOW TO SAVE A DFS-COMPLIANT PRODUCT TO DISK  */
     if (cpl_dfs_save_image(frameset, NULL, parlist, frameset, NULL, image,
 			   CPL_BPP_IEEE_FLOAT,
-			   "rrrecipe", qclist, NULL,
+			   "rtest", qclist, NULL,
 			   PACKAGE "/" PACKAGE_VERSION,
-			   "rrrecipe.fits")) {
+			   "rtest.fits")) {
 	/* Propagate the error */
 	(void)cpl_error_set_where(cpl_func);
     }
