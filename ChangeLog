@@ -1,3 +1,11 @@
+Version 0.3.7 (unreleased yet)
+
+* Allow to specify more than one input frame tag
+* Allow to specify raw frames as dictionary with tags as key
+* Optionally dump of memory after recipe execution
+* Remove setuptools usage
+* Bugfixes
+
 Version 0.3.6 (2012-03-07)
 
 * Automatically log crashes
