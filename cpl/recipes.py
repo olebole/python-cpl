@@ -350,9 +350,6 @@ class Recipe(object):
         raw_frames = self._get_raw_frames(*data, **ndata)
         if len(raw_frames) < 1:
             raise ValueError('No raw frames specified.')
-        if len(raw_frames) > 1:
-            raise ValueError('More than one raw frame tag specified: %s', 
-                            `raw_frames`)
         input_len = -1 if isinstance(raw_frames[0][1], pyfits.HDUList) else \
             len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
         calib_frames = self.calib._aslist(**ndata)
