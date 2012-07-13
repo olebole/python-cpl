@@ -285,7 +285,7 @@ class RecipeExec(RecipeTestCase):
     def test_frames_keyword_dict(self):
         '''Raw and calibration frames specified as keyword dict'''
         self.recipe.tag = None
-        res = self.recipe(raw_RRRECIPE_DOCATG_RAW = self.raw_frame, 
+        res = self.recipe(raw = {'RRRECIPE_DOCATG_RAW': self.raw_frame },
                           calib = { 'FLAT':self.flat_frame })
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))

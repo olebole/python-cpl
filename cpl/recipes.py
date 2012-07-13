@@ -305,7 +305,8 @@ class Recipe(object):
             of them.
         :param tag: Overwrite the :attr:`tag` attribute (optional).
         :type tag: :class:`str`
-        :param raw_name = data: Data with a specific tag 'name'.
+        :param raw: Data input frames, sorted by tag
+        :type raw: :class:`dict`
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
         :type threaded: :class:`bool`
         :param loglevel: set the log level for python :mod:`logging` (optional).
@@ -394,7 +395,7 @@ class Recipe(object):
         Returns a :class:`list` with (tag, the input frame(s)) pairs. Note
         that more than one input tag is not allowed here.
         '''
-        m = { }
+        m = ndata.get('raw', { })
         tag = ndata.get('tag', self.tag)
         if tag is None:
             if data:
