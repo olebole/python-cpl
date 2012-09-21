@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import sys
+import tempfile
 import threading
 
 import CPL_recipe
@@ -17,13 +18,15 @@ level = { "DEBUG":logging.DEBUG, "INFO":logging.INFO, "WARNING":logging.WARN,
 
 class LogServer(threading.Thread):
 
-    def __init__(self, filename, name, level):
+    def __init__(self, name, level):
         threading.Thread.__init__(self)
-        self.logfile = filename
         self.name = name
         self.logger = logging.getLogger(name)
         self.level = CplLogger.verbosity.index(level)
         self.entries = LogList()
+        tmphdl, self.logfile = tempfile.mkstemp(prefix = 'cpl', suffix='.log')
+        os.close(tmphdl)
+        os.remove(self.logfile)
         os.mkfifo(self.logfile)
         self.start()
 
@@ -34,6 +37,7 @@ class LogServer(threading.Thread):
             pass
         try:
             line = logfile.readline()
+            os.remove(self.logfile)
             while line:
                 self.log(line)
                 line = logfile.readline()

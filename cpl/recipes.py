@@ -360,8 +360,7 @@ class Recipe(object):
             if (not os.access(output_dir, os.F_OK)):
                 os.makedirs(output_dir)
             mkabspath(framelist, output_dir)
-            logger = LogServer(os.path.join(output_dir, 'log'), logname,
-                               loglevel)
+            logger = LogServer(logname, loglevel)
         except:
             try:
                 self._cleanup(output_dir, logger, delete)
@@ -428,8 +427,6 @@ class Recipe(object):
         finally:
             if delete:
                 shutil.rmtree(output_dir)
-            elif logger:
-                os.remove(logger.logfile)
 
     @property
     def __doc__(self):
