@@ -301,28 +301,25 @@ class RecipeCrash(StandardError):
     def log(self, logger):
         '''Put the content of the crash into the log.
         '''
-        if self.elements:
-            log = logging.getLogger('%s.%s' 
-                                    % (logger.name, self.elements[-1].func))
-            log.error('Recipe crashed. Traceback (most recent call last):')
-            for e in self.elements:
-                log.error('  File "%s", %sin %s\n' % (
-                        e.filename, 
-                        'line %i, ' % e.line if e.line else '', 
-                        e.func))
-                if os.path.exists(e.filename) and e.line:
-                    log.error('    %s\n' 
-                              % file(e.filename).readlines()[e.line-1].strip())
-                if e.params:
-                    log.error('  Parameters:')
-                    for p, v in e.params.items():
-                        log.error('    %s = %s' % (p, v))
-                if e.localvars:
-                    log.error('  Local variables:')
-                    for p, v in e.localvars.items():
-                        log.error('    %s = %s' % (p, v))
-        else:
-            log = logging.getLogger(logger.name)
+        log = logging.getLogger('%s' % logger.name)
+        log.error('Recipe crashed. Traceback (most recent call last):')
+        for e in self.elements:
+            logc = log.getChild('%s' % e.func)
+            logc.error('  File "%s", %sin %s\n' % (
+                    e.filename, 
+                    'line %i, ' % e.line if e.line else '', 
+                    e.func))
+            if os.path.exists(e.filename) and e.line:
+                logc.error('    %s\n' 
+                           % file(e.filename).readlines()[e.line-1].strip())
+            if e.params:
+                logc.error('  Parameters:')
+                for p, v in e.params.items():
+                    logc.error('    %s = %s' % (p, v))
+            if e.localvars:
+                logc.error('  Local variables:')
+                for p, v in e.localvars.items():
+                    logc.error('    %s = %s' % (p, v))
         log.error(RecipeCrash.signals.get(self.signal, 
                                           '%s: Unknown' % str(self.signal)))
 
