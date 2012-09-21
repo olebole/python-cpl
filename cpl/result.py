@@ -304,7 +304,7 @@ class RecipeCrash(StandardError):
         log = logging.getLogger('%s' % logger.name)
         log.error('Recipe crashed. Traceback (most recent call last):')
         for e in self.elements:
-            logc = log.getChild('%s' % e.func)
+            logc = logging.getLogger('%s.%s' % (logger.name, e.func))
             logc.error('  File "%s", %sin %s\n' % (
                     e.filename, 
                     'line %i, ' % e.line if e.line else '', 
