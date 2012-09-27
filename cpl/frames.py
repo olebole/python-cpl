@@ -209,7 +209,8 @@ def mkabspath(frames, tmpdir):
     for i, frame in enumerate(frames):
         if isinstance(frame[1], pyfits.HDUList):
             md5 = md5sum.update_md5(frame[1])
-            filename = os.path.abspath(os.path.join(tmpdir, '%s.fits' % md5))
+            filename = os.path.abspath(os.path.join(tmpdir, '%s_%s.fits' 
+                                                    % (frame[0], md5[:8])))
             try:
                 os.remove(filename)
             except:
