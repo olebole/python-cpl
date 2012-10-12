@@ -311,7 +311,7 @@ class Recipe(object):
         :type threaded: :class:`bool`
         :param loglevel: set the log level for python :mod:`logging` (optional).
         :type loglevel: :class:`int`
-        :param logname: set the log name for the used python 
+        :param logname: set the log name for the python
             :class:`logging.Logger` (optional, default is 'cpl.' + recipename).
         :type logname: :class:`str`
         :param output_dir: Set or overwrite the :attr:`output_dir` attribute.
