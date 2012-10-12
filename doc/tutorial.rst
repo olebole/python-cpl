@@ -37,11 +37,18 @@ The package can be imported with
 
 >>> import cpl
 
-This import statement will fail if the CPL libraries are not found.  
-Init the search path for CPL recipes from the esorex startup and list
-available recipes:
+This import statement will fail if the CPL libraries are not found.  If you
+migrate from Esorex, you may just init the search path for CPL recipes from
+the esorex startup:
 
 >>> cpl.esorex.init()
+
+Otherwise, you will need to explicitely set the recipe search path:
+
+>>> cpl.Recipe.path = '/store/01/MUSE/recipes'
+
+List available recipes:
+
 >>> cpl.Recipe.list()
 [('muse_quick_image', ['0.2.0', '0.3.0']),
  ('muse_scipost', ['0.2.0', '0.3.0']),
