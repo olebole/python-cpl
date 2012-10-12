@@ -64,9 +64,14 @@ available recipes:
  ('muse_apply_astrometry', ['0.2.0', '0.3.0']),
  ('muse_rebin', ['0.2.0', '0.3.0'])]
 
-To create a recipe specified by name:
+Create a recipe specified by name:
 
 >>> muse_scibasic = cpl.Recipe('muse_scibasic')
+
+By default, it loads the recipe with the highest version number. You may also
+explicitely specify the version number:
+
+>>> muse_scibasic = cpl.Recipe('muse_scibasic', version = '0.2.0')
 
 List all parameters:
 
@@ -100,32 +105,39 @@ Set calibration frames with files:
 >>> muse_scibasic.calib.TRACE_TABLE    = 'TRACE_TABLE-01.fits'
 >>> muse_scibasic.calib.GEOMETRY_TABLE = 'geometry_table.fits'
 
-Set calibration frame with :class:`pyfits.HDUList`:
+You may also set calibration frames with :class:`pyfits.HDUList` objects. This
+is especially useful if you want to change the file on the fly:
 
 >>> import pyfits
 >>> wavecal = pyfits.open('WAVECAL_TABLE-01_flat.fits')
+>>> wavecal[1].data.field('wlcc00')[:] *= 1.01
 >>> muse_scibasic.calib.WAVECAL_TABLE = wavecal
 
 To set more than one file for a tag, put the file names and/or
-:class:`pyfits.HDUList` objects into a list.
+:class:`pyfits.HDUList` objects into a list:
 
-Run the recipe with the default (first) raw data tag:
+>>> muse_scibasic.calib.MASTER_BIAS    = [ 'MASTER_BIAS-%02i.fits' % (i+1) 
+...                                        for i in range(24) ]
+
+To run the recipe, call it with the input file names as arguments. The product
+frames are returned in the return value of the call. If you don't specify an
+input frame tag, the default (first) one of the recipe is used.
 
 >>> res = muse_scibasic('Scene_fusion_1.fits')
 
 Run the recipe with a nondefault tag (use raw data tag as argument name):
 
->>> res = muse_scibasic(raw_SKY = 'sky_newmoon_no_noise_1.fits')
+>>> res = muse_scibasic(raw = {'SKY':'sky_newmoon_no_noise_1.fits'})
 
-Run the recipe with alternative parameter or calibration tag setting (use
-parameter names or calibration tags as keyword parameters)
+Parameters and calibration frames may be changed for a specific call by
+specifying them as arguments:
 
->>> res =  muse_scibasic('Scene_fusion_1.fits', param_nifu = 2, 
-...                      calib_MASTER_FLAT = None,
-...                      calib_WAVECAL_TABLE = 'WAVECAL_TABLE_noflat.fits')
+>>> res =  muse_scibasic('Scene_fusion_1.fits', param = {'nifu': 2}, 
+...                      calib = {'MASTER_FLAT': None,
+...                               'WAVECAL_TABLE': 'WAVECAL_TABLE_noflat.fits'})
 
-The results of a calibration run are :class:`pyfits.HDUList` objects.  To save them
-(use output tags as attributes):
+The results of a calibration run are :class:`pyfits.HDUList` objects.  To save
+them (use output tags as attributes):
 
 >>> res.PIXTABLE_OBJECT.writeto('Scene_fusion_pixtable.fits')
 
@@ -136,8 +148,8 @@ They can also be used directly as input of other recipes.
 >>> res_sky = muse_sky(res.PIXTABLE_OBJECT)
 
 If not saved, the output is usually lost! During recipe run, a temporary
-directory is created where the :class:`pyfits.HDUList` input objects and the output files are
-put into. This directory is cleaned up afterwards.
+directory is created where the :class:`pyfits.HDUList` input objects and the
+output files are put into. This directory is cleaned up afterwards.
 
 To control message verbosity on terminal (use :literal:`'debug'`,
 :literal:`'info'`, :literal:`'warn'`, :literal:`'error'` or :literal:`'off'`):
