@@ -1,4 +1,10 @@
-Version 0.3.7 (unreleased yet)
+Version 0.3.8 (2012-10-15)
+
+* Better logging in case of crashes
+* Better temp file naming
+* Bugfixes
+
+Version 0.3.7 (2012-09-14)
 
 * Allow to specify more than one input frame tag
 * Allow to specify raw frames as dictionary with tags as key

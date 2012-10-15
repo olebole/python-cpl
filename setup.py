@@ -4,7 +4,7 @@ from distutils.core import setup, Extension
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
-cpl_version = '0.3.7'
+cpl_version = '0.3.8'
 doc = '''Python interface for the Common Pipeline Library.
 
 Non-official library to access CPL modules via Python. 
