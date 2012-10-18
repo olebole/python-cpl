@@ -12,9 +12,8 @@ Prequisites
 Binary packages
 ---------------
 
-* `Ubuntu repository <https://launchpad.net/~olebole/+archive/astro>`_
-  (11.04). This repository also contains the required packages
-  that are not in the standard distribution (CPL etc.)
+* `Ubuntu repository <https://launchpad.net/~olebole/+archive/astro-quantal>`_
+  (12.10). 
 * Debian package in "Wheezy" (Testing)
   `<http://packages.debian.org/wheezy/python-cpl>`_
 * `Python egg <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ planned
@@ -22,7 +21,7 @@ Binary packages
 Source code
 -----------
 
-* Current release `python-cpl-0.3.6.tar.gz <python-cpl-0.3.6.tar.gz>`_
+* Current release `python-cpl-0.3.8.tar.gz <python-cpl-0.3.8.tar.gz>`_
 * `Git repository <http://github.com/olebole/python-cpl>`_. To access, do a::
 
     git clone git://github.com/olebole/python-cpl.git
@@ -56,7 +55,7 @@ variables :envvar:`LIBRARY_PATH` and :envvar:`INCLUDE_PATH` may be used.
 Test suite
 ----------
 
-The test suite can be downloaded as tar file `python-cpl-test-0.3.6.tar.gz <python-cpl-test-0.3.6.tar.gz>`_.
+The test suite can be downloaded as tar file `python-cpl-test-0.3.8.tar.gz <python-cpl-test-0.3.8.tar.gz>`_.
 There are a number of tests defined in :file:`test/TestRecipe.py`. To run
 them, you need first to compile the recipe in :file:`test/iiinstrumentp/`::
 
