@@ -127,11 +127,7 @@ class ParameterList(object):
 
     def _set_items(self, l):
         for o in l:
-            if o[1] is not None:
-                try:
-                    self[o[0]] = o[1]
-                except:
-                    pass
+            self[o[0]] = o[1]
 
     @property
     def _cpl_dict(self):
@@ -227,25 +223,9 @@ class ParameterList(object):
                 p.name.rjust(maxlen), p.__doc__, `p.default`)
         return r        
 
-    def _aslist(self, **ndata):
-        parlist = dict([ ( param.fullname, param.value ) 
-                         for param in self
-                         if param.value is not None 
-                         and (ndata is None or param.name not in ndata) ])
-        if ndata:
-            for name, tdata in ndata.items():
-                if name.startswith('param_'):
-                    try:
-                        parlist[self[name.split('_', 1)[1]].fullname] = tdata
-                    except KeyError:
-                        pass
-            try:
-                for pname, tdata in ndata['param'].items():
-                    try:
-                        parlist[self[pname].fullname] = tdata
-                    except KeyError:
-                        pass
-            except KeyError:
-                pass
-        return list(parlist.iteritems())
-
+    def _aslist(self, par):
+        parlist = ParameterList(self._recipe, self)
+        if par is not None:
+            parlist._set_items(par.items())
+        return [( param.fullname, param.value ) 
+                for param in parlist]

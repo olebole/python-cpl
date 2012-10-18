@@ -344,13 +344,13 @@ class Recipe(object):
         if output_dir is None:
             output_dir = tempfile.mkdtemp(dir = self.temp_dir, 
                                           prefix = self.__name__ + "-") 
-        parlist = self.param._aslist(**ndata)
+        parlist = self.param._aslist(ndata.get('param'))
         raw_frames = self._get_raw_frames(*data, **ndata)
         if len(raw_frames) < 1:
             raise ValueError('No raw frames specified.')
         input_len = -1 if isinstance(raw_frames[0][1], pyfits.HDUList) else \
             len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
-        calib_frames = self.calib._aslist(**ndata)
+        calib_frames = self.calib._aslist(ndata.get('calib'))
         framelist = expandframelist(raw_frames + calib_frames)
         logger = None
         delete = output_format == pyfits.HDUList

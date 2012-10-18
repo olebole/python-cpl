@@ -86,7 +86,7 @@ class FrameList(object):
         self._recipe = recipe
         self._values = dict()
         if isinstance(other, self.__class__):
-            self._set_items((o.name, o.value) for o in other)
+            self._set_items((o.tag, o.frames) for o in other)
         elif isinstance(other, dict):
             self._set_items(other.iteritems())
         elif other:
@@ -94,11 +94,7 @@ class FrameList(object):
 
     def _set_items(self, l):
         for o in l:
-            if o[1] is not None:
-                try:
-                    self[o[0]] = o[1]
-                except:
-                    pass
+            self[o[0]] = o[1]
 
     @property
     def _cpl_dict(self):
@@ -174,21 +170,11 @@ class FrameList(object):
             r += '%s: %s\n' % (self._key(s), s.__doc__)
         return r        
 
-    def _aslist(self, **ndata):
-        frames = dict()
-        for f in self:
-            frames[f.tag] = f.frames
-        if ndata:
-            for name, tdata in ndata.items():
-                if name.startswith('calib_'):
-                    tag = name.split('_', 1)[1]
-                    frames[tag] = tdata
-            try:
-                for name, tdata in ndata['calib'].items():
-                    frames[name] = tdata
-            except KeyError:
-                pass
-        return list(frames.iteritems())
+    def _aslist(self, frames):
+        flist = FrameList(self._recipe, self)
+        if frames is not None:
+            flist._set_items(frames.items())
+        return [(f.tag, f.frames) for f in flist]
 
 def mkabspath(frames, tmpdir):
     '''Convert all filenames in the frames list into absolute paths.
