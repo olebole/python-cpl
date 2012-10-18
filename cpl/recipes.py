@@ -204,6 +204,12 @@ class Recipe(object):
 
         >>> muse_scibasic.calib = { 'MASTER_BIAS':'master_bias_0.fits', 
         ...                'BADPIX_TABLE':[ 'badpix_1.fits', 'badpix_2.fits' ] }
+
+        In a recipe call, the calibration frame lists may be overwritten by
+        specifying them in a :class:`dict`:
+
+        >>> res = muse_scibasic( ..., calib = {'MASTER_BIAS':'master_bias_1.fits'})
+
         '''
         return self._calib
 
@@ -251,9 +257,9 @@ class Recipe(object):
         The new value is checked against parameter type, and possible value
         limitations provided by the recipe. Dots in parameter names are
         converted to underscores. In a recipe call, the same parameter can be
-        specified as
+        specified as :class:`dict`:
 
-        >>> res = muse_scibasic( ..., param_nifu = 1)
+        >>> res = muse_scibasic( ..., param = {'nifu':1})
 
         To reset a value to its default, it is either deleted, or set to
         :attr:`None`. The following two lines:
