@@ -272,16 +272,6 @@ class RecipeExec(RecipeTestCase):
                 pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
                                                                self.image_size))])
 
-    def test_frames_keyword(self):
-        '''Raw and calibration frames specified as keywords'''
-        self.recipe.tag = None
-        res = self.recipe(raw_RRRECIPE_DOCATG_RAW = self.raw_frame, 
-                          calib_FLAT = self.flat_frame)
-        self.assertTrue(isinstance(res, cpl.Result))
-        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
-        self.assertTrue(abs(self.raw_frame[0].data 
-                            - res.THE_PRO_CATG_VALUE[0].data).max() == 0)
-
     def test_frames_keyword_dict(self):
         '''Raw and calibration frames specified as keyword dict'''
         self.recipe.tag = None
@@ -296,7 +286,7 @@ class RecipeExec(RecipeTestCase):
         '''Raw frame specified as keyword, calibration frame set in recipe'''
         self.recipe.tag = None
         self.recipe.calib.FLAT = self.flat_frame
-        res = self.recipe(raw_RRRECIPE_DOCATG_RAW = self.raw_frame)
+        res = self.recipe({'RRRECIPE_DOCATG_RAW':self.raw_frame})
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 

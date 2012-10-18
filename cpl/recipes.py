@@ -300,13 +300,11 @@ class Recipe(object):
     def __call__(self, *data, **ndata):
         '''Call the recipes execution with a certain input frame.
         
-        :param data:       Data input frames, using the default tag.
-        :type data: :class:`pyfits.HDUlist` or :class:`str` or a :class:`list` 
-            of them.
+        :param raw: Data input frames.
+        :type raw: :class:`pyfits.HDUlist` or :class:`str` or a :class:`list` 
+            of them, or :class:`dict`
         :param tag: Overwrite the :attr:`tag` attribute (optional).
         :type tag: :class:`str`
-        :param raw: Data input frames, sorted by tag
-        :type raw: :class:`dict`
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
         :type threaded: :class:`bool`
         :param loglevel: set the log level for python :mod:`logging` (optional).
@@ -391,27 +389,23 @@ class Recipe(object):
         Returns a :class:`list` with (tag, the input frame(s)) pairs. Note
         that more than one input tag is not allowed here.
         '''
-        m = ndata.get('raw', { })
+        data = list(data)
+        if 'raw' in ndata:
+            data.append(ndata['raw'])
         tag = ndata.get('tag', self.tag)
-        if tag is None:
-            if data:
+        m = { }
+        for f in data:
+            if isinstance(f, dict):
+                m.update(f)
+            elif tag is None:
                 raise ValueError('No raw input tag')
-        else:
-            for f in data:
-                if self.tag not in m:
-                    m[tag] = f
-                elif isinstance(m[tag], list) \
-                        and not isinstance(m[tag], pyfits.HDUList):
-                    m[tag].append(f)
-                else:
-                    m[tag] = [ m[tag], f ]
-
-        if ndata is not None:
-            for name, tdata in ndata.items():
-                if name.startswith('raw_'):
-                    tag = name.split('_', 1)[1]
-                    m[tag] = tdata
-
+            elif tag not in m:
+                m[tag] = f
+            elif isinstance(m[tag], list) \
+                    and not isinstance(m[tag], pyfits.HDUList):
+                m[tag].append(f)
+            else:
+                m[tag] = [ m[tag], f ]
         return list(m.iteritems())
 
     def _cleanup(self, output_dir, logger, delete):
