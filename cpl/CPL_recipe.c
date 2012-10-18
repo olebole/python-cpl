@@ -49,11 +49,20 @@ CPL_list(PyObject *self, PyObject *args) {
 	return Py_None;
     }
 
-    dlerror();
+    char *error =dlerror();
     int (*cpl_plugin_get_info)(cpl_pluginlist *) = dlsym(handle,
 							 "cpl_plugin_get_info");
-    char *error = dlerror();
+    error = dlerror();
     if (error != NULL)  {
+	dlclose(handle);
+	Py_INCREF(Py_None);
+	return Py_None;
+    }
+    // Check that the library is linked to the current CPL
+    void (*m_cpl_init)(unsigned) = dlsym(handle, "cpl_init");
+    error = dlerror();
+    if ((error != NULL) || (cpl_init != m_cpl_init)) {
+	dlclose(handle);
 	Py_INCREF(Py_None);
 	return Py_None;
     }
