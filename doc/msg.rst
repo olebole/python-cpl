@@ -76,9 +76,9 @@ Terminal messages
 
 .. data:: cpl.msg
 
-This variable is a :class:`CplLogger` instance and provides an interface to the
-terminal logging functionality of the CPL. Note that this variable is
-deprecated and should be replaced by a :class:`logging.StreamHandler`::
+This variable is a :class:`CplLogger` instance and provides a convienience
+stream handler similar to the terminal logging functionality of the CPL. It
+basically does the same as
 
   import logging
 
@@ -86,7 +86,7 @@ deprecated and should be replaced by a :class:`logging.StreamHandler`::
   log.setLevel(logging.INFO)
   ch = logging.StreamHandler()
   ch.setLevel(logging.INFO)
-  ch.setFormatter(logging.Formatter('[%(levelname)s] %(funcName)s: %(message)s'))
+  ch.setFormatter(logging.Formatter('[%(levelname)7s] %(funcName)s: %(message)s'))
   log.addHandler(ch)
 
 The following attributes control the format of the terminal messages:
@@ -95,28 +95,5 @@ The following attributes control the format of the terminal messages:
 
    .. autoattribute:: cpl.log.CplLogger.level 
 
-   .. autoattribute:: cpl.log.CplLogger.time
-
-   .. autoattribute:: cpl.log.CplLogger.domain
-
-
-Creating CPL messages from Python
----------------------------------
-
-These methods can be called from the :data:`cpl.msg` object. Additionally from
-logging them as CPL terminal messages, they get logged to the Python
-:class:`logging.Logger` object with the log name :file:`cpl.{domain}`.
-
-   .. automethod:: cpl.log.CplLogger.debug
-
-   .. automethod:: cpl.log.CplLogger.info
-
-   .. automethod:: cpl.log.CplLogger.warn
-
-   .. automethod:: cpl.log.CplLogger.error
-
-   .. automethod:: cpl.log.CplLogger.indent_more
-
-   .. automethod:: cpl.log.CplLogger.indent_less
-
+   .. autoattribute:: cpl.log.CplLogger.format
 

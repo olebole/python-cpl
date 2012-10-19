@@ -1087,7 +1087,7 @@ PyMODINIT_FUNC
 initCPL_recipe(void)
 {
     cpl_init(CPL_INIT_DEFAULT);
-
+    cpl_msg_set_level(CPL_MSG_OFF);
     CPL_recipeType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&CPL_recipeType) < 0)
         return;

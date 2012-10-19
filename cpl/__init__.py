@@ -15,7 +15,4 @@ from log import msg, lib_version, lib_description
 import dfs
 import esorex
 
-msg.domain = os.path.basename(sys.argv[0])
-msg.level = msg.OFF
-
 Recipe.dir = '.'

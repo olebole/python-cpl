@@ -22,7 +22,7 @@ class LogServer(threading.Thread):
         threading.Thread.__init__(self)
         self.name = name
         self.logger = logging.getLogger(name)
-        self.level = CplLogger.verbosity.index(level)
+        self.level = cpl_verbosity.index(level)
         self.entries = LogList()
         tmphdl, self.logfile = tempfile.mkstemp(prefix = 'cpl', suffix='.log')
         os.close(tmphdl)
@@ -130,21 +130,52 @@ class CplLogger(object):
     ERROR = logging.ERROR
     OFF = 101
 
-    verbosity = [ DEBUG, INFO, WARN, ERROR, OFF ]
+    def __init__(self):
+        self.msg_handler = None
+        self._format = '[%(levelname)7s] %(funcName)s: %(message)s'
 
-    def __init__(self, name = 'cpl'):
-        self.name = name
+    def _init_handler(self):
+        if not self.msg_handler:
+            self.msg_handler = logging.StreamHandler()
+            self.msg_handler.setFormatter(logging.Formatter(self.format,
+                                                            '%H:%M:%S'))
+            logging.getLogger().addHandler(self.msg_handler)
+
+    def _shutdown_handler(self):
+        if self.msg_handler:
+            logging.getLogger().removeHandler(self.msg_handler)
+            self.msg_handler = None
 
     @property
     def level(self):
         '''Log level for output to the terminal. Any of
         [ DEBUG, INFO, WARN, ERROR, OFF ]
         '''
-        return CplLogger.verbosity[CPL_recipe.get_msg_level()]
+        return self.msg_handler.level if self.msg_handler else CplLogger.OFF
 
     @level.setter
     def level(self, level):
-        CPL_recipe.set_msg_level(CplLogger.verbosity.index(level))
+        if level == CplLogger.OFF:
+            self._shutdown_handler()
+        else:
+            self._init_handler()
+            logging.getLogger().setLevel(logging.DEBUG)
+            self.msg_handler.setLevel(level)
+
+    @property
+    def format(self):
+        '''Output format. 
+
+        See `LogRecord attributes.http://docs.python.org/library/logging.html#logrecord-attributes`_ for a usable key mappings.'''
+        return self._format
+
+    @format.setter
+    def format(self, fmt):
+        self._format = fmt
+        self.msg_handler.setFormatter(logging.Formatter(fmt, '%H:%M:%S'))
+
+cpl_verbosity = [ logging.DEBUG, logging.INFO, logging.WARN,
+                  logging.ERROR, CplLogger.OFF ]
 
 msg = CplLogger()
 lib_version = CPL_recipe.version()
