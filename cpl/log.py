@@ -139,73 +139,12 @@ class CplLogger(object):
     def level(self):
         '''Log level for output to the terminal. Any of
         [ DEBUG, INFO, WARN, ERROR, OFF ]
-
-        .. deprecated:: 0.3
-           Use :func:`logging.Logger.setLevel` 
         '''
         return CplLogger.verbosity[CPL_recipe.get_msg_level()]
 
     @level.setter
     def level(self, level):
         CPL_recipe.set_msg_level(CplLogger.verbosity.index(level))
-
-    def log(self, level, msg, caller = None):
-        if caller == None:
-            caller = CPL_recipe.get_log_domain()
-        logging.getLogger('%s.%s' % (self.name, caller)).log(level, msg)
-        CPL_recipe.log(CplLogger.verbosity.index(level), caller, msg)
-
-    def debug(self, msg, caller = None):
-        '''Put a 'debug' message to the log.
-
-        :param msg: Message to put
-        :type msg: :class:`str`
-        :param caller: Name of the function generating the message.
-        :type caller: :class:`str`
-
-        .. deprecated:: 0.3
-           Use :func:`logging.Logger.debug` 
-        '''
-        self.log(CplLogger.DEBUG, msg, caller)
-
-    def info(self, msg, caller = None):
-        '''Put an 'info' message to the log.
-
-        :param msg: Message to put
-        :type msg: :class:`str`
-        :param caller: Name of the function generating the message.
-        :type caller: :class:`str`
-
-        .. deprecated:: 0.3
-           Use :func:`logging.Logger.info` 
-        '''
-        self.log(CplLogger.INFO, msg, caller)
-
-    def warn(self, msg, caller = None):
-        '''Put a 'warn' message to the log.
-
-        :param msg: Message to put
-        :type msg: :class:`str`
-        :param caller: Name of the function generating the message.
-        :type caller: :class:`str`
-
-        .. deprecated:: 0.3
-           Use :func:`logging.Logger.warn` 
-        '''
-        self.log(CplLogger.WARN, msg, caller)
-
-    def error(self, msg, caller = None):
-        '''Put an 'error' message to the log.
-
-        :param msg: Message to put
-        :type msg: :class:`str`
-        :param caller: Name of the function generating the message.
-        :type caller: :class:`str`
-
-        .. deprecated:: 0.3
-           Use :func:`logging.Logger.error` 
-        '''
-        self.log(CplLogger.ERROR, msg, caller)
 
 msg = CplLogger()
 lib_version = CPL_recipe.version()
