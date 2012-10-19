@@ -132,8 +132,6 @@ class CplLogger(object):
 
     verbosity = [ DEBUG, INFO, WARN, ERROR, OFF ]
 
-    _time_enabled = False
-
     def __init__(self, name = 'cpl'):
         self.name = name
 
@@ -150,33 +148,6 @@ class CplLogger(object):
     @level.setter
     def level(self, level):
         CPL_recipe.set_msg_level(CplLogger.verbosity.index(level))
-
-    @property
-    def time(self):
-        '''Specify whether time tag shall be included in the terminal output
-
-        .. deprecated:: 0.3
-           Use :func:`logging.Handler.setFormatter` 
-        '''
-        return CplLogger._time_enabled
-
-    @time.setter
-    def time(self, enable):
-        CPL_recipe.set_msg_time(enable);
-        CplLogger._time_enabled = not not enable
-
-    @property
-    def domain(self):
-        '''The domain tag in the header of the log file.
-
-        .. deprecated:: 0.3
-           Use :func:`logging.getLogger` 
-        '''
-        return CPL_recipe.get_log_domain()
-
-    @domain.setter
-    def domain(self, domain):
-        CPL_recipe.set_log_domain(domain)
 
     def log(self, level, msg, caller = None):
         if caller == None:
@@ -235,14 +206,6 @@ class CplLogger(object):
            Use :func:`logging.Logger.error` 
         '''
         self.log(CplLogger.ERROR, msg, caller)
-
-    def indent_more(self):
-        '''Indent the output more.'''
-        CPL_recipe.log_indent_more()
-
-    def indent_less(self):
-        '''Indent the output less.'''
-        CPL_recipe.log_indent_less()
 
 msg = CplLogger()
 lib_version = CPL_recipe.version()
