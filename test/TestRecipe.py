@@ -272,16 +272,6 @@ class RecipeExec(RecipeTestCase):
                 pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
                                                                self.image_size))])
 
-    def test_frames_keyword(self):
-        '''Raw and calibration frames specified as keywords'''
-        self.recipe.tag = None
-        res = self.recipe(raw_RRRECIPE_DOCATG_RAW = self.raw_frame, 
-                          calib_FLAT = self.flat_frame)
-        self.assertTrue(isinstance(res, cpl.Result))
-        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
-        self.assertTrue(abs(self.raw_frame[0].data 
-                            - res.THE_PRO_CATG_VALUE[0].data).max() == 0)
-
     def test_frames_keyword_dict(self):
         '''Raw and calibration frames specified as keyword dict'''
         self.recipe.tag = None
@@ -296,7 +286,7 @@ class RecipeExec(RecipeTestCase):
         '''Raw frame specified as keyword, calibration frame set in recipe'''
         self.recipe.tag = None
         self.recipe.calib.FLAT = self.flat_frame
-        res = self.recipe(raw_RRRECIPE_DOCATG_RAW = self.raw_frame)
+        res = self.recipe({'RRRECIPE_DOCATG_RAW':self.raw_frame})
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
 
@@ -360,17 +350,16 @@ class RecipeExec(RecipeTestCase):
         hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
         self.assertTrue(isinstance(hdu, pyfits.HDUList))
 
-    def test_param_keyword(self):
-        '''Parameter handling via keyword arg'''
-        res = self.recipe(self.raw_frame, 
-                          param_stropt = 'more').THE_PRO_CATG_VALUE
-        self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
-
     def test_param_keyword_dict(self):
         '''Parameter handling via keyword dict'''
         res = self.recipe(self.raw_frame, 
                           param = { 'stropt':'more' }).THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
+
+    def test_param_keyword_dict_wrong(self):
+        '''Parameter handling via keyword dict'''
+        self.assertRaises(KeyError, self.recipe,
+                          self.raw_frame, param = { 'wrong':True })
 
     def test_param_setting(self):
         '''Parameter handling via recipe setting'''
@@ -389,7 +378,7 @@ class RecipeExec(RecipeTestCase):
     def test_param_overwrite(self):
         '''Overwrite the recipe setting param via via keyword arg'''
         self.recipe.param.stropt = 'more'
-        res = self.recipe(self.raw_frame, param_stropt = 'less').THE_PRO_CATG_VALUE
+        res = self.recipe(self.raw_frame, param = {'stropt':'less'}).THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'less')
 
     def test_param_types(self):
@@ -438,7 +427,7 @@ class RecipeExec(RecipeTestCase):
         for i in range(20):
             # mark each frame so that we can see their order
             self.raw_frame[0].header.update('HIERARCH ESO RAW1 NR', i)
-            results.append(self.recipe(self.raw_frame, param_intopt = i,
+            results.append(self.recipe(self.raw_frame, param = {'intopt':i},
                                        threaded = True))
         for i, res in enumerate(results):
             # check if we got the correct type
