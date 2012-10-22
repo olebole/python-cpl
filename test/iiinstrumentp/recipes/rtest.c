@@ -388,6 +388,12 @@ static int rtest(cpl_frameset            * frameset,
 	cpl_propertylist_append_string(qclist, "ESO QC ENUMOPT", "(null)");
     }
     cpl_propertylist_append_double(qclist, "ESO QC RANGEOPT", range_option);
+    const char *testenv = getenv("TESTENV");
+    if (testenv != NULL) {
+	cpl_propertylist_append_string(qclist, "ESO QC TESTENV", testenv);
+    } else {
+	cpl_propertylist_append_string(qclist, "ESO QC TESTENV", "(null)");
+    }
 
     prestate = cpl_errorstate_get();
 

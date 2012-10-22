@@ -397,6 +397,18 @@ class RecipeExec(RecipeTestCase):
         self.assertEqual(res[0].header['HIERARCH ESO QC ENUMOPT'], 'third')
         self.assertEqual(res[0].header['HIERARCH ESO QC RANGEOPT'], 0.125)
         
+    def test_environment_setting(self):
+        '''Additional environment parameter via recipe setting'''
+        self.recipe.env['TESTENV'] = 'unkk'
+        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
+        self.assertEqual(res[0].header['HIERARCH ESO QC TESTENV'], 'unkk')
+
+    def test_environment_keyword(self):
+        '''Additional environment parameter via recipe call keyword'''
+        res = self.recipe(self.raw_frame, 
+                          env = {'TESTENV':'kknu'}).THE_PRO_CATG_VALUE
+        self.assertEqual(res[0].header['HIERARCH ESO QC TESTENV'], 'kknu')
+
     def test_error(self):
         '''Error handling'''
         self.recipe.tag = 'some_unknown_tag'
@@ -428,6 +440,7 @@ class RecipeExec(RecipeTestCase):
             # mark each frame so that we can see their order
             self.raw_frame[0].header.update('HIERARCH ESO RAW1 NR', i)
             results.append(self.recipe(self.raw_frame, param = {'intopt':i},
+                                       env = {'TESTENV':('knu%02i' % i)},
                                        threaded = True))
         for i, res in enumerate(results):
             # check if we got the correct type
@@ -435,6 +448,9 @@ class RecipeExec(RecipeTestCase):
             # check if we have the correct parameter
             self.assertEqual(res.THE_PRO_CATG_VALUE[0].header[
                     'HIERARCH ESO QC INTOPT'], i)
+            # check if we have the correct environment
+            self.assertEqual(res.THE_PRO_CATG_VALUE[0].header[
+                    'HIERARCH ESO QC TESTENV'], ('knu%02i' % i))
             # check if we have the correct input frame
             self.assertEqual(res.THE_PRO_CATG_VALUE[0].header[
                     'HIERARCH ESO RAW1 NR'], i)

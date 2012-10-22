@@ -112,6 +112,25 @@ it.
 .. autoattribute:: Recipe.calib
 .. seealso:: :class:`cpl.FrameConfig`
 
+Runtime environment
+-------------------
+
+For debugging purposes, the runtime environment of the recipe may be
+changed. The change may be either done by specifying the :attr:`Recipe.env`
+attribute of as a parameter on the recipe invocation. The change will have no
+influence on the environment of the framework itself.
+
+.. note:: Some variables are only read on startup
+   (like :envvar:`MALLOC_CHECK_`), changing or deleting them will have
+   no effect.
+
+.. attribute:: Recipe.env
+
+   Environment changes for the recipe. This is a :class:`dict` with the
+   name of the environment variable as the key and the content as the value.
+   It is possible to overwrite a specific environment variable. Specifying
+   :keyword:`None` as value will remove the variable.
+
 Recipe invocation
 -----------------
 

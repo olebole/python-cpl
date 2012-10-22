@@ -78,6 +78,7 @@ class Recipe(object):
                           (str(self.version), str(version), name, filename))
         self._param = ParameterList(self)
         self._calib = FrameList(self)
+        self.env = dict()
         self._tags = None
         self.tag = self.tags[0] if self.tags else None
         self.output_dir = None
@@ -326,6 +327,9 @@ class Recipe(object):
         :param calib: Overwrite the calibration frame lists for the tags 
             specified as keys with their dictionary values (optional).
         :type calib: :class:`dict`
+        :param env: overwrite environment variables for the recipe call 
+            (optional). 
+        :type env: :class:`dict`
         :return: The object with the return frames as :class:`pyfits.HDUList` 
             objects
         :rtype: :class:`cpl.Result`
@@ -358,6 +362,8 @@ class Recipe(object):
             len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
         calib_frames = self.calib._aslist(ndata.get('calib'))
         framelist = expandframelist(raw_frames + calib_frames)
+        runenv = dict(self.env)
+        runenv.update(ndata.get('env', dict()))
         logger = None
         delete = output_format == pyfits.HDUList
         try:
@@ -372,19 +378,21 @@ class Recipe(object):
                 pass
             raise
         if not threaded:
-            return self._exec(output_dir, parlist, framelist, input_len, 
-                              logger, output_format, delete)
+            return self._exec(output_dir, parlist, framelist, runenv, 
+                              input_len, logger, output_format, delete)
         else:
             return  Threaded(
-                self._exec, output_dir, parlist, framelist, input_len, 
-                logger, output_format, delete)
+                self._exec, output_dir, parlist, framelist, runenv, 
+                input_len, logger, output_format, delete)
 
-    def _exec(self, output_dir, parlist, framelist, input_len, 
-              logger, output_format, delete):
+    def _exec(self, output_dir, parlist, framelist, runenv,
+              input_len, logger, output_format, delete):
         try:
             return Result(self._recipe.frameConfig(), output_dir,
                           self._recipe.run(output_dir, parlist, framelist,
-                                           logger.logfile, logger.level, self.memory_dump),
+                                           runenv.items(), 
+                                           logger.logfile, logger.level,
+                                           self.memory_dump),
                           input_len, logger, output_format)
         finally:
             self._cleanup(output_dir, logger, delete)

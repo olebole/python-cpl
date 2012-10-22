@@ -718,6 +718,28 @@ set_parameters(cpl_parameterlist *parameters, PyObject *parlist) {
     Py_DECREF(iter);
 }
 
+static void
+set_environment(PyObject *runenv) {
+    PyObject *iter = PyObject_GetIter(runenv);
+    PyObject *item;
+    while ((item = PyIter_Next(iter))) {
+	const char *name;
+	PyObject *value;
+	PyArg_ParseTuple(item, "sO", &name, &value);
+	if ((name == NULL) || (value == NULL)) {
+	    continue;
+	}
+	if (PyString_Check(value)) {
+	    setenv(name, PyString_AsString(value), 1);
+	}
+	if (value == Py_None) {
+	    unsetenv(name);
+	}
+	Py_DECREF(item);
+    }
+    Py_DECREF(iter);
+}
+
 static PyObject *
 exec_build_retval(void *ptr) {
     long ret_code = ((long *)ptr)[1];
@@ -917,12 +939,13 @@ static PyObject *
 CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     PyObject *parlist;
     PyObject *soflist;
+    PyObject *runenv;
     const char *dirname;
     const char *logfile;
     int loglevel;
     int memory_dump;
-    if (!PyArg_ParseTuple(args, "sOOsii", &dirname, &parlist, &soflist,
-			  &logfile, &loglevel, &memory_dump))
+    if (!PyArg_ParseTuple(args, "sOOOsii", &dirname, &parlist, &soflist,
+			  &runenv, &logfile, &loglevel, &memory_dump))
         return NULL;
     if (!PySequence_Check(parlist)) {
 	PyErr_SetString(PyExc_TypeError, "Second parameter not a list");
@@ -930,6 +953,10 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     }
     if (!PySequence_Check(soflist)) {
 	PyErr_SetString(PyExc_TypeError, "Third parameter not a list");
+	return NULL;
+    }
+    if (!PySequence_Check(runenv)) {
+	PyErr_SetString(PyExc_TypeError, "Fourth parameter not a list");
 	return NULL;
     }
 
@@ -962,8 +989,10 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	close(fd[0]);
 	int retval;
 	struct tms clock_end;
+	set_environment(runenv);
 	cpl_msg_set_log_name(logfile);
 	cpl_msg_set_log_level(loglevel);
+	cpl_msg_set_level(CPL_MSG_OFF);
 	cpl_errorstate prestate = cpl_errorstate_get();
 	if (chdir(dirname) == 0) {
 	    struct tms clock_start;

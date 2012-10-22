@@ -1,3 +1,8 @@
+Version 0.3.9
+
+* Dont crash if old recipes are in the path
+* Allow to overwrite environment variables
+
 Version 0.3.8 (2012-10-15)
 
 * Better logging in case of crashes
