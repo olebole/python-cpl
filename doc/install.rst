@@ -67,4 +67,4 @@ them, you need first to compile the recipe in :file:`test/iiinstrumentp/`::
   python TestRecipe.py
 
 The tests may print a memory corruption detection by glibc. This is normal,
-since the tests also check the behaviour of this behaviour in the recipe.
+since the tests also check this behaviour in the recipe.
