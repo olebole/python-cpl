@@ -1,7 +1,8 @@
 Version 0.3.9
 
-* Dont crash if old recipes are in the path
+* Allow to run recipes that are linked to an older CPL
 * Allow to overwrite environment variables
+* Handle multiline logfiles
 
 Version 0.3.8 (2012-10-15)
 
