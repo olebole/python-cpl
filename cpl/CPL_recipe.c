@@ -781,21 +781,21 @@ exec_build_retval(void *ptr) {
 }
 
 static void *sbuffer_append_string(void *buf, const char *str) {
-    buf = cpl_realloc(buf, ((long *)buf)[0] + strlen(str) + 1);
+    buf = realloc(buf, ((long *)buf)[0] + strlen(str) + 1);
     strcpy(buf + *((long *)buf), str);
     *((long *)buf) += strlen(str) + 1;
     return buf;
 }
 
 static void *sbuffer_append_bytes(void *buf, const void *src, size_t nbytes) {
-    buf = cpl_realloc(buf, ((long *)buf)[0] + nbytes);
+    buf = realloc(buf, ((long *)buf)[0] + nbytes);
     memcpy(buf + *((long *)buf), src, nbytes);
     *((long *)buf) += nbytes;
     return buf;
 }
 
 static void *sbuffer_append_long(void *buf, long val) {
-    buf = cpl_realloc(buf, *((long *)buf) + sizeof(long));
+    buf = realloc(buf, *((long *)buf) + sizeof(long));
     *((long *)(buf + ((long *)buf)[0])) = val;
     *((long *)buf) += sizeof(long);
     return buf;
@@ -806,7 +806,7 @@ static void *serialized_error_ptr = NULL;
 static void 
 exec_serialize_one_error(unsigned self, unsigned first, unsigned last) {
     if (serialized_error_ptr == NULL) {
-	serialized_error_ptr = cpl_malloc(sizeof(long));
+	serialized_error_ptr = malloc(sizeof(long));
 	((long *)serialized_error_ptr)[0] = sizeof(long);
 	serialized_error_ptr = sbuffer_append_long(serialized_error_ptr, 0);
     }
@@ -832,7 +832,7 @@ exec_serialize_retval(cpl_frameset *frames, cpl_errorstate prestate, int retval,
 		      const struct tms *tms_clock) {
     int n_frames = cpl_frameset_get_size(frames);
     int i_frame;
-    void *ptr = cpl_malloc(sizeof(long));
+    void *ptr = malloc(sizeof(long));
     ((long *)ptr)[0] = sizeof(long);
     ptr = sbuffer_append_long(ptr, retval);
     ptr = sbuffer_append_long(ptr, 1000000L * 
@@ -846,7 +846,7 @@ exec_serialize_retval(cpl_frameset *frames, cpl_errorstate prestate, int retval,
     cpl_errorstate_dump(prestate, CPL_FALSE, exec_serialize_one_error);
     ptr = sbuffer_append_bytes(ptr, serialized_error_ptr + sizeof(long),
 			       ((long *)serialized_error_ptr)[0] - sizeof(long));
-    cpl_free(serialized_error_ptr);
+    free(serialized_error_ptr);
     serialized_error_ptr = NULL;
 
     for (i_frame = 0; i_frame < n_frames; i_frame++) {
@@ -1026,11 +1026,11 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     
     close(fd[1]);
     long nbytes;
-    void *ptr = cpl_malloc(2 * sizeof(long));
+    void *ptr = malloc(2 * sizeof(long));
 Py_BEGIN_ALLOW_THREADS
     nbytes = read(fd[0], ptr, 2 * sizeof(long));
     if (nbytes == 2 * sizeof(long)) {
-	ptr = cpl_realloc(ptr, ((long *)ptr)[0]);
+	ptr = realloc(ptr, ((long *)ptr)[0]);
 	nbytes += read(fd[0], ptr + 2 * sizeof(long), 
 		       ((long *)ptr)[0] - 2 * sizeof(long));
     } else { // broken pipe while reading first two bytes
@@ -1044,7 +1044,7 @@ Py_END_ALLOW_THREADS
 	return NULL;
     }
     PyObject *retval = exec_build_retval(ptr);
-    cpl_free(ptr);
+    free(ptr);
     return retval;
 }
 
