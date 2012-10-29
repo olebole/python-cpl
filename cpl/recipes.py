@@ -124,6 +124,16 @@ class Recipe(object):
         return self._recipe.copyright()
 
     @property
+    '''CPL version as a string'''
+    def cpl_version(self):
+        return CPL_recipe.version()
+
+    @property
+    '''String of version numbers of CPL and its libraries'''
+    def cpl_version(self):
+        return CPL_recipe.description()
+
+    @property
     def tags(self):
         '''Possible tags for the raw input frames, or ':attr:`None` if this
         information is not provided by the recipe.'''

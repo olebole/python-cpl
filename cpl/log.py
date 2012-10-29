@@ -205,5 +205,3 @@ cpl_verbosity = [ logging.DEBUG, logging.INFO, logging.WARN,
                   logging.ERROR, CplLogger.OFF ]
 
 msg = CplLogger()
-lib_version = CPL_recipe.version()
-lib_description = CPL_recipe.description()

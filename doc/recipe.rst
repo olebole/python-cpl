@@ -52,6 +52,10 @@ These attributes and methods are available for all recipes.
 
 .. autoattribute:: Recipe.description
 
+.. autoattribute:: Recipe.cpl_version
+
+.. autoattribute:: Recipe.cpl_description
+
 .. attribute:: Recipe.output_dir
 
    Output directory if specified, or :keyword:`None`. The recipe will write
