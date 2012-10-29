@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import re
 import sys
 import tempfile
 import threading
@@ -24,6 +25,11 @@ class LogServer(threading.Thread):
         self.logger = logging.getLogger(name)
         self.level = cpl_verbosity.index(level)
         self.entries = LogList()
+        self.regexp = re.compile('(\\d\\d):(\\d\\d):(\\d\\d)' +
+                                 '\\s\\[\\s*(\\w+)\\s*\\]' + 
+                                 '\\s(\\w+):' +
+                                 '(\\s\\[tid=(\\d+)\\])?' +
+                                 '\\s(.+)')
         tmphdl, self.logfile = tempfile.mkstemp(prefix = 'cpl', suffix='.log')
         os.close(tmphdl)
         os.remove(self.logfile)
@@ -45,30 +51,51 @@ class LogServer(threading.Thread):
             pass
 
     def log(self, s):
+        '''Convert CPL log messages into python log records.
+        
+        A typical CPL log message looks like
+
+         10:35:25 [WARNING] rtest: [tid=000] No file tagged with FLAT
+
+        '''
         try:
-            creation_date = datetime.datetime.combine(
-                datetime.date.today(), 
-                datetime.time(int(s[0:2]),int(s[3:5]),int(s[6:8])))
-            lvl = level.get(s[10:17].strip(), logging.NOTSET)
-            func = s[19:].split(':', 1)[0]
-            msg = s[19:].split(':', 1)[1][1:-1]
-            if msg.startswith('[tid='):
-                threadid = int(msg[5:8])
-                msg = msg[10:] if threadid > 0 else msg[12:]
+            m = self.regexp.match(s)
+            if m is not None:
+                g = m.groups()
+                creation_date = datetime.datetime.combine(
+                    datetime.date.today(), 
+                    datetime.time(int(g[0]),int(g[1]),int(g[2])))
+                lvl = level.get(g[3], logging.NOTSET)
+                func = g[4]
+                log = logging.getLogger('%s.%s' % (self.logger.name, func))
+                threadid = int(g[6]) if g[6] else None
+                msg = g[-1]
+                record = logging.LogRecord(log.name, lvl, None, None, 
+                                           msg, None, None, func)
+                created = float(creation_date.strftime('%s'))
+                if record.created < created:
+                    created -= 86400
+                record.relativeCreated -= record.msecs
+                record.relativeCreated += 1000*(created - record.created + 1) 
+                record.created = created
+                record.msecs = 0.0
+                record.threadid = threadid
+                record.threadName = ('Cpl-%03i' % threadid) if threadid \
+                    else 'CplThread'
+            elif self.entries:
+                r0 = self.entries[-1]
+                msg = s.rstrip()
+                lvl = r0.levelno
+                log = logging.getLogger(r0.name)
+                record = logging.LogRecord(r0.name, lvl, None, None, 
+                                           msg, None, None, r0.funcName)
+                record.relativeCreated = r0.relativeCreated
+                record.created = r0.created
+                record.msecs = r0.msecs
+                record.threadid = r0.threadid
+                record.threadName = r0.threadName
             else:
-                threadid = None
-            log = logging.getLogger('%s.%s' % (self.logger.name, func))
-            record = logging.LogRecord(log.name, lvl, None, None, msg, 
-                                       None, None, func)
-            created = float(creation_date.strftime('%s'))
-            if record.created < created:
-                created -= 86400
-            record.relativeCreated -= record.msecs
-            record.relativeCreated += 1000*(created - record.created + 1) 
-            record.created = created
-            record.msecs = 0.0
-            record.threadid = threadid
-            record.threadName = ('Cpl-%03i' % threadid) if threadid else 'CplThread'
+                return
             self.entries.append(record)
             if log.isEnabledFor(lvl) and log.filter(record):
                 log.handle(record)

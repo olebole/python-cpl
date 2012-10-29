@@ -575,6 +575,7 @@ class RecipeLog(RecipeTestCase):
 
     def test_logging_DEBUG(self):
         '''Injection of CPL messages into the python logging system'''
+        self.handler.clear()
         logging.getLogger().setLevel(logging.DEBUG)
         self.recipe(self.raw_frame)
 
@@ -625,6 +626,22 @@ class RecipeLog(RecipeTestCase):
         self.other_handler.clear()
         self.recipe(self.raw_frame, logname = 'othername')
         self.assertNotEqual(len(self.other_handler.logs), 0)
+
+    def test_logging_multiline(self):
+        '''Multiple lines in messages'''
+        self.handler.clear()
+        logging.getLogger('cpl.rtest').setLevel(logging.INFO)
+        self.recipe(self.raw_frame)
+        # check that the multi line log sequence appears
+        multiline = 0
+        tag = 'multiline#'
+        for l in self.handler.logs:
+            if tag not in l.msg:
+                continue
+            i = int(l.msg[l.msg.index(tag)+len(tag):].split()[0])
+            self.assertEqual(multiline + 1, i)
+            multiline = i
+        self.assertEqual(multiline, 3)
 
     def test_result(self):
         '''"log" attribute of the result object'''

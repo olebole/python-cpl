@@ -365,6 +365,9 @@ static int rtest(cpl_frameset            * frameset,
     cpl_image *image = cpl_image_load(cpl_frame_get_filename(rawframe),
 				      CPL_TYPE_FLOAT, 0, 0);
 
+    /* A multiline debug message */
+    cpl_msg_info(cpl_func, "multiline#1\nmultiline#2\nmultiline#3");
+
     /* Do some fake processing */
     usleep((unsigned int)(1e6*sleep_secs));
 
