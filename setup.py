@@ -23,13 +23,9 @@ def create_version_file(cpl_version = cpl_version):
     vfile.write("doc = %s\n" % repr(doc))
     vfile.close()
 include_dirs = os.environ.get('INCLUDE_PATH', '.').split(':') 
-library_dirs = os.environ.get('LIBRARY_PATH', '.').split(':') 
 module1 = Extension('cpl.CPL_recipe',
                     include_dirs = include_dirs,
-                    library_dirs = library_dirs,
-                    libraries = [ 'cplcore', 'cpldfs', 'cplui', 'cpldrs', 
-                                  'gomp', 'mcheck' ],
-                    sources = ['cpl/CPL_recipe.c'])
+                    sources = ['cpl/CPL_recipe.c', 'cpl/CPL_library.c'])
 
 create_version_file()
 setup (name = 'python-cpl',
