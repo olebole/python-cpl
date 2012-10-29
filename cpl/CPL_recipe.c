@@ -88,32 +88,8 @@ CPL_list(PyObject *self, PyObject *args) {
     return res;
 }
 
-#define CPL_memory_dump_doc \
-    "Display the memory status."
-
-static PyObject *
-CPL_memory_dump(PyObject *self) {
-    cpl_memory_dump();
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_memory_is_empty_doc \
-    "Tell if there is some memory allocated."
-
-static PyObject *
-CPL_memory_is_empty(PyObject *self) {
-    return Py_BuildValue("i", cpl_memory_is_empty());
-}
-
 static PyMethodDef CPL_methods[] = {
-    {"version", (PyCFunction)CPL_version, METH_NOARGS, CPL_version_doc},
-    {"description", (PyCFunction)CPL_description, METH_NOARGS, CPL_version_doc},
     {"list", CPL_list, METH_VARARGS, CPL_list_doc},
-    {"memory_dump", (PyCFunction)CPL_memory_dump, METH_NOARGS, 
-     CPL_memory_dump_doc},
-    {"memory_is_empty", (PyCFunction)CPL_memory_is_empty, METH_NOARGS, 
-     CPL_memory_is_empty_doc},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -885,6 +861,8 @@ static PyMethodDef CPL_recipe_methods[] = {
      CPL_recipe_get_frameconfig_doc},
     {"run",  (PyCFunction)CPL_recipe_exec, METH_VARARGS,
      CPL_recipe_exec_doc},
+    {"cpl_version", (PyCFunction)CPL_version, METH_NOARGS, CPL_version_doc},
+    {"cpl_description", (PyCFunction)CPL_description, METH_NOARGS, CPL_version_doc},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

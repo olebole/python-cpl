@@ -124,15 +124,14 @@ class Recipe(object):
         return self._recipe.copyright()
 
     @property
-
     def cpl_version(self):
         '''CPL version as a string'''
-        return CPL_recipe.version()
+        return self._recipe.cpl_version()
 
     @property
     def cpl_description(self):
         '''String of version numbers of CPL and its libraries'''
-        return CPL_recipe.description()
+        return self._recipe.cpl_description()
 
     @property
     def tags(self):
