@@ -124,6 +124,7 @@ class Recipe(object):
         return self._recipe.copyright()
 
     @property
+
     def cpl_version(self):
         '''CPL version as a string'''
         return CPL_recipe.version()
