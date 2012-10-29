@@ -11,7 +11,7 @@ from recipes import Recipe
 from parameters import Parameter
 from frames import FrameConfig
 from result import Result, CplError, RecipeCrash
-from log import msg, lib_version, lib_description
+from log import msg
 import dfs
 import esorex
 

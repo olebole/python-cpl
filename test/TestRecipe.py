@@ -730,7 +730,7 @@ class ProcessingInfo(RecipeTestCase):
     def test_version(self):
         '''Version information'''
         self.assertEqual(self.pinfo.version[0], self.recipe.version[0])
-        self.assertEqual(self.pinfo.cpl_version, 'cpl-%s' % cpl.lib_version)
+        self.assertEqual(self.pinfo.cpl_version, 'cpl-%s' % self.recipe.cpl_version)
 
     def test_md5(self):
         '''MD5 checksums'''
