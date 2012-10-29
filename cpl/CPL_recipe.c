@@ -44,7 +44,7 @@ CPL_list(PyObject *self, PyObject *args) {
 	return Py_None;
     }
 
-    cpl_library_t *cpl = create_library(handle);
+    cpl_library_t *cpl = create_library(file);
 
     PyObject *res = PyList_New(0);
     Py_INCREF(res);
@@ -136,9 +136,8 @@ CPL_recipe_init(CPL_recipe *self, PyObject *args, PyObject *kwds) {
 	return -1;
     }
 
-    self->cpl = create_library(self->handle);
+    self->cpl = create_library(file);
     self->cpl->error_reset();
-    self->cpl->init(CPL_INIT_DEFAULT);
     self->pluginlist = self->cpl->pluginlist_new();
     (*cpl_plugin_get_info)(self->pluginlist);
     self->plugin = self->cpl->pluginlist_find(self->pluginlist, recipe);

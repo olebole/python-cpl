@@ -107,6 +107,6 @@ typedef struct {
 	
 } cpl_library_t;
 
-cpl_library_t *create_library(void *handle);
+cpl_library_t *create_library(const char *fname);
 
 #endif /* CPL_LIBRARY_H */

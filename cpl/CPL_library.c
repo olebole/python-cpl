@@ -4,10 +4,17 @@
 
 static cpl_library_t **libraries = NULL;
 
-cpl_library_t *create_library(void *handle) {
-    typeof(cpl_init) *init = dlsym(handle, "cpl_init");
+cpl_library_t *create_library(const char *fname) {
+    void *handle = dlopen(fname, RTLD_LAZY);
+    if (handle == NULL) {
+	return NULL;
+    }
+
     char *error = dlerror();
+    typeof(cpl_init) *init = dlsym(handle, "cpl_init");
+    error = dlerror();
     if (error != NULL) {
+	dlclose(handle);
 	return NULL;
     }
 
@@ -19,6 +26,7 @@ cpl_library_t *create_library(void *handle) {
     int i;
     for (i = 0; libraries[i] != NULL; i++) {
 	if (init == libraries[i]->init) {
+	    dlclose(handle);
 	    return libraries[i];
 	}
     }
@@ -115,6 +123,7 @@ cpl_library_t *create_library(void *handle) {
 
     error = dlerror();
     if (error != NULL) {
+	dlclose(handle);
 	free(cpl);
 	return NULL;
     }
