@@ -15,7 +15,6 @@
 #define HAVE_MCHECK
 #endif
 
-#include <cpl.h>
 #include "CPL_library.h"
 
 #define CPL_list_doc \
