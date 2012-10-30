@@ -4,18 +4,6 @@
 
 #include <cpl.h>
 
-/* All symbolic constants in CPL_recipe.c:
-   CPL_INIT_DEFAULT
-   CPL_DESCRIPTION_DEFAULT
-   CPL_MSG_OFF
-   CPL_FALSE
-   CPL_ERROR_NONE, CPL_ERROR_FILE_NOT_CREATED
-   CPL_FRAME_GROUP_PRODUCT
-   CPL_PARAMETER_CLASS_ENUM, CPL_PARAMETER_CLASS_RANGE
-   CPL_PARAMETER_MODE_CLI
-   CPL_TYPE_BOOL, CPL_TYPE_DOUBLE, CPL_TYPE_INT CPL_TYPE_STRING
-*/
-
 typedef struct {
     typeof(cpl_init) *init;
     typeof(cpl_get_description) *get_description;
@@ -105,6 +93,10 @@ typedef struct {
     typeof(cpl_version_get_version) *version_get_version;
     cpl_recipeconfig *(*get_recipeconfig)(cpl_recipe *);
 	
+    cpl_type TYPE_BOOL;
+    cpl_type TYPE_INT;
+    cpl_type TYPE_DOUBLE;
+    cpl_type TYPE_STRING;
 } cpl_library_t;
 
 cpl_library_t *create_library(const char *fname);

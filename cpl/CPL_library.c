@@ -3,6 +3,13 @@
 
 #include "CPL_library.h"
 
+#if CPL_VERSION_CODE < CPL_VERSION(6,0,0)
+#error CPL version too old. Minimum required version is 6.0.0.
+#endif
+#if CPL_VERSION_CODE > CPL_VERSION(6,1,1)
+#warning Newer CPL version: check API compability with 6.1.1 at http://upstream-tracker.org/versions/cpl.html
+#endif
+
 static cpl_library_t **libraries = NULL;
 
 cpl_library_t *create_library(const char *fname) {
@@ -130,10 +137,58 @@ cpl_library_t *create_library(const char *fname) {
     cpl->get_recipeconfig = dlsym(handle, "muse_processing_get_recipeconfig");
     dlerror();
 
+    cpl->init(CPL_INIT_DEFAULT);
+
+    typeof(cpl_version_get_major) *get_major = dlsym(handle,
+						     "cpl_version_get_major");
+    typeof(cpl_version_get_minor) *get_minor = dlsym(handle,
+						     "cpl_version_get_minor");
+    typeof(cpl_version_get_micro) *get_micro = dlsym(handle,
+						     "cpl_version_get_micro");
+    cpl->TYPE_BOOL = CPL_TYPE_BOOL;
+    cpl->TYPE_INT = CPL_TYPE_INT;
+    cpl->TYPE_DOUBLE = CPL_TYPE_DOUBLE;
+    cpl->TYPE_STRING = CPL_TYPE_STRING;
+
+    unsigned long cpl_version = CPL_VERSION(get_major(), get_minor(),
+					    get_micro());
+
+    /* We dont have information about CPL before 4.0.0. For safety, we 
+       will not handle them.
+    */
+    if (cpl_version < CPL_VERSION(4,0,0)) {
+	dlclose(handle);
+	free(cpl);
+	return NULL;
+    }
+
+    /* Between 5.3.1 and 6.0, the cpl_type enum changed.
+       http://upstream-tracker.org/compat_reports/cpl/5.3.1_to_6.0/abi_compat_report.html#Medium_Risk_Problems
+       for these changes; the numbers were taken from there. According to
+       upstream-tracker, this seems to be the only relevant API change between
+       4.0.0 and 6.1.1.
+
+       Also the cpl_size is newly introduced (former it was int), in
+
+       cpl_frame *cpl_frameset_get_frame(cpl_frameset *self, cpl_size position);
+       cpl_size cpl_frameset_get_size(const cpl_frameset *self);
+       cpl_size cpl_parameterlist_get_size(const cpl_parameterlist *self);
+       cpl_size cpl_recipeconfig_get_min_count(const cpl_recipeconfig* self,
+                                            const char* tag, const char* input);
+       cpl_size cpl_recipeconfig_get_max_count(const cpl_recipeconfig* self,
+                                            const char* tag, const char* input);
+
+       Currently, we just ignore this :-)
+
+    */
+    if (cpl_version < CPL_VERSION(6,0,0)) {
+	cpl->TYPE_INT = 256;
+	cpl->TYPE_DOUBLE = 8192;
+    }
+
     libraries = realloc(libraries, sizeof(cpl_library_t *) * (i+2));
     libraries[i] = cpl;
     libraries[i+1] = NULL;
-    cpl->init(CPL_INIT_DEFAULT);
     return cpl;
 }
 
