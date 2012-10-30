@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <dlfcn.h>
 
 #include "CPL_library.h"
