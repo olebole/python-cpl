@@ -33,7 +33,6 @@ cpl_library_t *create_library(const char *fname) {
 
     cpl_library_t *cpl = malloc(sizeof(cpl_library_t));
     cpl->init = init;
-    cpl->init(CPL_INIT_DEFAULT);
 
     cpl->get_description = dlsym(handle, "cpl_get_description");
     cpl->memory_dump = dlsym(handle, "cpl_memory_dump");
@@ -133,6 +132,7 @@ cpl_library_t *create_library(const char *fname) {
     libraries = realloc(libraries, sizeof(cpl_library_t *) * (i+2));
     libraries[i] = cpl;
     libraries[i+1] = NULL;
+    cpl->init(CPL_INIT_DEFAULT);
     return cpl;
 }
 
