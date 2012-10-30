@@ -182,19 +182,14 @@ getParameter(CPL_recipe *self, cpl_parameter *param) {
     const char *help = self->cpl->parameter_get_help(param);
     PyObject *range = Py_None;
     if (class == CPL_PARAMETER_CLASS_RANGE) {
-	switch (type) {
-	    case CPL_TYPE_INT:
-		range = Py_BuildValue("ii",
-				      self->cpl->parameter_get_range_min_int(param),
-				      self->cpl->parameter_get_range_max_int(param));
-		break;
-	    case CPL_TYPE_DOUBLE:
-		range = Py_BuildValue("dd",
-				      self->cpl->parameter_get_range_min_double(param),
-				      self->cpl->parameter_get_range_max_double(param));
-		break;
-	    default:
-		break;
+	if (type == CPL_TYPE_INT) {
+	    range = Py_BuildValue("ii",
+				  self->cpl->parameter_get_range_min_int(param),
+				  self->cpl->parameter_get_range_max_int(param));
+	} else if (type == CPL_TYPE_DOUBLE) {
+	    range = Py_BuildValue("dd",
+				  self->cpl->parameter_get_range_min_double(param),
+				  self->cpl->parameter_get_range_max_double(param));
 	}
     }
     Py_INCREF(range);
@@ -204,52 +199,39 @@ getParameter(CPL_recipe *self, cpl_parameter *param) {
 	int n_enum = self->cpl->parameter_get_enum_size(param);
 	int i;
 	for (i = 0; i < n_enum; i++) {
-	    switch (type) {
-		case CPL_TYPE_INT:
-		    PyList_Append(
-			sequence, 
-			Py_BuildValue("i",
-				      self->cpl->parameter_get_enum_int(param, i)));
-		    break;
-		case CPL_TYPE_DOUBLE:
-		    PyList_Append(
-			sequence, 
-			Py_BuildValue("d",
-				      self->cpl->parameter_get_enum_double(param, i)));
-		    break;
-		case CPL_TYPE_STRING:
-		    PyList_Append(
-			sequence, 
-			Py_BuildValue("s",
-				      self->cpl->parameter_get_enum_string(param, i)));
-		    break;
-		default:
-		    break;
+	    if (type == CPL_TYPE_INT) {
+		PyList_Append(
+		    sequence, 
+		    Py_BuildValue("i",
+				  self->cpl->parameter_get_enum_int(param, i)));
+	    } else if (type == CPL_TYPE_DOUBLE) {
+		PyList_Append(
+		    sequence, 
+		    Py_BuildValue("d",
+				  self->cpl->parameter_get_enum_double(param, i)));
+	    } else if (type == CPL_TYPE_STRING) {
+		PyList_Append(
+		    sequence, 
+		    Py_BuildValue("s",
+				  self->cpl->parameter_get_enum_string(param, i)));
 	    }
 	}
     }
     Py_INCREF(sequence);
     PyObject *deflt = Py_None;
     PyObject *ptype = Py_None;
-    switch (type) {
-	case CPL_TYPE_BOOL:
-	    ptype = (PyObject *)&PyBool_Type;
-	    deflt = (self->cpl->parameter_get_default_bool(param))?Py_True:Py_False;
-	    break;
-	case CPL_TYPE_INT:
-	    ptype = (PyObject *)&PyInt_Type;
-	    deflt = Py_BuildValue("i", self->cpl->parameter_get_default_int(param));
-	    break;
-	case CPL_TYPE_DOUBLE:
-	    ptype = (PyObject *)&PyFloat_Type;
-	    deflt = Py_BuildValue("d", self->cpl->parameter_get_default_double(param));
-	    break;
-	case CPL_TYPE_STRING:
-	    ptype = (PyObject *)&PyString_Type;
-	    deflt = Py_BuildValue("s", self->cpl->parameter_get_default_string(param));
-	    break;
-	default:
-	    break;
+    if (type == CPL_TYPE_BOOL) {
+	ptype = (PyObject *)&PyBool_Type;
+	deflt = (self->cpl->parameter_get_default_bool(param))?Py_True:Py_False;
+    } else if (type == CPL_TYPE_INT) {
+	ptype = (PyObject *)&PyInt_Type;
+	deflt = Py_BuildValue("i", self->cpl->parameter_get_default_int(param));
+    } else if (type == CPL_TYPE_DOUBLE) {
+	ptype = (PyObject *)&PyFloat_Type;
+	deflt = Py_BuildValue("d", self->cpl->parameter_get_default_double(param));
+    } else if (type == CPL_TYPE_STRING) {
+	ptype = (PyObject *)&PyString_Type;
+	deflt = Py_BuildValue("s", self->cpl->parameter_get_default_string(param));
     }
     Py_INCREF(deflt);
     Py_INCREF(ptype);
@@ -443,29 +425,21 @@ clear_parameters(CPL_recipe *self, cpl_parameterlist *parameters) {
     cpl_parameter *par = self->cpl->parameterlist_get_first(parameters);
     while (par != NULL) {
 	cpl_type type = self->cpl->parameter_get_type(par);
-	switch(type) {
-	    case CPL_TYPE_STRING: {
-		const char *default_value = self->cpl->parameter_get_default_string(par);
-		if (default_value == NULL) {
-		    default_value = "";
-		}
-		self->cpl->parameter_set_string(par, default_value);
+	if (type == CPL_TYPE_STRING) {
+	    const char *default_value = self->cpl->parameter_get_default_string(par);
+	    if (default_value == NULL) {
+		default_value = "";
 	    }
-		break;
-	    case CPL_TYPE_INT:
-		self->cpl->parameter_set_int(par, 
-				      self->cpl->parameter_get_default_int(par));
-		break;
-	    case CPL_TYPE_DOUBLE:
-		self->cpl->parameter_set_double(par, 
-					 self->cpl->parameter_get_default_double(par));
-		break;
-	    case CPL_TYPE_BOOL:
-		self->cpl->parameter_set_bool(par, 
-				       self->cpl->parameter_get_default_bool(par));
-		break;
-	    default:
-		break;
+	    self->cpl->parameter_set_string(par, default_value);
+	} else if (type == CPL_TYPE_INT) {
+	    self->cpl->parameter_set_int(par, 
+				 self->cpl->parameter_get_default_int(par));
+	} else if (type == CPL_TYPE_DOUBLE) {
+	    self->cpl->parameter_set_double(par, 
+				 self->cpl->parameter_get_default_double(par));
+	} else if (type == CPL_TYPE_BOOL) {
+	    self->cpl->parameter_set_bool(par, 
+				 self->cpl->parameter_get_default_bool(par));
 	}
 	
 	par = self->cpl->parameterlist_get_next(parameters);
@@ -486,27 +460,20 @@ set_parameters(CPL_recipe *self, cpl_parameterlist *parameters, PyObject *parlis
 	    continue;
 	}
 	cpl_type type = self->cpl->parameter_get_type(par);
-	switch(type) {
-	    case CPL_TYPE_STRING:
-		if (PyString_Check(value)) {
-		    self->cpl->parameter_set_string(par, PyString_AsString(value));
-		}
-		break;
-	    case CPL_TYPE_INT:
-		if (PyInt_Check(value)) {
-		    self->cpl->parameter_set_int(par, PyInt_AsLong(value));
-		}
-		break;
-	    case CPL_TYPE_DOUBLE:
-		if (PyFloat_Check(value)) {
-		    self->cpl->parameter_set_double(par, PyFloat_AsDouble(value));
-		}
-		break;
-	    case CPL_TYPE_BOOL:
-		self->cpl->parameter_set_bool(par, PyObject_IsTrue(value));
-		break;
-	    default:
-		break;
+	if (type == CPL_TYPE_STRING) {
+	    if (PyString_Check(value)) {
+		self->cpl->parameter_set_string(par, PyString_AsString(value));
+	    }
+	} else if (type == CPL_TYPE_INT) {
+	    if (PyInt_Check(value)) {
+		self->cpl->parameter_set_int(par, PyInt_AsLong(value));
+	    }
+	} else if (type == CPL_TYPE_DOUBLE) {
+	    if (PyFloat_Check(value)) {
+		self->cpl->parameter_set_double(par, PyFloat_AsDouble(value));
+	    }
+	} else if (type == CPL_TYPE_BOOL) {
+	    self->cpl->parameter_set_bool(par, PyObject_IsTrue(value));
 	}
 	Py_DECREF(item);
     }
