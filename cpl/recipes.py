@@ -86,13 +86,6 @@ class Recipe(object):
         self.memory_dump = 0
         self.threaded = threaded
 
-    def reload(self):
-        '''Reload the recipe. 
-
-        All recipe settings remain unchanged.
-        '''
-        self._recipe = CPL_recipe.recipe(self.__file__, self.__name__)
-
     @property
     def __author__(self):
         '''Author name'''
