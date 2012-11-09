@@ -266,7 +266,7 @@ class Recipe(object):
         >>> muse_scibasic.param.nifu = 1
 
         The new value is checked against parameter type, and possible value
-        limitations provided by the recipe. Dots in parameter names are
+        limitations provided by the recipe. Hyphens in parameter names are
         converted to underscores. In a recipe call, the same parameter can be
         specified as :class:`dict`:
 

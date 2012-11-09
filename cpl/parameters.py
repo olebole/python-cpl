@@ -115,75 +115,91 @@ class Parameter(object):
 
 
 class ParameterList(object):
-    def __init__(self, recipe, other = None):
+    def __init__(self, recipe, other = None, prefix = None):
         self._recipe = recipe
-        self._values = dict()
-        if isinstance(other, self.__class__):
-            self._set_items((o.name, o.value) for o in other)
-        elif isinstance(other, dict):
-            self._set_items(other.iteritems())
-        elif other:
+        self._dict = dict()
+        self._pars = list()
+        self._prefix = prefix
+        childs = set()
+        for name, context, fullname, desc, prange, sequence, deflt, ptype \
+                in recipe._recipe.params():
+            if prefix:
+                if name.startswith(prefix + '.'):
+                    aname = name[len(prefix)+1:]
+                else:
+                    continue
+            else:
+                aname = name
+            if '.' in aname:
+                aname = aname.split('.', 1)[0]
+                if prefix:
+                    aname = prefix + '.' + aname
+                childs.add(aname)
+            else:
+                par = Parameter(name)
+                par._set_attributes(context, fullname, deflt,
+                                    desc, prange, sequence, ptype)
+                self._dict[name] = par
+                self._dict[fullname] = par
+                self._dict[self._paramname(aname)] = par
+                self._pars.append(par)
+        for name in childs:
+            clist = ParameterList(recipe, prefix = name)
+            self._dict[name] = clist
+            for par in clist._pars:
+                self._dict[par.name] = par
+                self._dict[par.fullname] = par
+                self._pars.append(par)
+            aname = self._paramname(name)
+            self._dict[aname] = clist
+        if other:
             self._set_items(other)
 
-    def _set_items(self, l):
+    def _set_items(self, other):
+        if isinstance(other, self.__class__):
+            l = ((o.name, o.value) for o in other)
+        elif isinstance(other, dict):
+            l = other.iteritems()
+        else:
+            l = other
         for o in l:
             self[o[0]] = o[1]
 
-    @property
-    def _cpl_dict(self):
-        if self._recipe is None or self._recipe._recipe is None:
-            return None
-        cpl_params = self._recipe._recipe.params()
-        if cpl_params is None:
-            return None
-        s = dict()
-        for pd in cpl_params:
-            (name, context, fullname, desc, _range, sequence, deflt, type) = pd
-            pname = self._paramname(name)
-            if pname in s:
-                continue
-            else:
-                s[pname] = self._values.setdefault(name, Parameter(name))
-                s[pname]._set_attributes(context, fullname, deflt, 
-                                         desc, _range, sequence, type)
-        return s
-
-    @property
-    def _dict(self):
-        return self._cpl_dict or self._values
-
-    @property
-    def _dict_full(self):
-        d = self._dict
-        return dict(d.items() +
-                    [ (p.fullname, p) for p in d.values() if p.fullname ] +
-                    [ (p.name, p) for p in d.values() if p.name not in d])
+    def _del_items(self):
+        for p in self:
+            del p.value
 
     @staticmethod
     def _paramname(s):
-        for c in [ '.', '-' ]:
-            s = s.replace(c[0], c[1]) if isinstance(c, tuple) else s.replace(c, '_')
+        for c in [ '-', ' ' ]:
+            if isinstance(c, tuple):
+                s = s.replace(c[0], c[1])
+            else:
+                s = s.replace(c, '_')
         return s
 
     def __iter__(self):
-        return self._dict.itervalues()
+        return self._pars.__iter__()
 
     def __getitem__(self, key):
-        return self._dict_full[key]
+        return self._dict[key]
 
     def __setitem__(self, key, value):
-        d = self._cpl_dict
-        if d is not None:
-            d = dict(d.items() +
-                     [ (p.fullname, p) for p in d.values() if p.fullname] +
-                     [ (p.name, p) for p in d.values() if p.name not in d])
-            d[key].value = value
+        p = self[key]
+        if isinstance(p, self.__class__):
+            if value is not None:
+                p._set_items(value)
+            else:
+                p._del_items()
         else:
-            self._values.setdefault(self._paramname(key), 
-                                    Parameter(key)).value = value
+            p.value = value
 
     def __delitem__(self, key):
-        del self._dict_full[key].value
+        p = self[key]
+        if isinstance(p, self.__class__):
+            p._del_items()
+        else:
+            del p.value
 
     def __str__(self):
         r = ''
@@ -193,10 +209,10 @@ class ParameterList(object):
         return r
     
     def __contains__(self, key):
-        return key in self._dict_full
+        return key in self._dict
 
     def __len__(self):
-        return len(self._dict)
+        return len(self._pars)
         
     def __getattr__(self, key):
         return self[key]
@@ -211,7 +227,7 @@ class ParameterList(object):
         del self[key]
 
     def __dir__(self):
-        return self._dict.keys()
+        return [d for d in self._dict.keys() if '.' not in d]
 
     def __repr__(self):
         return `list(self)`
@@ -233,5 +249,10 @@ class ParameterList(object):
         parlist = ParameterList(self._recipe, self)
         if par is not None:
             parlist._set_items(par.items())
-        return [( param.fullname, param.value ) 
-                for param in parlist]
+        l = list()
+        for param in parlist:
+            if isinstance(param, Parameter):
+                l.append((param.fullname, param.value))
+            else:
+                l += param._aslist(par)
+        return l
