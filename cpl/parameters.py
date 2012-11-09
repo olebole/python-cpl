@@ -227,7 +227,8 @@ class ParameterList(object):
         del self[key]
 
     def __dir__(self):
-        return [d for d in self._dict.keys() if '.' not in d]
+        return list(set(self._paramname(d) 
+                        for d in self._dict.keys() if '.' not in d))
 
     def __repr__(self):
         return `list(self)`
