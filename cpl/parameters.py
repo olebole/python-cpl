@@ -139,7 +139,7 @@ class ParameterList(object):
         s = dict()
         for pd in cpl_params:
             (name, context, fullname, desc, _range, sequence, deflt, type) = pd
-            pname = name.replace('.', '_')
+            pname = self._paramname(name)
             if pname in s:
                 continue
             else:
@@ -159,6 +159,14 @@ class ParameterList(object):
                     [ (p.fullname, p) for p in d.values() if p.fullname ] +
                     [ (p.name, p) for p in d.values() if p.name not in d])
 
+    @staticmethod
+    def _paramname(s):
+        for c in [ '.', '-' ]:
+            if isinstance(c, tuple):
+                return s.replace(c[0], c[1])
+            else:
+                return s.replace(c, '_')
+
     def __iter__(self):
         return self._dict.itervalues()
 
@@ -173,7 +181,7 @@ class ParameterList(object):
                      [ (p.name, p) for p in d.values() if p.name not in d])
             d[key].value = value
         else:
-            self._values.setdefault(key.replace('.', '_'), 
+            self._values.setdefault(self._paramname(key), 
                                     Parameter(key)).value = value
 
     def __delitem__(self, key):
