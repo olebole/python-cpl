@@ -162,10 +162,8 @@ class ParameterList(object):
     @staticmethod
     def _paramname(s):
         for c in [ '.', '-' ]:
-            if isinstance(c, tuple):
-                return s.replace(c[0], c[1])
-            else:
-                return s.replace(c, '_')
+            s = s.replace(c[0], c[1]) if isinstance(c, tuple) else s.replace(c, '_')
+        return s
 
     def __iter__(self):
         return self._dict.itervalues()
