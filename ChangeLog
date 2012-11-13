@@ -3,6 +3,7 @@ Version 0.4
 * Allow to run recipes that are linked to an older CPL
 * Allow to overwrite environment variables
 * Handle multiline logfiles
+* Add a log handling (almost) compatible with the CPL one
 * Correctly handle parameters with a dot in the short name
 
 Version 0.3.8 (2012-10-15)

@@ -10,7 +10,7 @@ import esorex
 from frames import FrameList, mkabspath, expandframelist
 from result import Result, RecipeCrash
 from parameters import ParameterList
-from log import LogServer, msg
+from logger import LogServer, msg
 
 class Recipe(object):
     '''Pluggable Data Reduction Module (PDRM) from a ESO pipeline. 

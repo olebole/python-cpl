@@ -108,5 +108,5 @@ def init(source = None):
     if rc.has_key('esorex.caller.recipe-dir'):
         cpl.Recipe.path = rc['esorex.caller.recipe-dir'].split(':')
     if rc.has_key('esorex.caller.msg-level'):
-        cpl.msg.level = cpl.log.level[rc['esorex.caller.msg-level'].upper()]
+        cpl.msg.level = cpl.logger.level[rc['esorex.caller.msg-level'].upper()]
 

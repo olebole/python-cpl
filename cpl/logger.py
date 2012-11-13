@@ -157,28 +157,39 @@ class CplLogger(object):
     ERROR = logging.ERROR
     OFF = 101
 
-    def __init__(self):
-        self.msg_handler = None
-        self._format = '[%(levelname)7s] %(funcName)s: %(message)s'
+    def __init__(self, msg = True):
+        self.handler = None
+        self._component = False
+        self._time = False
+        self._threadid = False
+        self.format = None
+        self._filename = None
+        self._msg = msg
 
     def _init_handler(self):
-        if not self.msg_handler:
-            self.msg_handler = logging.StreamHandler()
-            self.msg_handler.setFormatter(logging.Formatter(self.format,
+        if not self.handler:
+            if self._msg:
+                self.handler = logging.StreamHandler()
+            elif self._filename:
+                self.handler = logging.FileHandler(self._filename)
+            else:
+                self.handler = None
+            if self.handler:
+                logging.getLogger().addHandler(self.handler)
+                self.handler.setFormatter(logging.Formatter(self.format,
                                                             '%H:%M:%S'))
-            logging.getLogger().addHandler(self.msg_handler)
 
     def _shutdown_handler(self):
-        if self.msg_handler:
-            logging.getLogger().removeHandler(self.msg_handler)
-            self.msg_handler = None
+        if self.handler:
+            logging.getLogger().removeHandler(self.handler)
+            self.handler = None
 
     @property
     def level(self):
         '''Log level for output to the terminal. Any of
         [ DEBUG, INFO, WARN, ERROR, OFF ]
         '''
-        return self.msg_handler.level if self.msg_handler else CplLogger.OFF
+        return self.handler.level if self.handler else CplLogger.OFF
 
     @level.setter
     def level(self, level):
@@ -187,7 +198,8 @@ class CplLogger(object):
         else:
             self._init_handler()
             logging.getLogger().setLevel(logging.DEBUG)
-            self.msg_handler.setLevel(level)
+            if self.handler:
+                self.handler.setLevel(level)
 
     @property
     def format(self):
@@ -198,10 +210,70 @@ class CplLogger(object):
 
     @format.setter
     def format(self, fmt):
+        if fmt == None:
+            fmt = '%(asctime)s ' if self._time else ''
+            fmt += '[%(levelname)7s]'
+            fmt += '[%(threadName)s] ' if self._threadid else ' '
+            fmt += '%(name)s: ' if self._component else ''
+            fmt += '%(message)s'
+        if self.handler:
+            self.handler.setFormatter(logging.Formatter(fmt, '%H:%M:%S'))
         self._format = fmt
-        self.msg_handler.setFormatter(logging.Formatter(fmt, '%H:%M:%S'))
+
+    @property
+    def component(self):
+        '''If True, attach the component name to output messages.
+        '''
+        return self._component
+
+    @component.setter
+    def component(self, enable):
+        self._component = enable
+        self.format = None
+
+    @property
+    def time(self):
+        '''If True, attach a time tag to output messages.
+        '''
+        return self._time
+    
+    @time.setter
+    def time(self, enable):
+        self._time = enable
+        self.format = None
+
+    @property
+    def threadid(self):
+        '''If True, attach a thread tag to output messages.
+        '''
+        return self._threadid
+    
+    @threadid.setter
+    def threadid(self, enable):
+        self._threadid = enable
+        self.format = None
+
+    @property
+    def filename(self):
+        '''Log file name. If set to None, stdout will be used.
+        '''
+        return self._filename
+
+    @filename.setter
+    def filename(self, name):
+        if self._msg:
+            raise AttributeError('Cannot set file name of message output')
+        if self._filename != name:
+            self._shutdown_handler()
+            self._filename = name
+            self._init_handler()
 
 cpl_verbosity = [ logging.DEBUG, logging.INFO, logging.WARN,
                   logging.ERROR, CplLogger.OFF ]
 
-msg = CplLogger()
+msg = CplLogger(msg = True)
+log = CplLogger(msg = False)
+log.threadid = True
+log.component = True
+log.time = True
+log.level = log.INFO
