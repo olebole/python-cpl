@@ -155,6 +155,14 @@ CPL_recipe_init(CPL_recipe *self, PyObject *args, PyObject *kwds) {
     return 0;
 }
 
+#define CPL_is_supported_doc \
+    "Check whether the CPL version is supported by python-cpl."
+
+static PyObject *
+CPL_is_supported(CPL_recipe *self) {
+    return (self->cpl->is_supported)?Py_True:Py_False;
+}
+
 #define CPL_version_doc \
     "Get the CPL version string."
 
@@ -829,6 +837,8 @@ static PyMethodDef CPL_recipe_methods[] = {
      CPL_recipe_get_frameconfig_doc},
     {"run",  (PyCFunction)CPL_recipe_exec, METH_VARARGS,
      CPL_recipe_exec_doc},
+    {"cpl_is_supported", (PyCFunction)CPL_is_supported, METH_NOARGS,
+     CPL_is_supported_doc},
     {"cpl_version", (PyCFunction)CPL_version, METH_NOARGS, CPL_version_doc},
     {"cpl_description", (PyCFunction)CPL_description, METH_NOARGS, CPL_version_doc},
     {NULL, NULL, 0, NULL}        /* Sentinel */

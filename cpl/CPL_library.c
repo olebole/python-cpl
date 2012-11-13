@@ -10,7 +10,37 @@
 #warning Newer CPL version: check API compability with 6.1.1 at http://upstream-tracker.org/versions/cpl.html
 #endif
 
+static unsigned long supported_versions[] = {
+    CPL_VERSION_CODE,
+    CPL_VERSION(6,1,1),
+    CPL_VERSION(6,0,1),
+    CPL_VERSION(6,0,0),
+    CPL_VERSION(5,3,1),
+    CPL_VERSION(5,2,0),
+    CPL_VERSION(5,1,0),
+    CPL_VERSION(5,0,1),
+    CPL_VERSION(5,0,0),
+    CPL_VERSION(4,2,0),
+    CPL_VERSION(4,1,0),
+    CPL_VERSION(4,0,1),
+    CPL_VERSION(4,0,0),
+    0
+};
+
 static cpl_library_t **libraries = NULL;
+
+/* This module provides all needed functions to run a recipe from the
+   framework. These functions are extracted from the recipe shared lib
+   (resp. the CPL linked to that) by their names. I checked that the API
+   didn't change from CPL 4.0 which is now the minimal supported version here.
+
+   Since some constants changed over the time, all used constants are
+   also included in the structure. The constants are set directly depending on
+   the CPL version number.
+
+   Note that beta releases have to be taken very cautiously here since they
+   may contain incompatible changes here.
+*/
 
 cpl_library_t *create_library(const char *fname) {
     void *handle = dlopen(fname, RTLD_LAZY);
@@ -153,13 +183,11 @@ cpl_library_t *create_library(const char *fname) {
     unsigned long cpl_version = CPL_VERSION(get_major(), get_minor(),
 					    get_micro());
 
-    /* We dont have information about CPL before 4.0.0. For safety, we 
-       will not handle them.
-    */
-    if (cpl_version < CPL_VERSION(4,0,0)) {
-	dlclose(handle);
-	free(cpl);
-	return NULL;
+    cpl->is_supported = 0;
+    for (i = 0; supported_versions[i] != 0; i++) {
+	if (cpl_version == supported_versions[i]) {
+	    cpl->is_supported = 1;
+	}
     }
 
     /* Between 5.3.1 and 6.0, the cpl_type enum changed.

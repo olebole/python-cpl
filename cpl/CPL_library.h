@@ -5,6 +5,8 @@
 #include <cpl.h>
 
 typedef struct {
+    int is_supported;
+
     typeof(cpl_init) *init;
     typeof(cpl_get_description) *get_description;
     typeof(cpl_memory_dump) *memory_dump;

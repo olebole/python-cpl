@@ -79,6 +79,9 @@ class Recipe(object):
         if version and version not in self.version:
             raise IOError('wrong version %s (requested %s) for %s in %s' %
                           (str(self.version), str(version), name, filename))
+        if not self._recipe.cpl_is_supported():
+            warn("Unsupported CPL version %s linked to %s" %
+                 self._recipe.version()[1], filename)
         self._param = ParameterList(self)
         self._calib = FrameList(self)
         self.env = dict()
