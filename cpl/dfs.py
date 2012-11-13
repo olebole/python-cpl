@@ -41,7 +41,9 @@ class ProcessingInfo(object):
          myrecipe = cpl.Recipe('muse_bias')
          myrecipe.calib = cpl.dfs.ProcessingInfo('MASTER_BIAS_0.fits').calib
 
-       .. note:: This will not work properly for files that had
+       .. note::
+
+          This will not work properly for files that had
           :attr:`pyfits.HDUlist` inputs since they have assigned a temporary
           file name only.
 
@@ -49,7 +51,9 @@ class ProcessingInfo(object):
 
        Raw (input) frames
 
-       .. note:: This will not work properly for files that had
+       .. note::
+
+          This will not work properly for files that had
           :attr:`pyfits.HDUlist` inputs since they have assigned a temporary
           file name only.
 
@@ -73,7 +77,9 @@ class ProcessingInfo(object):
        MD5 sums of the input and calibration files. :class:`dict` with the
        file name as key and the corresponding MD5 sum as value.
 
-       .. note:: Due to a design decision in CPL, the raw input files are not
+       .. note::
+
+          Due to a design decision in CPL, the raw input files are not
           accompanied with the MD5 sum.
     '''
 

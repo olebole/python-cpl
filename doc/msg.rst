@@ -1,11 +1,13 @@
 Log messages
 ============
 
-We provide CPL log messages in three different ways: as CPL defined terminal
-messages, via Python logging, and as a list of messages in the
-:class:`cpl.Result` object
+We provide CPL log messages in two different ways: via Python logging and as
+a list of messages in the :class:`cpl.Result` object.
 
-.. currentmodule:: cpl.log
+For convienience, simple terminal messages and predefined log file output in a
+style similar to the original CPL messages.
+
+.. currentmodule:: cpl.logger
 
 Python style logging
 --------------------
@@ -41,7 +43,9 @@ of a certain function. The following sample line::
 will log the debug messages from :func:`muse_sky_create_skymask()`
 additionally to the other messages.
 
-.. note:: Since the log messages are cached in CPL, they may occur with some
+.. note::
+
+   Since the log messages are cached in CPL, they may occur with some
    delay in the python log module. Also, log messages from different recipes
    running in parallel may be mixed in their chronological order. The
    resolution of the log time stamp is one second. The fields
@@ -78,7 +82,7 @@ Terminal messages
 
 This variable is a :class:`CplLogger` instance and provides a convienience
 stream handler similar to the terminal logging functionality of the CPL. It
-basically does the same as
+basically does the same as::
 
   import logging
 
@@ -86,14 +90,53 @@ basically does the same as
   log.setLevel(logging.INFO)
   ch = logging.StreamHandler()
   ch.setLevel(logging.INFO)
-  ch.setFormatter(logging.Formatter('[%(levelname)7s] %(funcName)s: %(message)s'))
+  ch.setFormatter(logging.Formatter('[%(levelname)7s] %(message)s'))
   log.addHandler(ch)
 
 The following attributes control the format of the terminal messages:
 
    .. currentclass: cpl.log.CplLogger
 
-   .. autoattribute:: cpl.log.CplLogger.level 
+   .. autoattribute:: cpl.log.CplLogger.level
 
    .. autoattribute:: cpl.log.CplLogger.format
 
+   .. autoattribute:: cpl.log.CplLogger.time
+
+   .. autoattribute:: cpl.log.CplLogger.component
+
+   .. autoattribute:: cpl.log.CplLogger.threadid
+
+Predefined log file
+-------------------
+
+.. data:: cpl.log
+
+This variable is a :class:`CplLogger` instance and provides a convienience
+file handler similar to the file logging functionality of the CPL. It
+basically does the same as::
+  
+  import logging
+
+  log = logging.getLogger()
+  log.setLevel(logging.INFO)
+  ch = logging.FileHandler(filename)
+  ch.setLevel(logging.INFO)
+  ch.setFormatter(logging.Formatter('%(asctime)s [%(levelname)7s] %(funcName)s: %(message)s'))
+  log.addHandler(ch)
+
+The following attributes control the format of the log file messages:
+
+   .. currentclass: cpl.log.CplLogger
+
+   .. autoattribute:: cpl.log.CplLogger.filename
+
+   .. autoattribute:: cpl.log.CplLogger.level
+
+   .. autoattribute:: cpl.log.CplLogger.format
+
+   .. autoattribute:: cpl.log.CplLogger.time
+
+   .. autoattribute:: cpl.log.CplLogger.component
+
+   .. autoattribute:: cpl.log.CplLogger.threadid

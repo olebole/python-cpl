@@ -25,8 +25,10 @@ def load_sof(source):
       import cpl
       myrecipe = cpl.Recipe('muse_bias')
       myrecipe.calib = cpl.esorex.read_sof(file('muse_bias.sof'))
+    
+    .. note::
 
-    .. note:: The raw data frame is silently ignored wenn setting
+      The raw data frame is silently ignored wenn setting
       :attr:`Recipe.calib` for MUSE recipes. Other recipes ignore ths raw data
       frame only if it was set manually as :attr:`Recipe.tag` or in
       :attr:`Recipe.tags` since there is no way to automatically distinguish
@@ -73,8 +75,10 @@ def load_rc(source = None):
       myrecipe = cpl.Recipe('muse_bias')
       myrecipe.param = cpl.esorex.load_rc('muse_bias.rc')
 
-    .. note:: Unknown parameters are silently ignored wenn setting
-              :attr:`Recipe.param`.
+    .. note::
+
+       Unknown parameters are silently ignored wenn setting
+       :attr:`Recipe.param`.
 
     '''
     if source is None:

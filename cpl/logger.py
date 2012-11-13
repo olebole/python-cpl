@@ -205,7 +205,7 @@ class CplLogger(object):
     def format(self):
         '''Output format. 
 
-        See `LogRecord attributes.http://docs.python.org/library/logging.html#logrecord-attributes`_ for a usable key mappings.'''
+        See `LogRecord attributes http://docs.python.org/library/logging.html#logrecord-attributes`_ for a usable key mappings.'''
         return self._format
 
     @format.setter
@@ -255,7 +255,7 @@ class CplLogger(object):
 
     @property
     def filename(self):
-        '''Log file name. If set to None, stdout will be used.
+        '''Log file name.
         '''
         return self._filename
 

@@ -16,7 +16,10 @@ class Recipe(object):
     '''Pluggable Data Reduction Module (PDRM) from a ESO pipeline. 
 
     Recipes are loaded from shared libraries that are provided with the
-    pipeline library of the instrument.
+    pipeline library of the instrument. The module does not need to be
+    linked to the same library version as the one used for the compilation
+    of python-cpl. Currently, recipes compiled with CPL versions from 4.0
+    are supported.
 
     The libraries are searched in the directories specified by the class
     attribute :attr:`Recipe.path` or its subdirectories. The search path is
@@ -113,17 +116,19 @@ class Recipe(object):
 
     @property
     def __copyright__(self):
-        '''Copyright string'''
+        '''Copyright string of the recipe'''
         return self._recipe.copyright()
 
     @property
     def cpl_version(self):
-        '''CPL version as a string'''
+        '''Version of the CPL library that is linked to the recipe,
+        as a string'''
         return self._recipe.cpl_version()
 
     @property
     def cpl_description(self):
-        '''String of version numbers of CPL and its libraries'''
+        '''Version numbers of CPL and its libraries that were linked to
+        the recipe, as a string.'''
         return self._recipe.cpl_description()
 
     @property
@@ -171,7 +176,9 @@ class Recipe(object):
         BADPIX_TABLE None None ['badpix_1.fits', 'badpix_2.fits']
         MASTER_FLAT None 1 None
 
-        .. note:: Only MUSE recipes are able to provide the full list of
+        .. note::
+
+           Only MUSE recipes are able to provide the full list of
            calibration frames and the minimal/maximal number of calibration
            frames. For other recipes, only frames that were set by the users are
            returned here. Their minimum and maximum value will be set to
@@ -323,6 +330,7 @@ class Recipe(object):
             :class:`logging.Logger` (optional, default is 'cpl.' + recipename).
         :type logname: :class:`str`
         :param output_dir: Set or overwrite the :attr:`output_dir` attribute.
+            (optional)
         :type output_dir: :class:`str`
         :param param: overwrite the CPL parameters of the recipe specified
             as keys with their dictionary values (optional). 
@@ -344,7 +352,9 @@ class Recipe(object):
                 by a segementation fault or similar.
         :raise: :class:`cpl.CplError` If the recipe returns an error.
 
-        .. note:: If the recipe is executed in the background 
+        .. note::
+
+            If the recipe is executed in the background 
             (``threaded = True``) and an exception occurs, this exception is 
             raised whenever result fields are accessed.
         '''
@@ -511,7 +521,9 @@ class Recipe(object):
     def set_maxthreads(n):
         '''Set the maximal number of threads to be executed in parallel.
 
-        .. note:: This affects only threads that are started afterwards with
+        .. note::
+
+            This affects only threads that are started afterwards with
             the ``threaded = True`` flag.
         '''
         Threaded.set_maxthreads(n)

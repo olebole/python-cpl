@@ -124,7 +124,9 @@ changed. The change may be either done by specifying the :attr:`Recipe.env`
 attribute of as a parameter on the recipe invocation. The change will have no
 influence on the environment of the framework itself.
 
-.. note:: Some variables are only read on startup
+.. note::
+
+   Some variables are only read on startup
    (like :envvar:`MALLOC_CHECK_`), changing or deleting them will have
    no effect.
 
@@ -133,7 +135,14 @@ influence on the environment of the framework itself.
    Environment changes for the recipe. This is a :class:`dict` with the
    name of the environment variable as the key and the content as the value.
    It is possible to overwrite a specific environment variable. Specifying
-   :keyword:`None` as value will remove the variable.
+   :keyword:`None` as value will remove the variable::
+
+     >>> muse_flat.env['MUSE_RESAMPLE_LAMBDA_LOG'] = '1'
+     >>> muse_flat.env['MUSE_TIMA_FILENAME'] = 'tima.fits'
+
+In a recipe call, the runtime environment may be overwritten as well::
+
+  >>> res = muse_flat( ..., env = {'MUSE_PLOT_TRACE':'true'})
 
 Recipe invocation
 -----------------
