@@ -9,7 +9,7 @@ import CPL_recipe
 import esorex
 from frames import FrameList, mkabspath, expandframelist
 from result import Result, RecipeCrash
-from parameters import ParameterList
+from param import ParameterList
 from logger import LogServer, msg
 
 class Recipe(object):
