@@ -64,15 +64,15 @@ The :class:`cpl.Result` object as well as a :class:`cpl.CplError` have an
 attribute :attr:`cpl.Result.log` resp. :attr:`cpl.CplError.log` that contains
 the :class:`list` of all log messages.
 
-.. autoclass:: cpl.log.LogList
+.. autoclass:: cpl.logger.LogList
 
-   .. autoattribute:: cpl.log.LogList.error
+   .. autoattribute:: cpl.logger.LogList.error
 
-   .. autoattribute:: cpl.log.LogList.warning
+   .. autoattribute:: cpl.logger.LogList.warning
 
-   .. autoattribute:: cpl.log.LogList.info
+   .. autoattribute:: cpl.logger.LogList.info
 
-   .. autoattribute:: cpl.log.LogList.debug
+   .. autoattribute:: cpl.logger.LogList.debug
 
 
 Terminal messages
@@ -95,17 +95,17 @@ basically does the same as::
 
 The following attributes control the format of the terminal messages:
 
-   .. currentclass: cpl.log.CplLogger
+   .. currentclass: cpl.logger.CplLogger
 
-   .. autoattribute:: cpl.log.CplLogger.level
+   .. autoattribute:: cpl.logger.CplLogger.level
 
-   .. autoattribute:: cpl.log.CplLogger.format
+   .. autoattribute:: cpl.logger.CplLogger.format
 
-   .. autoattribute:: cpl.log.CplLogger.time
+   .. autoattribute:: cpl.logger.CplLogger.time
 
-   .. autoattribute:: cpl.log.CplLogger.component
+   .. autoattribute:: cpl.logger.CplLogger.component
 
-   .. autoattribute:: cpl.log.CplLogger.threadid
+   .. autoattribute:: cpl.logger.CplLogger.threadid
 
 Predefined log file
 -------------------
@@ -127,16 +127,16 @@ basically does the same as::
 
 The following attributes control the format of the log file messages:
 
-   .. currentclass: cpl.log.CplLogger
+   .. currentclass: cpl.logger.CplLogger
 
-   .. autoattribute:: cpl.log.CplLogger.filename
+   .. autoattribute:: cpl.logger.CplLogger.filename
 
-   .. autoattribute:: cpl.log.CplLogger.level
+   .. autoattribute:: cpl.logger.CplLogger.level
 
-   .. autoattribute:: cpl.log.CplLogger.format
+   .. autoattribute:: cpl.logger.CplLogger.format
 
-   .. autoattribute:: cpl.log.CplLogger.time
+   .. autoattribute:: cpl.logger.CplLogger.time
 
-   .. autoattribute:: cpl.log.CplLogger.component
+   .. autoattribute:: cpl.logger.CplLogger.component
 
-   .. autoattribute:: cpl.log.CplLogger.threadid
+   .. autoattribute:: cpl.logger.CplLogger.threadid
