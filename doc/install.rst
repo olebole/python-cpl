@@ -4,8 +4,6 @@ Installation
 Prequisites
 -----------
 
-* `CPL <http://www.eso.org/sci/software/cpl/>`_ 5 or later
-  (:program:`Esorex` is not needed),
 * `Python <http://www.python.org/>`_ 2.6 or 2.7, 
 * `Pyfits <http://www.pyfits.org/>`_
 
@@ -67,5 +65,6 @@ them, you need first to compile the recipe in :file:`test/iiinstrumentp/`::
   cd ..
   python TestRecipe.py
 
+Compiling the test recipe needs an installed CPL development environment.
 The tests may print a memory corruption detection by glibc. This is normal,
 since the tests also check this behaviour in the recipe.

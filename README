@@ -6,7 +6,6 @@ Installation
 ============
 
 1. Check requirements:
-   - CPL 6.X (Esorex is not needed)
    - Python 2.6 or later
    - pyfits
 
