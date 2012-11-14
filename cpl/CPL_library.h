@@ -2,7 +2,23 @@
 #ifndef CPL_LIBRARY_H
 #define CPL_LIBRARY_H
 
+/* For the header, either the CPL one can be used, or the header that was
+   extracted from the 6.1.1 release. For API safety, it is better to include
+   the one provided with python-cpl. The other option is just for the adoption
+   to a new CPL version.
+   */
+#ifdef USE_INSTALLED_CPL_HEADER
 #include <cpl.h>
+#else
+#include "cpl_api.h"
+#endif
+
+#if CPL_VERSION_CODE < CPL_VERSION(6,0,0)
+#error CPL version too old. Minimum required version is 6.0.0.
+#endif
+#if CPL_VERSION_CODE > CPL_VERSION(6,1,1)
+#warning Newer CPL version: check API compability with 6.1.1 at http://upstream-tracker.org/versions/cpl.html
+#endif
 
 typedef struct {
     int is_supported;

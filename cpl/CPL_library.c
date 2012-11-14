@@ -3,15 +3,7 @@
 
 #include "CPL_library.h"
 
-#if CPL_VERSION_CODE < CPL_VERSION(6,0,0)
-#error CPL version too old. Minimum required version is 6.0.0.
-#endif
-#if CPL_VERSION_CODE > CPL_VERSION(6,1,1)
-#warning Newer CPL version: check API compability with 6.1.1 at http://upstream-tracker.org/versions/cpl.html
-#endif
-
 static unsigned long supported_versions[] = {
-    CPL_VERSION_CODE,
     CPL_VERSION(6,1,1),
     CPL_VERSION(6,0,1),
     CPL_VERSION(6,0,0),
@@ -210,8 +202,8 @@ cpl_library_t *create_library(const char *fname) {
 
     */
     if (cpl_version < CPL_VERSION(6,0,0)) {
-	cpl->TYPE_INT = 256;
-	cpl->TYPE_DOUBLE = 8192;
+	cpl->TYPE_INT = (1 << 8);
+	cpl->TYPE_DOUBLE = (1 << 13);
     }
 
     libraries = realloc(libraries, sizeof(cpl_library_t *) * (i+2));
