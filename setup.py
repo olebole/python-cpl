@@ -7,9 +7,8 @@ license_ = 'GPL'
 cpl_version = '0.4'
 doc = '''Python interface for the Common Pipeline Library.
 
-Non-official library to access CPL modules via Python. 
-It is not meant as part of the MUSE pipeline software, but 
-may be useful for testing.'''
+Non-official library to access CPL modules via Python. It may be used to run
+ESO pipeline recipes linked to CPL versions 4.0 to 6.1.1.'''
 description = doc.splitlines()
 long_description = "\n".join(description[2:])
 description = description[0]
