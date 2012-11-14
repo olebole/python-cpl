@@ -21,7 +21,7 @@ Binary packages
 Source code
 -----------
 
-* Current release `python-cpl-0.3.8.tar.gz <python-cpl-0.3.8.tar.gz>`_
+* Current release `python-cpl-0.4.tar.gz <python-cpl-0.4.tar.gz>`_
 * `Git repository <http://github.com/olebole/python-cpl>`_. To access, do a::
 
     git clone git://github.com/olebole/python-cpl.git
@@ -36,11 +36,12 @@ Source code
 Compilation
 -----------
 
-Additionally to the software mentioned above, a C compiler is needed.
+For compilation, a C compiler is needed additionally to the software mentioned
+above.
 
-Define the installation path of the package. On default, this is
-:file:`/usr/local`. If using a non-standard installation path, add the
-directory :file:`{PREFIX}/lib/python2.7/site-packages/`
+The installation follows the standard procedure used in python. On default,
+the installation path :file:`/usr/local`. If using a non-standard installation
+path, add the directory :file:`{PREFIX}/lib/python2.7/site-packages/`
 (:file:`lib64/python2.7/site-packages/` on 64 bit systems) to your environment
 variable :envvar:`PYTHONPATH` where where :file:`{PREFIX}` is the installation
 path for the package.
@@ -49,13 +50,13 @@ In the source directory of cpl-python, run::
 
   python setup.py install --prefix=PREFIX
 
-To specify non-standard include and library paths for CPL, the environment
-variables :envvar:`LIBRARY_PATH` and :envvar:`INCLUDE_PATH` may be used.
+There are other options available as well; use the :option:`--help` option to
+list them.
 
 Test suite
 ----------
 
-The test suite can be downloaded as tar file `python-cpl-test-0.3.8.tar.gz <python-cpl-test-0.3.8.tar.gz>`_.
+The test suite can be downloaded as tar file `python-cpl-test-0.4.tar.gz <python-cpl-test-0.4.tar.gz>`_.
 There are a number of tests defined in :file:`test/TestRecipe.py`. To run
 them, you need first to compile the recipe in :file:`test/iiinstrumentp/`::
 

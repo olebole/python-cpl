@@ -6,8 +6,8 @@ Installation
 ============
 
 1. Check requirements:
-   - CPL 5.X (Esorex is not needed)
-   - Python 2.6 
+   - CPL 6.X (Esorex is not needed)
+   - Python 2.6 or later
    - pyfits
 
 2. Determine where to put the compiled python package. Standard for
@@ -21,9 +21,5 @@ Installation
    will be installed in the subdir lib/python2.6/site-packages 
    (lib64/python2.6/site-packages on 64 bit systems) of <PREFIX>
 
-   To specify non-standard include and library paths for CPL, the environment
-   variables LIBRARY_PATH and INCLUDE_PATH may be used.
-
 4. Add the directory <PREFIX>/lib[64]/python2.6/site-packages to your 
    environment variable PYTHONPATH.
-
