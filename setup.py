@@ -4,7 +4,7 @@ from distutils.core import setup, Extension
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
-cpl_version = '0.3.8'
+cpl_version = '0.4'
 doc = '''Python interface for the Common Pipeline Library.
 
 Non-official library to access CPL modules via Python. 
@@ -13,6 +13,18 @@ may be useful for testing.'''
 description = doc.splitlines()
 long_description = "\n".join(description[2:])
 description = description[0]
+pkgname = 'python-cpl'
+baseurl = 'http://www.aip.de/~oles/%s' % pkgname
+classifiers = [ 
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
+    'Operating System :: MacOS :: MacOS X',
+    'Operating System :: POSIX',
+    'Operating System :: Unix',
+    'Topic :: Scientific/Engineering :: Astronomy',
+    'Topic :: Software Development :: Libraries :: Application Frameworks',
+    ]
 
 def create_version_file(cpl_version = cpl_version):
     vfile = open(os.path.join('cpl', 'version.py'), 'w')
@@ -22,16 +34,26 @@ def create_version_file(cpl_version = cpl_version):
     vfile.write("license_ = %s\n" % repr(license_))
     vfile.write("doc = %s\n" % repr(doc))
     vfile.close()
-include_dirs = os.environ.get('INCLUDE_PATH', '.').split(':') 
-module1 = Extension('cpl.CPL_recipe',
-                    include_dirs = include_dirs,
-                    sources = ['cpl/CPL_recipe.c', 'cpl/CPL_library.c'])
 
 create_version_file()
-setup (name = 'python-cpl',
-       version = cpl_version, author = author, author_email = email, 
-       description = description, long_description = long_description,  
-       license = license_, url = 'http://www.aip.de/~oles/python-cpl/',
-       packages = ['cpl'],
-       ext_modules = [module1])
+
+module1 = Extension('cpl.CPL_recipe',
+                    sources = ['cpl/CPL_recipe.c', 'cpl/CPL_library.c'])
+
+setup(
+    name = pkgname,
+    version = cpl_version, 
+    author = author, 
+    author_email = email, 
+    description = description, 
+    long_description = long_description,  
+    license = license_, 
+    url = baseurl,
+    download_url = '%s/%s-%s.tar.gz' % (baseurl, pkgname, cpl_version),
+    classifiers = classifiers, 
+    requires = ['pyfits'],
+    provides = ['cpl'],
+    packages = ['cpl'], 
+    ext_modules = [module1]
+    )
 
