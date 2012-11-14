@@ -288,20 +288,15 @@ class Recipe(object):
     def param(self):
         self._param = ParameterList(self, None)
 
-    def output(self, tag = None):
-        '''Return the list of output frame tags.
+    @property
+    def output(self):
+        '''Return a dictionary of output frame tags.
 
-        If the recipe does not provide this information, an exception is raised.
-        
-        :param tag: Input (raw) frame tag. Defaults to the :attr:`Recipe.tag` 
-            attribute if not specified. 
-        :type tag: :class:`str`
+        Keys are the tag names, values are the corresponding list of output
+        tags. If the recipe does not provide this information, an exception is
+        raised.
         '''
-        if tag is None:
-            tag = self.tag
-        for c in self._recipe.frameConfig():
-            if tag == c[0][0]:
-                return c[2]
+        return dict((c[0][0], c[2]) for c in self._recipe.frameConfig())
 
     def __call__(self, *data, **ndata):
         '''Call the recipes execution with a certain input frame.
