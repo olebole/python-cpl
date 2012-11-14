@@ -1,19 +1,19 @@
+.. module:: cpl
+
 The Recipe interface
 ====================
 
-.. module:: cpl
+.. autoclass:: Recipe
 
-.. class:: cpl.Recipe
-
-   Recipes are loaded from shared libraries that are provided with the
-   pipeline library of the instrument.
+Static members
+--------------
 
 .. attribute:: Recipe.path
 
-   Search path for the recipes. It may be set to either a string, or to a list
-   of strings. All shared libraries in the search path and their
-   subdirectories are searched for CPL recipes. On default, the path is set to
-   the current directory.
+   Search path for the recipes. It may be set to either a string, or to a
+   list of strings. All shared libraries in the search path and their
+   subdirectories are searched for CPL recipes. On default, the path is
+   set to the current directory.
 
    The search path is automatically set to the esorex path when
    :func:`cpl.esorex.init()` is called.
@@ -21,8 +21,6 @@ The Recipe interface
 .. automethod:: Recipe.list
 
 .. automethod:: Recipe.set_maxthreads
-
-   .. seealso:: :ref:`parallel`
 
 Constructor
 -----------
@@ -38,8 +36,6 @@ These attributes and methods are available for all recipes.
 
    Recipe name
 
-.. autoattribute:: Recipe.version
-
 .. attribute:: Recipe.__file__
 
    Shared library file name.
@@ -51,6 +47,8 @@ These attributes and methods are available for all recipes.
 .. autoattribute:: Recipe.__copyright__
 
 .. autoattribute:: Recipe.description
+
+.. autoattribute:: Recipe.version
 
 .. autoattribute:: Recipe.cpl_version
 
@@ -88,7 +86,13 @@ These attributes and methods are available for all recipes.
 
 .. autoattribute:: Recipe.tags
 
-.. automethod:: Recipe.output
+.. autoattribute:: Recipe.output
+
+.. attribute:: memory_dump
+
+   If set to 1, a memory dump is issued to stdout if the memory was not
+   totally freed after the execution. If set to 2, the dump is always
+   issued. Standard is 0: nothing dumped.
 
 Recipe parameters
 -----------------

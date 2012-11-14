@@ -68,4 +68,3 @@ setup(
     packages = ['cpl'], 
     ext_modules = [module1]
     )
-

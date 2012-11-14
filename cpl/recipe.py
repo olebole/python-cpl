@@ -19,28 +19,13 @@ class Recipe(object):
     pipeline library of the instrument. The module does not need to be
     linked to the same library version as the one used for the compilation
     of python-cpl. Currently, recipes compiled with CPL versions from 4.0
-    are supported.
+    are supported. The list of supported versions is stored as
+    :attr:`cpl.cpl_versions`.
 
     The libraries are searched in the directories specified by the class
     attribute :attr:`Recipe.path` or its subdirectories. The search path is
     automatically set to the esorex path when :func:`cpl.esorex.init()`
     is called.
-
-    Attributes:
-
-    __name__: Recipe name
-    __filename__: Shared library file name
-    param: Parameter list
-    calib: Calibration frame list
-    tag: default tag
-    tags: list of possible tags
-    __author__: author name
-    __email__: author's email address
-    description: (synopsis, description) pair
-    version: (versionnumber, versionstring) pair
-    memory_dump: If set to 1, a memory dump is issued to stdout if the memory was not
-      totally freed after the execution. If set to 2, the dump is always issued.
-      Standard is 0: nothing dumped.
     '''
 
     path = [ '.' ]
@@ -91,6 +76,7 @@ class Recipe(object):
         self.temp_dir = '.'
         self.memory_dump = 0
         self.threaded = threaded
+        self.__doc__ = self._doc()
 
     @property
     def __author__(self):
@@ -452,8 +438,7 @@ class Recipe(object):
             if delete:
                 shutil.rmtree(output_dir)
 
-    @property
-    def __doc__(self):
+    def _doc(self):
         s = '%s\n\n%s\n\n' % (self.description[0], self.description[1])
         
         r = 'Parameters:\n' 
@@ -470,10 +455,10 @@ class Recipe(object):
             t = 'Raw and product frames:\n'
             maxlen = max(len(f) for f in self.tags)
             for f in self.tags:
-                t += ' %s --> %s\n' % (f.rjust(maxlen), `self.output(f)`)
+                t += ' %s --> %s\n' % (f.rjust(maxlen), `self.output[f]`)
         else:
             t = ''
-        print s + r + c + t + '\n\n'
+        return s + r + c + t + '\n\n'
 
     def __repr__(self):
         return 'Recipe(%s, version = %s)' % (`self.__name__`, `self.version[0]`)
@@ -528,6 +513,8 @@ class Recipe(object):
 
             This affects only threads that are started afterwards with
             the ``threaded = True`` flag.
+
+        .. seealso:: :ref:`parallel`
         '''
         Threaded.set_maxthreads(n)
 
