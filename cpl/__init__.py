@@ -16,3 +16,4 @@ import dfs
 import esorex
 
 Recipe.dir = '.'
+cpl_versions = [ '%i.%i.%i' % ver for ver in CPL_recipe.cpl_versions() ]

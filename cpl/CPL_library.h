@@ -20,7 +20,10 @@
 #warning Newer CPL version: check API compability with 6.1.1 at http://upstream-tracker.org/versions/cpl.html
 #endif
 
+extern unsigned long supported_versions[];
+
 typedef struct {
+    unsigned long version;
     int is_supported;
 
     typeof(cpl_init) *init;

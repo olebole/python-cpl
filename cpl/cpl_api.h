@@ -32,6 +32,10 @@
 #define CPL_VERSION(major, minor, micro) \
         (((major) * 65536) + ((minor) * 256) + (micro))
 
+#define CPL_VERSION_MAJOR_CODE(code) (((code) >> 16) & 0xff)
+#define CPL_VERSION_MINOR_CODE(code) (((code) >> 8) & 0xff)
+#define CPL_VERSION_MICRO_CODE(code) ((code) & 0xff)
+
 #define CPL_VERSION_CODE CPL_VERSION(6,1,1)
 
 typedef int cpl_error_code, cpl_errorstate, cpl_boolean, cpl_frame_group,

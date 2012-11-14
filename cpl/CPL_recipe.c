@@ -67,8 +67,28 @@ CPL_list(PyObject *self, PyObject *args) {
     return res;
 }
 
+#define CPL_supported_versions_doc \
+    "List all supported CPL versions."
+
+static PyObject *
+CPL_supported_versions(PyObject *self, PyObject *args) {
+    PyObject *res = PyList_New(0);
+    Py_INCREF(res);
+    int i;
+    for (i = 0; supported_versions[i] != 0; i++) {
+	PyList_Append(res, Py_BuildValue(
+			  "iii", 
+			  CPL_VERSION_MAJOR_CODE(supported_versions[i]),
+			  CPL_VERSION_MINOR_CODE(supported_versions[i]),
+			  CPL_VERSION_MICRO_CODE(supported_versions[i])));
+    }
+    return res;
+}
+
 static PyMethodDef CPL_methods[] = {
     {"list", CPL_list, METH_VARARGS, CPL_list_doc},
+    {"cpl_versions", CPL_supported_versions, METH_NOARGS, 
+     CPL_supported_versions_doc},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

@@ -3,7 +3,7 @@
 
 #include "CPL_library.h"
 
-static unsigned long supported_versions[] = {
+unsigned long supported_versions[] = {
     CPL_VERSION(6,1,1),
     CPL_VERSION(6,0,1),
     CPL_VERSION(6,0,0),
@@ -172,12 +172,11 @@ cpl_library_t *create_library(const char *fname) {
     cpl->TYPE_DOUBLE = CPL_TYPE_DOUBLE;
     cpl->TYPE_STRING = CPL_TYPE_STRING;
 
-    unsigned long cpl_version = CPL_VERSION(get_major(), get_minor(),
-					    get_micro());
+    cpl->version = CPL_VERSION(get_major(), get_minor(), get_micro());
 
     cpl->is_supported = 0;
     for (i = 0; supported_versions[i] != 0; i++) {
-	if (cpl_version == supported_versions[i]) {
+	if (cpl->version == supported_versions[i]) {
 	    cpl->is_supported = 1;
 	}
     }
@@ -201,7 +200,7 @@ cpl_library_t *create_library(const char *fname) {
        Currently, we just ignore this :-)
 
     */
-    if (cpl_version < CPL_VERSION(6,0,0)) {
+    if (cpl->version < CPL_VERSION(6,0,0)) {
 	cpl->TYPE_INT = (1 << 8);
 	cpl->TYPE_DOUBLE = (1 << 13);
     }
