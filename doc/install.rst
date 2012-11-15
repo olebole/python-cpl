@@ -19,7 +19,7 @@ Binary packages
 Source code
 -----------
 
-* Current release `python-cpl-0.4.tar.gz <python-cpl-0.4.tar.gz>`_
+* Current release `python-cpl-0.4.tar.gz <http://www.aip.de/~oles/python-cpl/python-cpl-0.4.tar.gz>`_
 * `Git repository <http://github.com/olebole/python-cpl>`_. To access, do a::
 
     git clone git://github.com/olebole/python-cpl.git
@@ -54,7 +54,7 @@ list them.
 Test suite
 ----------
 
-The test suite can be downloaded as tar file `python-cpl-test-0.4.tar.gz <python-cpl-test-0.4.tar.gz>`_.
+The test suite can be downloaded as tar file `python-cpl-test-0.4.tar.gz <http://www.aip.de/~oles/python-cpl/python-cpl-test-0.4.tar.gz>`_.
 There are a number of tests defined in :file:`test/TestRecipe.py`. To run
 them, you need first to compile the recipe in :file:`test/iiinstrumentp/`::
 
