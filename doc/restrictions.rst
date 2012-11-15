@@ -1,5 +1,7 @@
 .. _restrictions:
 
+.. module:: cpl
+
 Restrictions for CPL recipes
 ============================
 
@@ -9,25 +11,26 @@ definition of input, calibration and output frames.
 
 All other interfaces will have the following restrictions:
 
-#. The :attr:`cpl.Recipe.calib` attribute is not filled with templates for
+#. The :attr:`Recipe.calib` attribute is not filled with templates for
    calibration frames. After recipe creation, this attribute is empty. Also, no
    check on the required calibration frames may be done before calling the
    recipe. Anything that is set here will be forwarded to the recipe.
 
-#. In the esorex support, directly assigning the recipe calibration files from
-   the SOF file with :literal:`recipe.calib = cpl.esorex.read_sof('file')`
-   will also put the raw input file into :attr:`Recipe.calib` unless
-   :attr:`cpl.Recipe.tags` and/or :attr:`cpl.Recipe.tag` are set
-   manually. The standard recipe interface does not provide a way to
-   distinguish between raw input and calibration files.
+#. In the :mod:`cpl.esorex` support, directly assigning the recipe calibration
+   files from the SOF file with
+   :literal:`recipe.calib = cpl.esorex.read_sof('file')` will also put the
+   raw input file into :attr:`Recipe.calib` unless :attr:`Recipe.tags`
+   and/or :attr:`Recipe.tag` are set manually. The standard recipe
+   interface does not provide a way to distinguish between raw input and
+   calibration files.
 
-#. The :attr:`cpl.Recipe.tags` attribute is set to None.
+#. The :attr:`Recipe.tags` attribute is set to :obj:`None`.
 
-#. The :attr:`cpl.Recipe.tag` attribute is not initially set. If this
+#. The :attr:`Recipe.tag` attribute is not initially set. If this
    attribute is not set manually, the tag is required when executing the
    attribute.
 
-#. The method :meth:`cpl.Recipe.output` raises an exception.
+#. Accessing the attribute :meth:`Recipe.output` raises an exception.
 
 Technical Background
 --------------------

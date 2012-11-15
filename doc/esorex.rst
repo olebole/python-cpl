@@ -1,3 +1,5 @@
+.. module:: cpl
+
 :mod:`cpl.esorex` Esorex legacy support
 =======================================
 

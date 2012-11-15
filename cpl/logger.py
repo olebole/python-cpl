@@ -205,7 +205,7 @@ class CplLogger(object):
     def format(self):
         '''Output format. 
 
-        See `LogRecord attributes http://docs.python.org/library/logging.html#logrecord-attributes`_ for a usable key mappings.'''
+        See `logging.LogRecord attributes <http://docs.python.org/library/logging.html#logrecord-attributes>`_ for a usable key mappings.'''
         return self._format
 
     @format.setter

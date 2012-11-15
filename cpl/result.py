@@ -104,7 +104,7 @@ class CplError(StandardError):
 
     The exception is raised on recipe invocation, or when accessing the result
     frames if the recipe was started in background
-    (:attr:`cpl.Recipe.threaded` set to :attr:`True`).
+    (:attr:`cpl.Recipe.threaded` set to :obj:`True`).
 
     Attributes:
 
@@ -128,11 +128,11 @@ class CplError(StandardError):
 
        Log lines of the recipe that lead to this exception.
 
-       .. seealso:: :class:`cpl.log.LogList`
+       .. seealso:: :class:`cpl.logger.LogList`
 
     .. attribute:: next
      
-       Next error, or :attr:`None`.
+       Next error, or :obj:`None`.
 
     '''
     def __init__(self, retval, res, logger = None):
@@ -187,7 +187,7 @@ class RecipeCrash(StandardError):
 
     The exception is raised on recipe invocation, or when accessing the result
     frames if the recipe was started in background
-    (:attr:`cpl.Recipe.threaded` set to :attr:`True`).
+    (:attr:`cpl.Recipe.threaded` set to :obj:`True`).
 
     Attributes:
 
@@ -195,7 +195,7 @@ class RecipeCrash(StandardError):
 
        List of stack elements, with the most recent element (the one that
        caused the crash) at the end. Each stack element is a 
-       :class:`collections.namedtuple` with the following attributes:
+       :func:`collections.namedtuple` with the following attributes:
 
        .. attribute:: filename
  

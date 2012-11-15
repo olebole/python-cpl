@@ -1,3 +1,5 @@
+.. module:: cpl
+
 Execution results
 =================
 
@@ -6,16 +8,16 @@ Result frames
 
 .. class:: cpl.Result
 
-   Calling :meth:`cpl.Recipe.__call__` returns an object that contains all result
-   ('production') frames in attributes. All results for one tag are summarized in
-   one attribute of the same name. So, the ``muse_bias`` recipe returns a frame
-   with the tag MASTER_BIAS in the according attribute::
+   Calling :meth:`cpl.Recipe.__call__` returns an object that contains all
+   result ('production') frames in attributes. All results for one tag are
+   summarized in one attribute of the same name. So, the ``muse_bias`` recipe
+   returns a frame with the tag MASTER_BIAS in the according attribute::
    
      res = muse_bias(...)
      res.MASTER_BIAS.writeto('master_bias')
    
    The attribute content is either a :class:`pyfits.HDUList` or a
-   :class:`list` of HDU lists, depending on the recipe and the call: If the
+   :func:`list` of HDU lists, depending on the recipe and the call: If the
    recipe produces one out put frame of a tag per input file, the attribute
    contains a list if the recipe was called with a list, and if the recipe was
    called with a single input frame, the result attribute will also contain a
@@ -72,7 +74,7 @@ Run statistics
    .. attribute:: cpl.Result.stat.memory_is_empty
    
        Flag whether the recipe terminated with freeing all available Memory. If
-       this information is not available, this flag ist set to :attr:`None`.
+       this information is not available, this flag ist set to :obj:`None`.
    
 Execution log
 -------------
@@ -81,7 +83,7 @@ Execution log
    
        List of log messages for the recipe.
 
-       .. seealso:: :class:`cpl.log.LogList`
+       .. seealso:: :class:`cpl.logger.LogList`
 
    .. attribute:: cpl.Result.error
 
@@ -113,17 +115,17 @@ Thread control
       the recipe terminates – either normally or through an unhandled
       exception – or until the optional timeout occurs.
    
-      When the timeout argument is present and not :attr:`None`, it should be
+      When the timeout argument is present and not :obj:`None`, it should be
       a floating point number specifying a timeout for the operation in
       seconds (or fractions thereof). As :meth:`join` always returns
-      :attr:`None`, you must call :meth:`isAlive` after :meth:`join` to decide
+      :obj:`None`, you must call :meth:`isAlive` after :meth:`join` to decide
       whether a timeout happened – if the recipe is still running, the
       :meth:`join` call timed out.
 
-   When the timeout argument is not present or :attr:`None`, the operation
+   When the timeout argument is not present or :obj:`None`, the operation
    will block until the recipe terminates.
 
-   A thread can be :meth:`join` ed many times. 
+   A thread can be :meth:`cpl.Result.join` ed many times. 
 
    Like in the foreground execution, the output frames may be retrieved as
    attributes of the :class:`cpl.Result` frame. If any of the attributes is
@@ -133,8 +135,6 @@ Thread control
 
 CPL Exceptions
 --------------
-.. module:: cpl
-
 .. autoclass:: CplError
 
 .. autoclass:: RecipeCrash

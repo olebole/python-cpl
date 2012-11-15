@@ -122,7 +122,7 @@ class Recipe(object):
 
     @property
     def tags(self):
-        '''Possible tags for the raw input frames, or ':attr:`None` if this
+        '''Possible tags for the raw input frames, or ':obj:`None` if this
         information is not provided by the recipe.'''
         frameconfig = self._recipe.frameConfig()
         return [ c[0][0] for c in frameconfig ] if frameconfig else self._tags
@@ -171,7 +171,7 @@ class Recipe(object):
            calibration frames and the minimal/maximal number of calibration
            frames. For other recipes, only frames that were set by the users are
            returned here. Their minimum and maximum value will be set to
-           :attr:`None`.
+           :obj:`None`.
 
         In order to assing a FITS file to a tag, the file name or the
         :class:`pyfits.HDUList` is assigned to the calibration attribute:
@@ -262,7 +262,7 @@ class Recipe(object):
         >>> res = muse_scibasic( ..., param = {'nifu':1})
 
         To reset a value to its default, it is either deleted, or set to
-        :attr:`None`. The following two lines:
+        :obj:`None`. The following two lines:
 
         >>> muse_scibasic.param.nifu = None
         >>> del muse_scibasic.param.nifu

@@ -14,7 +14,7 @@ Python style logging
 
 The preferred and most flexible way to do logging is the use of the
 :mod:`logging` module of Python. A basic setup (similar to the style used
-in esorex) is::
+in `esorex <http://www.eso.org/sci/software/cpl/esorex.html>`_) is::
 
   import logging
 
@@ -28,9 +28,9 @@ in esorex) is::
   log.addHandler(ch)
 
 The default basic log name for CPL log messages in the recipes is
-:file:`cpl.{recipename}`. The log name can be changed with the ``logname`` parameter
-of the recipe call to follow own naming rules, or to separate the output of
-recipes that are executed in parallel::
+:file:`cpl.{recipename}`. The log name can be changed with the ``logname``
+parameter of :class:`cpl.Recipe.__call__()` to follow own naming rules, or to
+separate the output of recipes that are executed in parallel::
 
   res = [ muse_focus(f, logname = 'cpl.muse_focus%02i' % (i+1), threading = True) 
           for i, f in enumerate(inputfiles) ]

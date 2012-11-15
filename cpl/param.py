@@ -14,7 +14,7 @@ class Parameter(object):
 
     .. attribute:: Parameter.value
 
-       The value of the parameter, or :attr:`None` if set to default
+       The value of the parameter, or :obj:`None` if set to default
 
     .. attribute:: Parameter.default
 
@@ -38,7 +38,7 @@ class Parameter(object):
 
     .. attribute:: Parameter.range 
 
-      The numeric range of a parameter, or :attr:`None` if the parameter range
+      The numeric range of a parameter, or :obj:`None` if the parameter range
       is unlimited (readonly).
 
     .. attribute:: Parameter.sequence

@@ -37,9 +37,8 @@ The package can be imported with
 
 >>> import cpl
 
-This import statement will fail if the CPL libraries are not found.  If you
-migrate from Esorex, you may just init the search path for CPL recipes from
-the esorex startup:
+If you migrate from `Esorex <http://www.eso.org/sci/software/cpl/esorex.html>`_, you may just init the search path for CPL recipes
+from the esorex startup:
 
 >>> cpl.esorex.init()
 
@@ -92,7 +91,7 @@ Set a parameter:
 
 >>> muse_scibasic.param.nifu = 1
 
-Print the value of a parameter (:keyword:`None` if the parameter is set to default)
+Print the value of a parameter (:obj:`None` if the parameter is set to default)
 
 >>> print muse_scibasic.param.nifu.value
 1

@@ -25,16 +25,16 @@ class FrameConfig(object):
 
     .. attribute:: min
 
-       Minimal number of frames, or :attr:`None` if not specified. A frame is
+       Minimal number of frames, or :obj:`None` if not specified. A frame is
        required if the :attr:`min` is set to a value greater than 0.
 
     .. attribute:: max 
 
-       Maximal number of frames, or :attr:`None` if not specified
+       Maximal number of frames, or :obj:`None` if not specified
 
     .. attribute:: frames
 
-       List of frames (file names or pyfits.HDUList objects) that are 
+       List of frames (file names or :class:`pyfits.HDUList` objects) that are 
        assigned to this frame type.
     '''
     def __init__(self, tag, min_frames = 0, max_frames = 0, frames = None):

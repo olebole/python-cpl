@@ -56,7 +56,7 @@ These attributes and methods are available for all recipes.
 
 .. attribute:: Recipe.output_dir
 
-   Output directory if specified, or :keyword:`None`. The recipe will write
+   Output directory if specified, or :obj:`None`. The recipe will write
    the output files into this directory and return their file names. If the
    directory does not exist, it will be created before the recipe is
    executed. Output files within the output directory will be silently
@@ -68,7 +68,7 @@ These attributes and methods are available for all recipes.
 
    Base directory for temporary directories where the recipe is
    executed. The working dir is created as a subdir with a random file
-   name. If set to :keyword:`None`, the system temp dir is used. 
+   name. If set to :obj:`None`, the system temp dir is used. 
    Defaults to :literal:`'.'`. 
 
 .. attribute:: Recipe.threaded
@@ -139,7 +139,7 @@ influence on the environment of the framework itself.
    Environment changes for the recipe. This is a :class:`dict` with the
    name of the environment variable as the key and the content as the value.
    It is possible to overwrite a specific environment variable. Specifying
-   :keyword:`None` as value will remove the variable::
+   :obj:`None` as value will remove the variable::
 
      >>> muse_flat.env['MUSE_RESAMPLE_LAMBDA_LOG'] = '1'
      >>> muse_flat.env['MUSE_TIMA_FILENAME'] = 'tima.fits'

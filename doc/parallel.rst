@@ -8,7 +8,7 @@ parallelization is done using independent processes and thus does not depend
 on parallelization features in the CPL or the recipe implementation.
 
 To specify that a recipe should be executed in the background, the
-:attr:`threaded` attribute needs to be set to :attr:`True`. This may be done
+:attr:`threaded` attribute needs to be set to :obj:`True`. This may be done
 either in the recipe constructor, as a recipe attribute or as a parameter of
 the execution call. Each of the following three recipes will start a
 background process for the BIAS calculation::
@@ -26,7 +26,7 @@ background process for the BIAS calculation::
   r3 = cpl.Recipe('muse_bias')
   result3 = r3([ 'bias1.fits', 'bias2.fits', 'bias3.fits'], threaded = True)
 
-If the :attr:`threaded` attribute is set to :attr:`True`, the execution call
+If the :attr:`threaded` attribute is set to :obj:`True`, the execution call
 of the recipe immediately returns while the recipe is executed in the
 background. The current thread is stopped only if any of the results of the
 recipe is accessed and the recipe is still not finished.
