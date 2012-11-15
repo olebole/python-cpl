@@ -5,7 +5,7 @@ Prequisites
 -----------
 
 * `Python <http://www.python.org/>`_ 2.6 or 2.7, 
-* `Pyfits <http://www.pyfits.org/>`_
+* `Pyfits <http://packages.python.org/pyfits/>`_
 
 Binary packages
 ---------------
