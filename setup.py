@@ -5,38 +5,25 @@ author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
 cpl_version = '0.4'
-doc = '''Python interface for the Common Pipeline Library.
-
-This module can list, configure and execute CPL-based recipes from Python.
-The input, calibration and output data can be specified as FITS files
-or as pyfits objects in memory.
-
-The Common Pipeline Library (CPL) comprises a set of ISO-C libraries that
-provide a comprehensive, efficient and robust software toolkit. It forms a
-basis for the creation of automated astronomical data-reduction tasks.
-
-One of the features provided by the CPL is the ability to create
-data-reduction algorithms that run as plugins (dynamic libraries). These are
-called "recipes" and are one of the main aspects of the CPL data-reduction
-development environment.
-
-The interface may be used to run ESO pipeline recipes linked to CPL 
-versions 4.0 to 6.1.1.'''
-description = doc.splitlines()
+description = open('README').read().splitlines()
 long_description = "\n".join(description[2:])
 description = description[0]
+doc = '%s\n%s' % (description, 
+                  long_description[:long_description.find('Build instructions')])
 pkgname = 'python-cpl'
 baseurl = 'http://www.aip.de/~oles/%s' % pkgname
-classifiers = [ 
-    'Development Status :: 4 - Beta',
-    'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
-    'Operating System :: MacOS :: MacOS X',
-    'Operating System :: POSIX',
-    'Operating System :: Unix',
-    'Topic :: Scientific/Engineering :: Astronomy',
-    'Topic :: Software Development :: Libraries :: Application Frameworks',
-    ]
+classifiers = '''Development Status :: 4 - Beta
+Intended Audience :: Science/Research
+License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)
+Operating System :: MacOS :: MacOS X
+Operating System :: POSIX
+Operating System :: Unix
+Programming Language :: C
+Programming Language :: Python
+Programming Language :: Python :: 2 
+Topic :: Scientific/Engineering :: Astronomy
+'''.splitlines()
+
 
 def create_version_file(cpl_version = cpl_version):
     vfile = open(os.path.join('cpl', 'version.py'), 'w')
@@ -54,17 +41,17 @@ module1 = Extension('cpl.CPL_recipe',
 
 setup(
     name = pkgname,
-    version = cpl_version, 
-    author = author, 
-    author_email = email, 
-    description = description, 
-    long_description = long_description,  
-    license = license_, 
+    version = cpl_version,
+    author = author,
+    author_email = email,
+    description = description,
+    long_description = long_description,
+    license = license_,
     url = baseurl,
     download_url = '%s/%s-%s.tar.gz' % (baseurl, pkgname, cpl_version),
-    classifiers = classifiers, 
+    classifiers = classifiers,
     requires = ['pyfits'],
     provides = ['cpl'],
-    packages = ['cpl'], 
+    packages = ['cpl'],
     ext_modules = [module1]
     )
