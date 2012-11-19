@@ -36,7 +36,7 @@ Technical Background
 --------------------
 
 CPL recipes register all their parameter definitions with the CPL function
-:func:`cpl_parameterlist_append()`. All registeres parameters may be retrieved
+:func:`cpl_parameterlist_append()`. All registered parameters may be retrieved
 from the recipe structure as a structure which contains all defined
 parameters.
 

@@ -19,7 +19,7 @@ def load_sof(source):
     content of the file is returned as a map with the tag as key and the list
     of file names as value.
 
-    The result of this function may directly set as :attr:`Recipe.calib`
+    The result of this function may directly set as :attr:`cpl.Recipe.calib`
     attribute::
     
       import cpl
@@ -29,10 +29,10 @@ def load_sof(source):
     .. note::
 
       The raw data frame is silently ignored wenn setting
-      :attr:`Recipe.calib` for MUSE recipes. Other recipes ignore ths raw data
-      frame only if it was set manually as :attr:`Recipe.tag` or in
-      :attr:`Recipe.tags` since there is no way to automatically distinguish
-      between them.
+      :attr:`cpl.Recipe.calib` for MUSE recipes. Other recipes ignore ths raw
+      data frame only if it was set manually as :attr:`cpl.Recipe.tag` or in
+      :attr:`cpl.Recipe.tags` since there is no way to automatically
+      distinguish between them.
 
     '''
     if isinstance(source, str):
@@ -68,7 +68,7 @@ def load_rc(source = None):
     content of the file is returned as a map with the (full) parameter name as
     key and its setting as string value.
 
-    The result of this function may directly set as :attr:`Recipe.param`
+    The result of this function may directly set as :attr:`cpl.Recipe.param`
     attribute::
     
       import cpl

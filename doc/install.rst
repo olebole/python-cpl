@@ -10,16 +10,19 @@ Prequisites
 Binary packages
 ---------------
 
-* `Ubuntu repository <https://launchpad.net/~olebole/+archive/astro-quantal>`_
-  (12.10). 
-* Debian package in "Wheezy" (Testing)
+* Python CPL comes with the Ubuntu distribution since 12.04. The latest
+  version for the current release can be found in a special `Ubuntu repository
+  <https://launchpad.net/~olebole/+archive/astro-quantal>`_ (12.10). 
+* Debian package in "Wheezy"
   `<http://packages.debian.org/wheezy/python-cpl>`_
-* `Python egg <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ planned
 
 Source code
 -----------
 
 * Current release `python-cpl-0.4.tar.gz <http://www.aip.de/~oles/python-cpl/python-cpl-0.4.tar.gz>`_
+
+* `Python Package Index <http://pypi.python.org/pypi/python-cpl/>`_
+
 * `Git repository <http://github.com/olebole/python-cpl>`_. To access, do a::
 
     git clone git://github.com/olebole/python-cpl.git

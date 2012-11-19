@@ -34,7 +34,7 @@ class ProcessingInfo(object):
     .. attribute:: calib
 
        Calibration frames from a FITS file processed with CPL.
-       The result of this function may directly set as :attr:`Recipe.calib`
+       The result of this function may directly set as :attr:`cpl.Recipe.calib`
        attribute::
     
          import cpl
@@ -44,7 +44,7 @@ class ProcessingInfo(object):
        .. note::
 
           This will not work properly for files that had
-          :attr:`pyfits.HDUlist` inputs since they have assigned a temporary
+          :class:`pyfits.HDUList` inputs since they have assigned a temporary
           file name only.
 
     .. attribute:: raw
@@ -54,13 +54,13 @@ class ProcessingInfo(object):
        .. note::
 
           This will not work properly for files that had
-          :attr:`pyfits.HDUlist` inputs since they have assigned a temporary
+          :class:`pyfits.HDUList` inputs since they have assigned a temporary
           file name only.
 
     .. attribute:: param
 
        Processing parameters.
-       The result of this function may directly set as :attr:`Recipe.param`
+       The result of this function may directly set as :attr:`cpl.Recipe.param`
        attribute::
     
          import cpl
@@ -86,10 +86,10 @@ class ProcessingInfo(object):
     def __init__(self, source, datapaths = None):
         '''
         :param source: Object pointing to the result file header
-        :type source: :class:`str` or :class:`PyFits.HDUList` 
-                      or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
+        :type source: :class:`str` or :class:`pyfits.HDUList`
+                      or :class:`pyfits.PrimaryHDU` or :class:`pyfits.Header`
         :param datapaths: Dictionary with frame tags as keys and directory paths
-                        as values to provide a full path for the raw and 
+                        as values to provide a full path for the raw and
                         calibration frames. Optional.
         :type datapaths: :class:`dict`
         '''

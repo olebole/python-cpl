@@ -328,13 +328,14 @@ class Recipe(object):
         :return: The object with the return frames as :class:`pyfits.HDUList` 
             objects
         :rtype: :class:`cpl.Result`
-        :raise: :class:`exceptions.ValueError` If the invocation parameters 
+        :raise: :exc:`exceptions.ValueError` If the invocation parameters
                 are incorrect.
-        :raise: :class:`exceptions.IOError` If the temporary directory could 
+        :raise: :exc:`exceptions.IOError` If the temporary directory could
                 not be built, the recipe could not start or the files could not 
-                be read/written. This error is also raised if the recipe crashed
-                by a segementation fault or similar.
-        :raise: :class:`cpl.CplError` If the recipe returns an error.
+                be read/written.
+        :raise: :exc:`cpl.CplError` If the recipe returns an error.
+        :raise: :exc:`cpl.RecipeCrash` If the CPL recipe crashes with a
+                SIGSEV or a SIGBUS
 
         .. note::
 
