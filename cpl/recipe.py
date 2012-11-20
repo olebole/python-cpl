@@ -10,7 +10,7 @@ import esorex
 from frames import FrameList, mkabspath, expandframelist
 from result import Result, RecipeCrash
 from param import ParameterList
-from logger import LogServer, msg
+from logger import LogServer
 
 class Recipe(object):
     '''Pluggable Data Reduction Module (PDRM) from a ESO pipeline. 
@@ -345,7 +345,7 @@ class Recipe(object):
         '''
         tmpfiles = []
         threaded = ndata.get('threaded', self.threaded)
-        loglevel = ndata.get('loglevel', msg.DEBUG)
+        loglevel = ndata.get('loglevel')
         logname = ndata.get('logname', 'cpl.%s' % self.__name__)
         output_dir = ndata.get('output_dir', self.output_dir)
         output_format = str if output_dir else pyfits.HDUList

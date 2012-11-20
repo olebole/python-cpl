@@ -518,9 +518,15 @@ class RecipeRes(RecipeTestCase):
             self.assertTrue(isinstance(hdu, pyfits.HDUList))
 
 class RecipeEsorex(CplTestCase):
+    def setUp(self):
+        CplTestCase.setUp(self)
+        self.temp_dir = tempfile.mkdtemp()
+
     def tearDown(self):
         CplTestCase.tearDown(self)
-        cpl.msg.level = cpl.msg.OFF
+        cpl.esorex.msg.level = cpl.esorex.msg.OFF
+        cpl.esorex.log.level = cpl.esorex.msg.OFF
+        shutil.rmtree(self.temp_dir)
 
     def test_read_sof(self):
         '''Read a SOF file'''
@@ -548,11 +554,33 @@ class RecipeEsorex(CplTestCase):
         
     def test_esorex_init(self):
         '''Init CPL from an esorex.rc file'''
-        rcfile = 'esorex.caller.recipe-dir=/some/dir\n' \
-        'esorex.caller.msg-level=debug'
+        rcfile = '''esorex.caller.recipe-dir=/some/dir
+        esorex.caller.msg-level=debug
+        esorex.caller.log-level=info
+        esorex.caller.log-dir=%s
+        esorex.caller.log-file=some.log''' % self.temp_dir
         cpl.esorex.init(rcfile)
-        self.assertEqual(cpl.msg.level, cpl.msg.DEBUG)
+        self.assertEqual(cpl.esorex.msg.level, cpl.esorex.msg.DEBUG)
+        self.assertEqual(cpl.esorex.log.level, cpl.esorex.msg.INFO)
+        self.assertEqual(cpl.esorex.log.dir, self.temp_dir)
+        self.assertEqual(cpl.esorex.log.filename, 'some.log')
         self.assertEqual(cpl.Recipe.path, ['/some/dir'])
+
+    def test_esorex_log(self):
+        '''Write a logfile controlled by the convienence logger'''
+        dirname = os.path.join(self.temp_dir, 'log')
+        filename = 'python-cpl.log'
+        log_msg = 'Esorex convienence log'
+        os.mkdir(dirname)
+        cpl.esorex.log.dir = dirname
+        cpl.esorex.log.filename = filename
+        cpl.esorex.log.level = cpl.esorex.log.INFO
+        filename = os.path.join(dirname, filename)
+        logging.getLogger('cpl').info(log_msg)
+        self.assertTrue(os.path.exists(filename))
+        log_content = open(filename).read()
+        self.assertTrue(log_msg in log_content)
+        self.assertTrue('INFO' in log_content)
 
 class RecipeLog(RecipeTestCase):
     def setUp(self):

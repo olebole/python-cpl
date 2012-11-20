@@ -15,15 +15,18 @@ class NullHandler(logging.Handler):
 logging.getLogger('cpl').addHandler(NullHandler())
 
 level = { "DEBUG":logging.DEBUG, "INFO":logging.INFO, "WARNING":logging.WARN, 
-          "ERROR":logging.ERROR }
+          "ERROR":logging.ERROR, "OFF":(logging.CRITICAL + 1)}
+
+cpl_verbosity = [ logging.DEBUG, logging.INFO, logging.WARN,
+                  logging.ERROR, logging.CRITICAL + 1 ]
 
 class LogServer(threading.Thread):
 
-    def __init__(self, name, level):
+    def __init__(self, name, level = None):
         threading.Thread.__init__(self)
         self.name = name
         self.logger = logging.getLogger(name)
-        self.level = cpl_verbosity.index(level)
+        self.level = cpl_verbosity.index(level) if level is not None else 0
         self.entries = LogList()
         self.regexp = re.compile('(\\d\\d):(\\d\\d):(\\d\\d)' +
                                  '\\s\\[\\s*(\\w+)\\s*\\]' + 
@@ -150,130 +153,3 @@ class LogList(list):
         '''
         return self.filter(logging.DEBUG)
 
-class CplLogger(object):
-    DEBUG = logging.DEBUG
-    INFO = logging.INFO
-    WARN = logging.WARN
-    ERROR = logging.ERROR
-    OFF = 101
-
-    def __init__(self, msg = True):
-        self.handler = None
-        self._component = False
-        self._time = False
-        self._threadid = False
-        self.format = None
-        self._filename = None
-        self._msg = msg
-
-    def _init_handler(self):
-        if not self.handler:
-            if self._msg:
-                self.handler = logging.StreamHandler()
-            elif self._filename:
-                self.handler = logging.FileHandler(self._filename)
-            else:
-                self.handler = None
-            if self.handler:
-                logging.getLogger().addHandler(self.handler)
-                self.handler.setFormatter(logging.Formatter(self.format,
-                                                            '%H:%M:%S'))
-
-    def _shutdown_handler(self):
-        if self.handler:
-            logging.getLogger().removeHandler(self.handler)
-            self.handler = None
-
-    @property
-    def level(self):
-        '''Log level for output to the terminal. Any of
-        [ DEBUG, INFO, WARN, ERROR, OFF ]
-        '''
-        return self.handler.level if self.handler else CplLogger.OFF
-
-    @level.setter
-    def level(self, level):
-        if level == CplLogger.OFF:
-            self._shutdown_handler()
-        else:
-            self._init_handler()
-            logging.getLogger().setLevel(logging.DEBUG)
-            if self.handler:
-                self.handler.setLevel(level)
-
-    @property
-    def format(self):
-        '''Output format. 
-
-        See `logging.LogRecord attributes <http://docs.python.org/library/logging.html#logrecord-attributes>`_ for a usable key mappings.'''
-        return self._format
-
-    @format.setter
-    def format(self, fmt):
-        if fmt == None:
-            fmt = '%(asctime)s ' if self._time else ''
-            fmt += '[%(levelname)7s]'
-            fmt += '[%(threadName)s] ' if self._threadid else ' '
-            fmt += '%(name)s: ' if self._component else ''
-            fmt += '%(message)s'
-        if self.handler:
-            self.handler.setFormatter(logging.Formatter(fmt, '%H:%M:%S'))
-        self._format = fmt
-
-    @property
-    def component(self):
-        '''If True, attach the component name to output messages.
-        '''
-        return self._component
-
-    @component.setter
-    def component(self, enable):
-        self._component = enable
-        self.format = None
-
-    @property
-    def time(self):
-        '''If True, attach a time tag to output messages.
-        '''
-        return self._time
-    
-    @time.setter
-    def time(self, enable):
-        self._time = enable
-        self.format = None
-
-    @property
-    def threadid(self):
-        '''If True, attach a thread tag to output messages.
-        '''
-        return self._threadid
-    
-    @threadid.setter
-    def threadid(self, enable):
-        self._threadid = enable
-        self.format = None
-
-    @property
-    def filename(self):
-        '''Log file name.
-        '''
-        return self._filename
-
-    @filename.setter
-    def filename(self, name):
-        if self._msg:
-            raise AttributeError('Cannot set file name of message output')
-        if self._filename != name:
-            self._shutdown_handler()
-            self._filename = name
-            self._init_handler()
-
-cpl_verbosity = [ logging.DEBUG, logging.INFO, logging.WARN,
-                  logging.ERROR, CplLogger.OFF ]
-
-msg = CplLogger(msg = True)
-log = CplLogger(msg = False)
-log.threadid = True
-log.component = True
-log.time = True
-log.level = log.INFO

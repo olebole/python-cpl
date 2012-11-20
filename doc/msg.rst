@@ -57,6 +57,10 @@ additionally to the other messages.
    this case the :class:`cpl.Recipe.__call__()` parameter ``loglevel`` may be
    used.
 
+.. seealso :: :data:`cpl.esorex.msg` and :data:`cpl.esorex.log`
+
+   EsoRex like convienience logging.
+
 Log message lists
 -----------------
 
@@ -75,68 +79,3 @@ the :class:`list` of all log messages.
    .. autoattribute:: cpl.logger.LogList.debug
 
 
-Terminal messages
------------------
-
-.. data:: cpl.msg
-
-This variable is a :class:`CplLogger` instance and provides a convienience
-stream handler similar to the terminal logging functionality of the CPL. It
-basically does the same as::
-
-  import logging
-
-  log = logging.getLogger()
-  log.setLevel(logging.INFO)
-  ch = logging.StreamHandler()
-  ch.setLevel(logging.INFO)
-  ch.setFormatter(logging.Formatter('[%(levelname)7s] %(message)s'))
-  log.addHandler(ch)
-
-The following attributes control the format of the terminal messages:
-
-   .. currentclass: cpl.logger.CplLogger
-
-   .. autoattribute:: cpl.logger.CplLogger.level
-
-   .. autoattribute:: cpl.logger.CplLogger.format
-
-   .. autoattribute:: cpl.logger.CplLogger.time
-
-   .. autoattribute:: cpl.logger.CplLogger.component
-
-   .. autoattribute:: cpl.logger.CplLogger.threadid
-
-Predefined log file
--------------------
-
-.. data:: cpl.log
-
-This variable is a :class:`CplLogger` instance and provides a convienience
-file handler similar to the file logging functionality of the CPL. It
-basically does the same as::
-  
-  import logging
-
-  log = logging.getLogger()
-  log.setLevel(logging.INFO)
-  ch = logging.FileHandler(filename)
-  ch.setLevel(logging.INFO)
-  ch.setFormatter(logging.Formatter('%(asctime)s [%(levelname)7s] %(funcName)s: %(message)s'))
-  log.addHandler(ch)
-
-The following attributes control the format of the log file messages:
-
-   .. currentclass: cpl.logger.CplLogger
-
-   .. autoattribute:: cpl.logger.CplLogger.filename
-
-   .. autoattribute:: cpl.logger.CplLogger.level
-
-   .. autoattribute:: cpl.logger.CplLogger.format
-
-   .. autoattribute:: cpl.logger.CplLogger.time
-
-   .. autoattribute:: cpl.logger.CplLogger.component
-
-   .. autoattribute:: cpl.logger.CplLogger.threadid

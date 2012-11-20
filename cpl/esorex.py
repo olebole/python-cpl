@@ -8,6 +8,7 @@ details.
 
 import os
 import cpl
+import logging
 
 def load_sof(source):
     '''Read an esorex sof file. 
@@ -29,7 +30,7 @@ def load_sof(source):
     .. note::
 
       The raw data frame is silently ignored wenn setting
-      :attr:`cpl.Recipe.calib` for MUSE recipes. Other recipes ignore ths raw
+      :attr:`cpl.Recipe.calib` for MUSE recipes. Other recipes ignore the raw
       data frame only if it was set manually as :attr:`cpl.Recipe.tag` or in
       :attr:`cpl.Recipe.tags` since there is no way to automatically
       distinguish between them.
@@ -95,7 +96,7 @@ def load_rc(source = None):
                          source.__class__.__name__)
 
 def init(source = None):
-    '''Set the message verbosity and recipe search path from the
+    '''Set up the logging and the recipe search path from the
     :file:`esorex.rc` file.
 
     :param source: Configuration file object, or string with file content. 
@@ -107,5 +108,146 @@ def init(source = None):
     if rc.has_key('esorex.caller.recipe-dir'):
         cpl.Recipe.path = rc['esorex.caller.recipe-dir'].split(':')
     if rc.has_key('esorex.caller.msg-level'):
-        cpl.msg.level = cpl.logger.level[rc['esorex.caller.msg-level'].upper()]
+        msg.level = rc['esorex.caller.msg-level']
+    if rc.has_key('esorex.caller.log-level'):
+        log.level = rc['esorex.caller.log-level']
+    if rc.has_key('esorex.caller.log-dir'):
+        log.dir = rc['esorex.caller.log-dir']
+    if rc.has_key('esorex.caller.log-file'):
+        log.filename = rc['esorex.caller.log-file']
 
+class CplLogger(object):
+    DEBUG = logging.DEBUG
+    INFO = logging.INFO
+    WARN = logging.WARN
+    ERROR = logging.ERROR
+    OFF = logging.CRITICAL + 1
+
+    def __init__(self, msg = True):
+        self.handler = None
+        self._component = False
+        self._time = False
+        self._threadid = False
+        self.format = None
+        self._filename = None
+        self.dir = None
+        self._msg = msg
+        self._level = CplLogger.OFF
+
+    def _init_handler(self):
+        if not self.handler:
+            if self._msg:
+                self.handler = logging.StreamHandler()
+            elif self._filename:
+                if self.dir:
+                    fname = os.path.join(self.dir, self._filename)
+                    self.handler = logging.FileHandler(fname)
+                else:
+                    self.handler = logging.FileHandler(self._filename)
+            else:
+                self.handler = None
+            if self.handler:
+                logging.getLogger().addHandler(self.handler)
+                self.handler.setFormatter(logging.Formatter(self.format,
+                                                            '%H:%M:%S'))
+
+    def _shutdown_handler(self):
+        if self.handler:
+            logging.getLogger().removeHandler(self.handler)
+            self.handler = None
+
+    @property
+    def level(self):
+        '''Log level for output to the terminal. Any of
+        [ DEBUG, INFO, WARN, ERROR, OFF ].
+        '''
+        return self._level
+
+    @level.setter
+    def level(self, level):
+        if isinstance(level, (str, unicode)):
+            level = cpl.logger.level[level.upper()]
+        if level == CplLogger.OFF:
+            self._shutdown_handler()
+        else:
+            self._init_handler()
+            logging.getLogger().setLevel(logging.DEBUG)
+            if self.handler:
+                self.handler.setLevel(level)
+        self._level = level
+
+    @property
+    def format(self):
+        '''Output format. 
+
+        .. seealso :: `logging.LogRecord attributes <http://docs.python.org/library/logging.html#logrecord-attributes>`_ 
+
+           Key mappings in the logging output.'''
+        return self._format
+
+    @format.setter
+    def format(self, fmt):
+        if fmt == None:
+            fmt = '%(asctime)s ' if self._time else ''
+            fmt += '[%(levelname)7s]'
+            fmt += '[%(threadName)s] ' if self._threadid else ' '
+            fmt += '%(name)s: ' if self._component else ''
+            fmt += '%(message)s'
+        if self.handler:
+            self.handler.setFormatter(logging.Formatter(fmt, '%H:%M:%S'))
+        self._format = fmt
+
+    @property
+    def component(self):
+        '''If :obj:`True`, attach the component name to output messages.
+        '''
+        return self._component
+
+    @component.setter
+    def component(self, enable):
+        self._component = enable
+        self.format = None
+
+    @property
+    def time(self):
+        '''If :obj:`True`, attach a time tag to output messages.
+        '''
+        return self._time
+
+    @time.setter
+    def time(self, enable):
+        self._time = enable
+        self.format = None
+
+    @property
+    def threadid(self):
+        '''If :obj:`True`, attach a thread tag to output messages.
+        '''
+        return self._threadid
+
+    @threadid.setter
+    def threadid(self, enable):
+        self._threadid = enable
+        self.format = None
+
+    @property
+    def filename(self):
+        '''Log file name.
+        '''
+        return self._filename
+
+    @filename.setter
+    def filename(self, name):
+        if self._msg:
+            raise AttributeError('Cannot set file name of message output')
+        if self._filename != name:
+            self._shutdown_handler()
+            self._filename = name
+            self._init_handler()
+
+msg = CplLogger(msg = True)
+log = CplLogger(msg = False)
+log.threadid = True
+log.component = True
+log.time = True
+log.level = log.INFO

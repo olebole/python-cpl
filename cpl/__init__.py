@@ -11,7 +11,6 @@ from recipe import Recipe
 from param import Parameter
 from frames import FrameConfig
 from result import Result, CplError, RecipeCrash
-from logger import msg,log
 import dfs
 import esorex
 
