@@ -16,8 +16,8 @@
 #if CPL_VERSION_CODE < CPL_VERSION(6,0,0)
 #error CPL version too old. Minimum required version is 6.0.0.
 #endif
-#if CPL_VERSION_CODE > CPL_VERSION(6,1,1)
-#warning Newer CPL version: check API compability with 6.1.1 at http://upstream-tracker.org/versions/cpl.html
+#if CPL_VERSION_CODE > CPL_VERSION(6,2,0)
+#warning Newer CPL version: check API compability with 6.2.0 at http://upstream-tracker.org/versions/cpl.html
 #endif
 
 extern unsigned long supported_versions[];

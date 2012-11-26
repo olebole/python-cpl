@@ -4,6 +4,7 @@
 #include "CPL_library.h"
 
 unsigned long supported_versions[] = {
+    CPL_VERSION(6,2,0),
     CPL_VERSION(6,1,1),
     CPL_VERSION(6,0,1),
     CPL_VERSION(6,0,0),
@@ -185,7 +186,7 @@ cpl_library_t *create_library(const char *fname) {
        http://upstream-tracker.org/compat_reports/cpl/5.3.1_to_6.0/abi_compat_report.html#Medium_Risk_Problems
        for these changes; the numbers were taken from there. According to
        upstream-tracker, this seems to be the only relevant API change between
-       4.0.0 and 6.1.1.
+       4.0.0 and 6.2.0.
 
        Also the cpl_size is newly introduced (former it was int), in
 
