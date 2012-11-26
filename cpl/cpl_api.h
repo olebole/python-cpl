@@ -40,7 +40,7 @@
 
 typedef int cpl_error_code, cpl_errorstate, cpl_boolean, cpl_frame_group,
     cpl_parameter_mode, cpl_parameter_class, cpl_type, cpl_msg_severity;
-typedef size_t cpl_size;
+typedef long long cpl_size;
 typedef void cpl_pluginlist, cpl_frameset, cpl_frame, 
     cpl_parameter, cpl_parameterlist, cpl_recipeconfig;
 
