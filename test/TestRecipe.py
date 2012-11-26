@@ -419,25 +419,6 @@ class RecipeExec(RecipeTestCase):
         self.recipe.tag = 'some_unknown_tag'
         self.assertRaises(cpl.CplError, self.recipe, self.raw_frame)
 
-    def _test_corrupted(self):
-        '''Handling of recipe crashes because of corrupted memory'''
-        self.recipe.param.crashing = 'free'
-        self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
-
-    def _test_segfault(self):
-        '''Handling of recipe crashes because of segmentation fault'''
-        self.recipe.param.crashing = 'segfault'
-        self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
-
-    def test_cleanup_after_crash(self):
-        '''Test that a second run after a crash will succeed'''
-        output_dir = os.path.join(self.temp_dir, 'out')
-        self.recipe.output_dir = output_dir
-        self.recipe.param.crashing = 'segfault'
-        self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
-        del self.recipe.param.crashing 
-        self.recipe(self.raw_frame)
-
     def test_parallel(self):
         '''Parallel execution'''
         results = list()
@@ -491,6 +472,26 @@ class RecipeExec(RecipeTestCase):
         self.assertNotEqual(md5sum, 'Not computed')
         self.assertEqual(len(md5sum), 
                          len('9d123996fa9a7bda315d07e063043454'))
+
+class RecipeCrashing(RecipeTestCase):
+    def test_corrupted(self):
+        '''Handling of recipe crashes because of corrupted memory'''
+        self.recipe.param.crashing = 'free'
+        self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
+
+    def test_segfault(self):
+        '''Handling of recipe crashes because of segmentation fault'''
+        self.recipe.param.crashing = 'segfault'
+        self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
+
+    def test_cleanup_after_crash(self):
+        '''Test that a second run after a crash will succeed'''
+        output_dir = os.path.join(self.temp_dir, 'out')
+        self.recipe.output_dir = output_dir
+        self.recipe.param.crashing = 'segfault'
+        self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
+        del self.recipe.param.crashing
+        self.recipe(self.raw_frame)
 
 class RecipeRes(RecipeTestCase):
     def setUp(self):
