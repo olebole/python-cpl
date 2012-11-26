@@ -5,9 +5,11 @@ author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
 cpl_version = '0.4'
-description = open('README').read().splitlines()
-long_description = "\n".join(description[2:])
-description = description[0]
+with open('README') as readme:
+    description = readme.read().splitlines()
+    long_description = "\n".join(description[2:])
+    description = description[0]
+
 doc = '%s\n%s' % (description, 
                   long_description[:long_description.find('Build instructions')])
 pkgname = 'python-cpl'
