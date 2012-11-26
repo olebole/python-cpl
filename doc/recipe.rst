@@ -8,19 +8,9 @@ The Recipe interface
 Static members
 --------------
 
-.. attribute:: Recipe.path
-
-   Search path for the recipes. It may be set to either a string, or to a
-   list of strings. All shared libraries in the search path and their
-   subdirectories are searched for CPL recipes. On default, the path is
-   set to the current directory.
-
-   The search path is automatically set to the esorex path when
-   :func:`cpl.esorex.init()` is called.
-
-.. automethod:: Recipe.list
-
-.. automethod:: Recipe.set_maxthreads
+.. autoattribute:: Recipe.path
+.. automethod:: Recipe.list()
+.. automethod:: Recipe.set_maxthreads(n)
 
 Constructor
 -----------
@@ -34,64 +24,49 @@ These attributes and methods are available for all recipes.
 
 .. attribute:: Recipe.__name__
 
-   Recipe name
+   Recipe name.
 
-.. attribute:: Recipe.__file__
+.. autoinstanceattribute:: Recipe.__file__
 
    Shared library file name.
 
 .. autoattribute:: Recipe.__author__
-
 .. autoattribute:: Recipe.__email__
-
 .. autoattribute:: Recipe.__copyright__
-
 .. autoattribute:: Recipe.description
-
 .. autoattribute:: Recipe.version
-
 .. autoattribute:: Recipe.cpl_version
-
 .. autoattribute:: Recipe.cpl_description
-
 .. attribute:: Recipe.output_dir
 
-   Output directory if specified, or :obj:`None`. The recipe will write
-   the output files into this directory and return their file names. If the
+   Output directory if specified, or :obj:`None`. The recipe will write the
+   output files into this directory and return their file names. If the
    directory does not exist, it will be created before the recipe is
    executed. Output files within the output directory will be silently
-   overwritten. If no output directory is set, the recipe call will
-   result in :class:`pyfits.HDUList` result objects. The output directory may
-   be also set as parameter in the recipe call. 
+   overwritten. If no output directory is set, the recipe call will result in
+   :class:`pyfits.HDUList` result objects. The output directory may be also
+   set as parameter in the recipe call.
 
 .. attribute:: Recipe.temp_dir
 
-   Base directory for temporary directories where the recipe is
-   executed. The working dir is created as a subdir with a random file
-   name. If set to :obj:`None`, the system temp dir is used. 
-   Defaults to :literal:`'.'`. 
+   Base directory for temporary directories where the recipe is executed. The
+   working dir is created as a subdir with a random file name. If set to
+   :obj:`None`, the system temp dir is used.  Defaults to :literal:`'.'`.
 
 .. attribute:: Recipe.threaded
 
-   Specify whether the recipe should be executed synchroniously or as an
-   extra process in the background.
+   Specify whether the recipe should be executed synchroniously or as
+   an extra process in the background.
 
    .. seealso:: :ref:`parallel`
 
-.. attribute:: Recipe.tag
-
-   Default tag when the recipe is called. This is set automatically only
-   if the recipe provided the information about input tags. Otherwise
-   this tag has to be set manually.
-
+.. autoattribute:: Recipe.tag
 .. autoattribute:: Recipe.tags
-
 .. autoattribute:: Recipe.output
+.. attribute:: Recipe.memory_dump
 
-.. attribute:: memory_dump
-
-   If set to 1, a memory dump is issued to stdout if the memory was not
-   totally freed after the execution. If set to 2, the dump is always
+   If set to 1, a memory dump is issued to stdout if the memory was
+   not totally freed after the execution. If set to 2, the dump is always
    issued. Standard is 0: nothing dumped.
 
 Recipe parameters
@@ -134,12 +109,12 @@ influence on the environment of the framework itself.
    (like :envvar:`MALLOC_CHECK_`), changing or deleting them will have
    no effect.
 
-.. attribute:: Recipe.env
+.. autoinstanceattribute:: Recipe.env
 
-   Environment changes for the recipe. This is a :class:`dict` with the
-   name of the environment variable as the key and the content as the value.
-   It is possible to overwrite a specific environment variable. Specifying
-   :obj:`None` as value will remove the variable::
+   Environment changes for the recipe. This is a :class:`dict` with
+   the name of the environment variable as the key and the content as the
+   value.  It is possible to overwrite a specific environment
+   variable. Specifying :obj:`None` as value will remove the variable::
 
      >>> muse_flat.env['MUSE_RESAMPLE_LAMBDA_LOG'] = '1'
      >>> muse_flat.env['MUSE_TIMA_FILENAME'] = 'tima.fits'

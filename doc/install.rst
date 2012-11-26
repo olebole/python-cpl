@@ -47,7 +47,9 @@ path, add the directory :file:`{PREFIX}/lib/python2.7/site-packages/`
 variable :envvar:`PYTHONPATH` where where :file:`{PREFIX}` is the installation
 path for the package.
 
-In the source directory of cpl-python, run::
+In the source directory of cpl-python, run
+
+.. code-block:: sh
 
   python setup.py install --prefix=PREFIX
 
@@ -59,7 +61,9 @@ Test suite
 
 The test suite can be downloaded as tar file `python-cpl-test-0.4.tar.gz <http://www.aip.de/~oles/python-cpl/python-cpl-test-0.4.tar.gz>`_.
 There are a number of tests defined in :file:`test/TestRecipe.py`. To run
-them, you need first to compile the recipe in :file:`test/iiinstrumentp/`::
+them, you need first to compile the recipe in :file:`test/iiinstrumentp/`
+
+.. code-block:: sh
 
   cd test/iiinstrumentp/
   ./bootstrap

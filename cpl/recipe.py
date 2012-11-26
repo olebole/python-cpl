@@ -29,6 +29,14 @@ class Recipe(object):
     '''
 
     path = [ '.' ]
+    '''Search path for the recipes. It may be set to either a string, or to a
+    list of strings. All shared libraries in the search path and their
+    subdirectories are searched for CPL recipes. On default, the path is
+    set to the current directory.
+
+    The search path is automatically set to the esorex path when
+    :func:`cpl.esorex.init()` is called.
+    '''
 
     def __init__(self, name, filename = None, version = None, threaded = False):
         '''Try to load a recipe with the specified name in the directory
@@ -54,12 +62,16 @@ class Recipe(object):
         '''
         self._recipe = None
         self.__name__ = name
+        '''Recipe name.'''
+
         if not filename:
             filename = Recipe.get_recipefilename(name, version)
             if not filename:
                 raise IOError('Recipe %s not found at path %s' 
                               % (`name`, `Recipe.path`))
         self.__file__ = filename
+        '''Shared library file name.'''
+
         self._recipe = CPL_recipe.recipe(filename, name)
         if version and version not in self.version:
             raise IOError('wrong version %s (requested %s) for %s in %s' %
@@ -69,13 +81,31 @@ class Recipe(object):
                  self._recipe.version()[1], filename)
         self._param = ParameterList(self)
         self._calib = FrameList(self)
+
         self.env = dict()
+        '''Bla'''
+
         self._tags = None
+
         self.tag = self.tags[0] if self.tags else None
+        '''Default tag when the recipe is called. This is set automatically
+        only if the recipe provided the information about input
+        tags. Otherwise this tag has to be set manually.
+        '''
+
         self.output_dir = None
+
         self.temp_dir = '.'
+        '''Base directory for temporary directories where the recipe is
+        executed. The working dir is created as a subdir with a random file
+        name. If set to :obj:`None`, the system temp dir is used.  Defaults to
+        :literal:`'.'`.
+        '''
+
         self.memory_dump = 0
+
         self.threaded = threaded
+
         self.__doc__ = self._doc()
 
     @property

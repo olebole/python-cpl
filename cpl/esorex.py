@@ -1,9 +1,5 @@
-'''This module contains some limited support for reading esorex SOF and
-configuration files.
-
-Esorex is a standard execution environment for CPL recipes provided by
-ESO. See http://www.eso.org/sci/software/cpl/esorex.html for
-details.
+'''`EsoRex <http://www.eso.org/sci/software/cpl/esorex.html>`_ is a standard
+execution environment for CPL recipes provided by `ESO <http://www.eso.org>`_.
 '''
 
 import os
@@ -11,9 +7,10 @@ import cpl
 import logging
 
 def load_sof(source):
-    '''Read an esorex sof file. 
+    '''Read an :program:`EsoRex` SOF file.
 
-    :param source: SOF file object or string with sof file content.
+    :param source: SOF ("Set Of Files") file object or string with SOF
+        file content.
     :type source: :class:`str` or :class:`file`
 
     These files contain the raw and calibration files for a recipe.  The
@@ -58,16 +55,16 @@ def load_sof(source):
                          source.__class__.__name__)
 
 def load_rc(source = None):
-    '''Read an esorex configuration file.
+    '''Read an :program:`EsoRex` configuration file.
 
     :param source: Configuration file object, or string with file content. 
-                   If not set, the esorex config file
+                   If not set, the :program:`EsoRex` config file
                    :file:`~/.esorex/esorex.rc` is used.
     :type source: :class:`str` or :class:`file`
 
-    These files contain configuration parameters for esorex or recipes. The
-    content of the file is returned as a map with the (full) parameter name as
-    key and its setting as string value.
+    These files contain configuration parameters for :program:`EsoRex` or
+    recipes. The content of the file is returned as a map with the (full)
+    parameter name as key and its setting as string value.
 
     The result of this function may directly set as :attr:`cpl.Recipe.param`
     attribute::
@@ -245,8 +242,38 @@ class CplLogger(object):
             self._filename = name
             self._init_handler()
 
+    def __repr__(self):
+        return 'cpl.esorex.CplLogger(msg=%s)' % `self._msg`
+
 msg = CplLogger(msg = True)
+'''This variable is a :class:`CplLogger` instance that provides a convienience
+stream handler similar to the terminal logging functionality of the CPL. It
+basically does the same as::
+
+  import logging
+
+  log = logging.getLogger()
+  log.setLevel(logging.INFO)
+  ch = logging.StreamHandler()
+  ch.setLevel(logging.INFO)
+  ch.setFormatter(logging.Formatter('[%(levelname)7s] %(message)s'))
+  log.addHandler(ch)
+'''
+
 log = CplLogger(msg = False)
+'''This variable is a :class:`CplLogger` instance that provides a convienience
+file handler similar to the file logging functionality of the CPL. It
+basically does the same as::
+
+  import logging
+
+  log = logging.getLogger()
+  log.setLevel(logging.INFO)
+  ch = logging.FileHandler(filename)
+  ch.setLevel(logging.INFO)
+  ch.setFormatter(logging.Formatter('%(asctime)s [%(levelname)7s] %(funcName)s: %(message)s'))
+  log.addHandler(ch)
+'''
 log.threadid = True
 log.component = True
 log.time = True

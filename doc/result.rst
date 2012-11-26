@@ -135,7 +135,7 @@ Thread control
 
 CPL Exceptions
 --------------
-.. autoclass:: CplError
+.. autoexception:: CplError
 
-.. autoclass:: RecipeCrash
+.. autoexception:: RecipeCrash
 
