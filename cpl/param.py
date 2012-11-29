@@ -202,11 +202,7 @@ class ParameterList(object):
             del p.value
 
     def __str__(self):
-        r = ''
-        for s in self:
-            if s.value is not None:
-                r += ' --%s=%s' % (s.name, str(s.value))
-        return r
+        return dict(self).__str__()
     
     def __contains__(self, key):
         return key in self._dict
@@ -231,7 +227,7 @@ class ParameterList(object):
                         for d in self._dict.keys() if '.' not in d))
 
     def __repr__(self):
-        return `list(self)`
+        return `dict(self)`
 
     def __eq__(self, other):
         return dict(self) == other

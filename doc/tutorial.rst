@@ -81,7 +81,7 @@ explicitely specify the version number:
 
 List all parameters:
 
->>> print dict(muse_scibasic.param)
+>>> print muse_scibasic.param
 {'ybox': 40, 'passes': 2, 'resample': False, 'xbox': 15, 'dlambda': 1.25,
  'cr': 'none', 'thres': 5.8, 'nifu': 0, 'saveimage': True}
 
@@ -96,7 +96,7 @@ Print the value of a parameter (:obj:`None` if the parameter is set to default)
 
 List all calibration frames:
 
->>> print dict(muse_scibasic.calib)
+>>> print muse_scibasic.calib
 {'TRACE_TABLE': None, 'MASTER_SKYFLAT': None, 'WAVECAL_TABLE': None,
  'MASTER_BIAS': None, 'MASTER_DARK': None, 'GEOMETRY_TABLE': None,
  'BADPIX_TABLE': None, 'MASTER_FLAT': None, 'GAINRON_STAT': None}

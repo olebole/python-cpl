@@ -157,7 +157,10 @@ class FrameList(object):
         return self._dict.keys()
 
     def __repr__(self):
-        return `list(self)`
+        return `dict(self)`
+
+    def __str__(self):
+        return str(dict(self))
 
     def __eq__(self, other):
         return dict(self) == other
