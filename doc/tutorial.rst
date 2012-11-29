@@ -81,11 +81,9 @@ explicitely specify the version number:
 
 List all parameters:
 
->>> print muse_scibasic.param
-[Parameter('nifu', default=99), Parameter('cr', default=none), 
- Parameter('xbox', default=15), Parameter('ybox', default=40), 
- Parameter('passes', default=2), Parameter('thres', default=4.5), 
- Parameter('resample', default=False), Parameter('dlambda', default=1.25)]
+>>> print dict(muse_scibasic.param)
+{'ybox': 40, 'passes': 2, 'resample': False, 'xbox': 15, 'dlambda': 1.25,
+ 'cr': 'none', 'thres': 5.8, 'nifu': 0, 'saveimage': True}
 
 Set a parameter:
 
@@ -98,11 +96,10 @@ Print the value of a parameter (:obj:`None` if the parameter is set to default)
 
 List all calibration frames:
 
->>> print muse_scibasic.calib
-[FrameDef('TRACE_TABLE', value=None), FrameDef('WAVECAL_TABLE', value=None), 
- FrameDef('MASTER_BIAS', value=None), FrameDef('MASTER_DARK', value=None), 
- FrameDef('GEOMETRY_TABLE', value=None), FrameDef('BADPIX_TABLE', value=None), 
- FrameDef('MASTER_FLAT', value=None)]
+>>> print dict(muse_scibasic.calib)
+{'TRACE_TABLE': None, 'MASTER_SKYFLAT': None, 'WAVECAL_TABLE': None,
+ 'MASTER_BIAS': None, 'MASTER_DARK': None, 'GEOMETRY_TABLE': None,
+ 'BADPIX_TABLE': None, 'MASTER_FLAT': None, 'GAINRON_STAT': None}
 
 Set calibration frames with files:
 
@@ -160,5 +157,5 @@ output files are put into. This directory is cleaned up afterwards.
 To control message verbosity on terminal (use :literal:`'debug'`,
 :literal:`'info'`, :literal:`'warn'`, :literal:`'error'` or :literal:`'off'`):
 
->>> cpl.msg.level = 'debug'
+>>> cpl.msg.esorex.level = 'debug'
 
