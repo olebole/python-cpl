@@ -583,6 +583,23 @@ class RecipeEsorex(CplTestCase):
         self.assertTrue(log_msg in log_content)
         self.assertTrue('INFO' in log_content)
 
+    def test_esorex_log_off(self):
+        '''Switch the logfile off after writing something'''
+        dirname = os.path.join(self.temp_dir, 'log')
+        filename = 'python-cpl_off.log'
+        log_msg = 'Esorex convienence log'
+        os.mkdir(dirname)
+        cpl.esorex.log.dir = dirname
+        cpl.esorex.log.filename = 'python-cpl_debug.log'
+        cpl.esorex.log.level = 'debug'
+        logging.getLogger('cpl').debug(log_msg)
+        cpl.esorex.log.filename = filename
+        cpl.esorex.log.level = 'off'
+        logging.getLogger('cpl').debug(log_msg)
+        filename = os.path.join(dirname, filename)
+        log_content = open(filename).read()
+        self.assertEqual(len(log_content), 0)
+
 class RecipeLog(RecipeTestCase):
     def setUp(self):
         RecipeTestCase.setUp(self)
