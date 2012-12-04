@@ -145,6 +145,7 @@ class CplLogger(object):
                 self.handler = None
             if self.handler:
                 logging.getLogger().addHandler(self.handler)
+                self.handler.setLevel(self._level)
                 self.handler.setFormatter(logging.Formatter(self.format,
                                                             '%H:%M:%S'))
 
