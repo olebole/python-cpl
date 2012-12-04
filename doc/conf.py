@@ -174,7 +174,7 @@ latex_paper_size = 'a4'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'python-cpl.tex', u'Python bindings for CPL recipes',
+  ('index', 'python-cpl-%s.tex' % version, u'Python bindings for CPL recipes',
    u'Ole Streicher', 'manual'),
 ]
 
