@@ -13,7 +13,7 @@ with open('README') as readme:
 doc = '%s\n%s' % (description, 
                   long_description[:long_description.find('Build instructions')])
 pkgname = 'python-cpl'
-baseurl = 'http://www.aip.de/~oles/%s' % pkgname
+baseurl = 'http://packages.python.org/%s' % pkgname
 classifiers = '''Development Status :: 4 - Beta
 Intended Audience :: Science/Research
 License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)
