@@ -467,12 +467,15 @@ class Recipe(object):
     def _doc(self):
         s = '%s\n\n%s\n\n' % (self.description[0], self.description[1])
         
-        r = 'Parameters:\n' 
-        maxlen = max(len(p.name) for p in self.param)
-        for p in self.param:
-            r += ' %s: %s (default: %s)\n' % (
-                p.name.rjust(maxlen), p.__doc__, `p.default`)
-        r += '\n'
+        if len(self.param) > 0:
+            r = 'Parameters:\n'
+            maxlen = max(len(p.name) for p in self.param)
+            for p in self.param:
+                r += ' %s: %s (default: %s)\n' % (
+                    p.name.rjust(maxlen), p.__doc__, `p.default`)
+            r += '\n'
+        else:
+            r = 'No parameters\n'
         if self._recipe.frameConfig() is not None:
             c = 'Calibration frames: %s\n\n' % `[f.tag for f in self.calib]`
         else:
