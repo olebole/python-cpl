@@ -355,6 +355,22 @@ class RecipeExec(RecipeTestCase):
         hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
         self.assertTrue(isinstance(hdu, pyfits.HDUList))
 
+    def test_param_default(self):
+        '''Test default parameter settings'''
+        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
+        self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'],
+                         self.recipe.param.stropt.default or ' ')
+        self.assertEqual(res[0].header['HIERARCH ESO QC BOOLOPT'],
+                         self.recipe.param.boolopt.default)
+        self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'],
+                         self.recipe.param.intopt.default)
+        self.assertEqual(res[0].header['HIERARCH ESO QC FLOATOPT'],
+                         self.recipe.param.floatopt.default)
+        self.assertEqual(res[0].header['HIERARCH ESO QC ENUMOPT'],
+                         self.recipe.param.enumopt.default)
+        self.assertEqual(res[0].header['HIERARCH ESO QC RANGEOPT'],
+                         self.recipe.param.rangeopt.default)
+
     def test_param_keyword_dict(self):
         '''Parameter handling via keyword dict'''
         res = self.recipe(self.raw_frame, 

@@ -249,7 +249,8 @@ class ParameterList(object):
         l = list()
         for param in parlist:
             if isinstance(param, Parameter):
-                l.append((param.fullname, param.value))
+                if param.value is not None:
+                    l.append((param.fullname, param.value))
             else:
                 l += param._aslist(par)
         return l
