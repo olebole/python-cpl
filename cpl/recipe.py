@@ -581,12 +581,28 @@ class Threaded(threading.Thread):
             except Exception as exception:
                 self._exception = exception
 
-    def __getattr__(self, name):
+    @property
+    def _result(self):
         self.join()
         if self._exception is None:
-            return self._res.__dict__[name]
+            return self._res
         else:
             raise self._exception
+
+    def __getitem__(self, key):
+        return self._result[key]
+
+    def __contains__(self, key):
+        return key in self._result.tags
+
+    def __len__(self):
+        return len(self._result.tags)
+
+    def __iter__(self):
+        return self._result.__iter__()
+
+    def __getattr__(self, name):
+        return self._result.__dict__[name]
 
     @staticmethod
     def set_maxthreads(n):
