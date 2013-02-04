@@ -3,6 +3,7 @@ import shutil
 import tempfile
 import threading
 import collections
+import warnings
 
 import pyfits
 import CPL_recipe
@@ -77,8 +78,8 @@ class Recipe(object):
             raise IOError('wrong version %s (requested %s) for %s in %s' %
                           (str(self.version), str(version), name, filename))
         if not self._recipe.cpl_is_supported():
-            warn("Unsupported CPL version %s linked to %s" %
-                 self._recipe.version()[1], filename)
+            warnings.warn("Unsupported CPL version %s linked to %s" %
+                          (self.cpl_version, filename))
         self._param = ParameterList(self)
         self._calib = FrameList(self)
 
