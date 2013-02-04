@@ -358,8 +358,8 @@ class RecipeExec(RecipeTestCase):
     def test_param_default(self):
         '''Test default parameter settings'''
         res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
-        self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'],
-                         self.recipe.param.stropt.default or ' ')
+        self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'].strip(),
+                         self.recipe.param.stropt.default or '')
         self.assertEqual(res[0].header['HIERARCH ESO QC BOOLOPT'],
                          self.recipe.param.boolopt.default)
         self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'],
