@@ -3,7 +3,7 @@
 #define CPL_LIBRARY_H
 
 /* For the header, either the CPL one can be used, or the header that was
-   extracted from the 6.1.1 release. For API safety, it is better to include
+   extracted from the 6.3 release. For API safety, it is better to include
    the one provided with python-cpl. The other option is just for the adoption
    to a new CPL version.
    */
@@ -13,11 +13,11 @@
 #include "cpl_api.h"
 #endif
 
-#if CPL_VERSION_CODE < CPL_VERSION(6,0,0)
-#error CPL version too old. Minimum required version is 6.0.0.
+#if CPL_VERSION_CODE < CPL_VERSION(6,3,0)
+#error CPL version too old. Minimum required version is 6.3.0.
 #endif
-#if CPL_VERSION_CODE > CPL_VERSION(6,2,0)
-#warning Newer CPL version: check API compability with 6.2.0 at http://upstream-tracker.org/versions/cpl.html
+#if CPL_VERSION_CODE > CPL_VERSION(6,3,0)
+#warning Newer CPL version: check API compability with 6.3.0 at http://upstream-tracker.org/versions/cpl.html
 #endif
 
 extern unsigned long supported_versions[];

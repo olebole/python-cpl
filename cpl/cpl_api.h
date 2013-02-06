@@ -36,7 +36,7 @@
 #define CPL_VERSION_MINOR_CODE(code) (((code) >> 8) & 0xff)
 #define CPL_VERSION_MICRO_CODE(code) ((code) & 0xff)
 
-#define CPL_VERSION_CODE CPL_VERSION(6,1,1)
+#define CPL_VERSION_CODE CPL_VERSION(6,3,0)
 
 typedef int cpl_error_code, cpl_errorstate, cpl_boolean, cpl_frame_group,
     cpl_parameter_mode, cpl_parameter_class, cpl_type, cpl_msg_severity;
