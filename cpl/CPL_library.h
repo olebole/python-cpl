@@ -68,7 +68,7 @@ typedef struct {
     typeof(cpl_frame_set_filename) *frame_set_filename;
     typeof(cpl_frame_set_tag) *frame_set_tag;
     typeof(cpl_frameset_delete) *frameset_delete;
-    typeof(cpl_frameset_get_frame) *frameset_get_frame;
+    typeof(cpl_frameset_get_position) *frameset_get_position;
     typeof(cpl_frameset_get_size) *frameset_get_size;
     typeof(cpl_frameset_insert) *frameset_insert;
     typeof(cpl_frameset_new) *frameset_new;

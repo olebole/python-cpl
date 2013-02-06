@@ -4,6 +4,7 @@
 #include "CPL_library.h"
 
 unsigned long supported_versions[] = {
+    CPL_VERSION(6,3,0),
     CPL_VERSION(6,2,0),
     CPL_VERSION(6,1,1),
     CPL_VERSION(6,0,1),
@@ -65,6 +66,16 @@ cpl_library_t *create_library(const char *fname) {
     cpl_library_t *cpl = malloc(sizeof(cpl_library_t));
     cpl->init = init;
 
+    cpl->init(CPL_INIT_DEFAULT);
+
+    typeof(cpl_version_get_major) *get_major = dlsym(handle,
+						     "cpl_version_get_major");
+    typeof(cpl_version_get_minor) *get_minor = dlsym(handle,
+						     "cpl_version_get_minor");
+    typeof(cpl_version_get_micro) *get_micro = dlsym(handle,
+						     "cpl_version_get_micro");
+    cpl->version = CPL_VERSION(get_major(), get_minor(), get_micro());
+    cpl->version_get_version = dlsym(handle, "cpl_version_get_version");
     cpl->get_description = dlsym(handle, "cpl_get_description");
     cpl->memory_dump = dlsym(handle, "cpl_memory_dump");
     cpl->memory_is_empty = dlsym(handle, "cpl_memory_is_empty");
@@ -106,7 +117,11 @@ cpl_library_t *create_library(const char *fname) {
     cpl->frame_set_filename = dlsym(handle, "cpl_frame_set_filename");
     cpl->frame_set_tag = dlsym(handle, "cpl_frame_set_tag");
     cpl->frameset_delete = dlsym(handle, "cpl_frameset_delete");
-    cpl->frameset_get_frame = dlsym(handle, "cpl_frameset_get_frame");
+    if (cpl->version >= CPL_VERSION(6,3,0)) {
+	cpl->frameset_get_position = dlsym(handle, "cpl_frameset_get_position");
+    } else { // fallback variant: not threadsafe, deprecated after 6.2
+	cpl->frameset_get_position = dlsym(handle, "cpl_frameset_get_frame");
+    }
     cpl->frameset_get_size = dlsym(handle, "cpl_frameset_get_size");
     cpl->frameset_insert = dlsym(handle, "cpl_frameset_insert");
     cpl->frameset_new = dlsym(handle, "cpl_frameset_new");
@@ -149,7 +164,6 @@ cpl_library_t *create_library(const char *fname) {
     cpl->recipeconfig_get_min_count = dlsym(handle, "cpl_recipeconfig_get_min_count");
     cpl->recipeconfig_get_outputs = dlsym(handle, "cpl_recipeconfig_get_outputs");
     cpl->recipeconfig_get_tags = dlsym(handle, "cpl_recipeconfig_get_tags");
-    cpl->version_get_version = dlsym(handle, "cpl_version_get_version");
 
     error = dlerror();
     if (error != NULL) {
@@ -160,20 +174,10 @@ cpl_library_t *create_library(const char *fname) {
     cpl->get_recipeconfig = dlsym(handle, "muse_processing_get_recipeconfig");
     dlerror();
 
-    cpl->init(CPL_INIT_DEFAULT);
-
-    typeof(cpl_version_get_major) *get_major = dlsym(handle,
-						     "cpl_version_get_major");
-    typeof(cpl_version_get_minor) *get_minor = dlsym(handle,
-						     "cpl_version_get_minor");
-    typeof(cpl_version_get_micro) *get_micro = dlsym(handle,
-						     "cpl_version_get_micro");
     cpl->TYPE_BOOL = CPL_TYPE_BOOL;
     cpl->TYPE_INT = CPL_TYPE_INT;
     cpl->TYPE_DOUBLE = CPL_TYPE_DOUBLE;
     cpl->TYPE_STRING = CPL_TYPE_STRING;
-
-    cpl->version = CPL_VERSION(get_major(), get_minor(), get_micro());
 
     cpl->is_supported = 0;
     for (i = 0; supported_versions[i] != 0; i++) {

@@ -119,7 +119,7 @@ cpl_error_code cpl_frame_set_filename(cpl_frame *self, const char *filename);
 cpl_error_code cpl_frame_set_tag(cpl_frame *self, const char *tag);
 
 void cpl_frameset_delete(cpl_frameset *self);
-cpl_frame *cpl_frameset_get_frame(cpl_frameset *self, cpl_size position);
+cpl_frame *cpl_frameset_get_position(cpl_frameset *self, cpl_size position);
 cpl_size cpl_frameset_get_size(const cpl_frameset *self);
 cpl_error_code cpl_frameset_insert(cpl_frameset *self, cpl_frame *frame);
 cpl_frameset *cpl_frameset_new(void);

@@ -644,7 +644,7 @@ exec_serialize_retval(CPL_recipe *self, cpl_frameset *frames,
     serialized_cpl = NULL;
 
     for (i_frame = 0; i_frame < n_frames; i_frame++) {
-	cpl_frame *f = self->cpl->frameset_get_frame(frames, i_frame);
+	cpl_frame *f = self->cpl->frameset_get_position(frames, i_frame);
 	if (self->cpl->frame_get_group(f) != CPL_FRAME_GROUP_PRODUCT) {
 	    continue;
 	}
