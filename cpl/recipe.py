@@ -212,9 +212,9 @@ class Recipe(object):
         Using :class:`pyfits.HDUList` is useful when it needs to be patched
         before fed into the recipe. 
 
-        >>> master_bias = pyfits.open('master_bias_0.fits')
+        >>> master_bias = pyfits.open('MASTER_BIAS_0.fits')
         >>> master_bias[0].header['HIERARCH ESO DET CHIP1 OUT1 GAIN'] = 2.5
-        >>> muse_scibasic.calib.MASTER_BIAS = 'master_bias_0.fits'
+        >>> muse_scibasic.calib.MASTER_BIAS = master_bias
 
         Note that :class:`pyfits.HDUList` objects are stored in temporary
         files before the recipe is called which may produce some
