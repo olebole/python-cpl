@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import datetime
 import logging
 import os
@@ -6,7 +7,7 @@ import sys
 import tempfile
 import threading
 
-import CPL_recipe
+from . import CPL_recipe
 
 class NullHandler(logging.Handler):
     def emit(self, record):

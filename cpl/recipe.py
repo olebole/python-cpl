@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import shutil
 import tempfile
@@ -6,12 +7,12 @@ import collections
 import warnings
 
 import pyfits
-import CPL_recipe
-import esorex
-from frames import FrameList, mkabspath, expandframelist
-from result import Result, RecipeCrash
-from param import ParameterList
-from logger import LogServer
+from . import CPL_recipe
+from . import esorex
+from cpl.frames import FrameList, mkabspath, expandframelist
+from cpl.result import Result, RecipeCrash
+from cpl.param import ParameterList
+from cpl.logger import LogServer
 
 class Recipe(object):
     '''Pluggable Data Reduction Module (PDRM) from a ESO pipeline. 

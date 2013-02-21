@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 import os
 import tempfile
 import pyfits
 
-import md5sum
+from . import md5sum
 
 class FrameConfig(object):
     '''Frame configuration. 
