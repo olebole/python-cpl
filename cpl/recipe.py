@@ -521,8 +521,8 @@ class Recipe(object):
                         continue
                     if version in p[1:3]:
                         return f
-                    if rversion < p[2]:
-                        rversion = p[2]
+                    if rversion < p[1]:
+                        rversion = p[1]
                         filename = f
         return filename
 
