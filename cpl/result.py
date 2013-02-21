@@ -95,7 +95,7 @@ class Stat(object):
         self.sys_time = stat[2]
         self.memory_is_empty = { -1:None, 0:False, 1:True }[stat[3]]
 
-class CplError(StandardError):
+class CplError(Exception):
     '''Error message from the recipe.
 
     If the CPL recipe invocation returns an error, it is converted into a
@@ -174,7 +174,7 @@ class CplError(StandardError):
                                                         e.line) 
         return s
 
-class RecipeCrash(StandardError):
+class RecipeCrash(Exception):
     '''Recipe crash exception
 
     If the CPL recipe crashes with a SIGSEV or a SIGBUS, the C stack trace is
@@ -272,7 +272,7 @@ class RecipeCrash(StandardError):
                                                    e.line, e.func, e.params, 
                                                    e.localvars) 
                           for e in self.elements ]
-        StandardError.__init__(self, str(self))
+        Exception.__init__(self, str(self))
 
     def _add_variable(self, vars, line):
         s = line.strip().split('=', 1)
