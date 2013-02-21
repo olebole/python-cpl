@@ -286,6 +286,7 @@ class RecipeExec(RecipeTestCase):
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
         self.assertTrue(abs(self.raw_frame[0].data 
                             - res.THE_PRO_CATG_VALUE[0].data).max() == 0)
+        res.THE_PRO_CATG_VALUE.close()
 
     def test_frames_keyword_calib(self):
         '''Raw frame specified as keyword, calibration frame set in recipe'''
@@ -294,6 +295,7 @@ class RecipeExec(RecipeTestCase):
         res = self.recipe({'RRRECIPE_DOCATG_RAW':self.raw_frame})
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        res.THE_PRO_CATG_VALUE.close()
 
     def test_frames_tag_keyword(self):
         '''The 'tag' parameter'''
@@ -302,6 +304,7 @@ class RecipeExec(RecipeTestCase):
         res = self.recipe(self.raw_frame, tag = raw_tag)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        res.THE_PRO_CATG_VALUE.close()
 
     def test_frames_tag_attribute(self):
         '''The 'tag' attribute'''
@@ -309,6 +312,7 @@ class RecipeExec(RecipeTestCase):
         res = self.recipe(self.raw_frame)
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        res.THE_PRO_CATG_VALUE.close()
 
     def test_frames_one_element_input_list(self):
         '''Use 1-element list as input'''
@@ -317,6 +321,7 @@ class RecipeExec(RecipeTestCase):
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertFalse(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, list))
+        res.THE_PRO_CATG_VALUE[0].close()
 
     def test_frames_many_element_input_list(self):
         '''Use multiple files as input'''
@@ -325,6 +330,7 @@ class RecipeExec(RecipeTestCase):
         res = self.recipe([self.raw_frame, self.raw_frame])
         self.assertTrue(isinstance(res, cpl.Result))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        res.THE_PRO_CATG_VALUE.close()
 
     def test_output_dir_attribute(self):
         '''Write an output dir specified as attribute'''
@@ -339,6 +345,7 @@ class RecipeExec(RecipeTestCase):
         self.assertTrue(os.path.isfile(res.THE_PRO_CATG_VALUE))
         hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
         self.assertTrue(isinstance(hdu, pyfits.HDUList))
+        hdu.close()
 
     def test_output_dir_keyword(self):
         '''Write an output dir specified as call keyword arg'''
@@ -354,6 +361,7 @@ class RecipeExec(RecipeTestCase):
         self.assertTrue(os.path.isfile(res.THE_PRO_CATG_VALUE))
         hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
         self.assertTrue(isinstance(hdu, pyfits.HDUList))
+        hdu.close()
 
     def test_param_default(self):
         '''Test default parameter settings'''
@@ -370,12 +378,14 @@ class RecipeExec(RecipeTestCase):
                          self.recipe.param.enumopt.default)
         self.assertEqual(res[0].header['HIERARCH ESO QC RANGEOPT'],
                          self.recipe.param.rangeopt.default)
+        res.close()
 
     def test_param_keyword_dict(self):
         '''Parameter handling via keyword dict'''
         res = self.recipe(self.raw_frame, 
                           param = { 'stropt':'more' }).THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
+        res.close()
 
     def test_param_keyword_dict_wrong(self):
         '''Parameter handling via keyword dict'''
@@ -387,14 +397,17 @@ class RecipeExec(RecipeTestCase):
         self.recipe.param.stropt = 'more'
         res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
+        res.close()
 
     def test_param_delete(self):
         '''Delete a parameter in a second run after setting it'''
         self.recipe.param.intopt = 123
         res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
+        res.close()
         del self.recipe.param.intopt
         res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'], 2)
+        res.close()
 
     def test_param_overwrite(self):
         '''Overwrite the recipe setting param via via keyword arg'''
@@ -417,18 +430,21 @@ class RecipeExec(RecipeTestCase):
         self.assertEqual(res[0].header['HIERARCH ESO QC FLOATOPT'], -0.25)
         self.assertEqual(res[0].header['HIERARCH ESO QC ENUMOPT'], 'third')
         self.assertEqual(res[0].header['HIERARCH ESO QC RANGEOPT'], 0.125)
+        res.close()
         
     def test_environment_setting(self):
         '''Additional environment parameter via recipe setting'''
         self.recipe.env['TESTENV'] = 'unkk'
         res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC TESTENV'], 'unkk')
+        res.close()
 
     def test_environment_keyword(self):
         '''Additional environment parameter via recipe call keyword'''
         res = self.recipe(self.raw_frame, 
                           env = {'TESTENV':'kknu'}).THE_PRO_CATG_VALUE
         self.assertEqual(res[0].header['HIERARCH ESO QC TESTENV'], 'kknu')
+        res.close()
 
     def test_error(self):
         '''Error handling'''
@@ -459,6 +475,7 @@ class RecipeExec(RecipeTestCase):
             # check that the data were moved correctly
             self.assertTrue(abs(self.raw_frame[0].data 
                                 - res.THE_PRO_CATG_VALUE[0].data).max() < 1e-6)
+            res.THE_PRO_CATG_VALUE.close()
 
     def test_error_parallel(self):
         '''Error handling in parallel execution'''
@@ -474,6 +491,7 @@ class RecipeExec(RecipeTestCase):
         res = self.recipe(self.raw_frame)
         key = 'DATAMD5'
         md5sum = res.THE_PRO_CATG_VALUE[0].header[key]
+        res.THE_PRO_CATG_VALUE.close()
         self.assertNotEqual(md5sum, 'Not computed')
         self.assertEqual(len(md5sum), 
                          len('9d123996fa9a7bda315d07e063043454'))
@@ -485,6 +503,7 @@ class RecipeExec(RecipeTestCase):
         res = self.recipe(self.raw_frame)
         key = 'HIERARCH ESO PRO REC1 CAL1 DATAMD5'
         md5sum = res.THE_PRO_CATG_VALUE[0].header[key]
+        res.THE_PRO_CATG_VALUE.close()
         self.assertNotEqual(md5sum, 'Not computed')
         self.assertEqual(len(md5sum), 
                          len('9d123996fa9a7bda315d07e063043454'))
@@ -513,6 +532,9 @@ class RecipeRes(RecipeTestCase):
     def setUp(self):
         RecipeTestCase.setUp(self)
         self.res = self.recipe(self.raw_frame)
+
+    def tearDown(self):
+        self.res.THE_PRO_CATG_VALUE.close()
 
     def test_attribute(self):
         '''The result as an attribute'''
@@ -644,7 +666,8 @@ class RecipeLog(RecipeTestCase):
         '''Injection of CPL messages into the python logging system'''
         self.handler.clear()
         logging.getLogger().setLevel(logging.DEBUG)
-        self.recipe(self.raw_frame)
+        res = self.recipe(self.raw_frame)
+        res.THE_PRO_CATG_VALUE.close()
 
         # check that the logs are not empty
         self.assertNotEqual(len(self.handler.logs), 0)
@@ -667,7 +690,9 @@ class RecipeLog(RecipeTestCase):
         '''Filtering INFO messages'''
         self.handler.clear()
         logging.getLogger('cpl.rtest').setLevel(logging.INFO)
-        self.recipe(self.raw_frame)
+        res = self.recipe(self.raw_frame)
+        res.THE_PRO_CATG_VALUE.close()
+
         # check that the logs are not empty
         self.assertNotEqual(len(self.handler.logs), 0)
 
@@ -675,7 +700,9 @@ class RecipeLog(RecipeTestCase):
         '''Filtering WARN messages'''
         self.handler.clear()
         logging.getLogger('cpl.rtest').setLevel(logging.WARN)
-        self.recipe(self.raw_frame)
+        res = self.recipe(self.raw_frame)
+        res.THE_PRO_CATG_VALUE.close()
+
         # check that the logs are not empty
         self.assertNotEqual(len(self.handler.logs), 0)
 
@@ -684,21 +711,24 @@ class RecipeLog(RecipeTestCase):
         # There is no error msg written by the recipe, so it should be empty.
         self.handler.clear()
         logging.getLogger('cpl.rtest').setLevel(logging.ERROR)
-        self.recipe(self.raw_frame)
+        res = self.recipe(self.raw_frame)
+        res.THE_PRO_CATG_VALUE.close()
         self.assertEqual(len(self.handler.logs), 0)
 
     def test_logging_common(self):
         '''Log name specification on recipe call'''
         self.handler.clear()
         self.other_handler.clear()
-        self.recipe(self.raw_frame, logname = 'othername')
+        res = self.recipe(self.raw_frame, logname = 'othername')
+        res.THE_PRO_CATG_VALUE.close()
         self.assertNotEqual(len(self.other_handler.logs), 0)
 
     def test_logging_multiline(self):
         '''Multiple lines in messages'''
         self.handler.clear()
         logging.getLogger('cpl.rtest').setLevel(logging.INFO)
-        self.recipe(self.raw_frame)
+        res = self.recipe(self.raw_frame)
+        res.THE_PRO_CATG_VALUE.close()
         # check that the multi line log sequence appears
         multiline = 0
         tag = 'multiline#'
@@ -729,6 +759,7 @@ class RecipeLog(RecipeTestCase):
         self.assertTrue(isinstance(res.log.warning[0], str))
         # Check that there were no error messages
         self.assertEqual(len(res.log.error), 0)
+        res.THE_PRO_CATG_VALUE.close()
 
     def test_error(self):
         '''"log" attribute of the CplError object'''
@@ -768,6 +799,9 @@ class ProcessingInfo(RecipeTestCase):
                                                           self.image_size))])
         self.res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
         self.pinfo = cpl.dfs.ProcessingInfo(self.res)
+
+    def tearDown(self):
+        self.res.close()
 
     def test_param(self):
         '''Parameter information'''
