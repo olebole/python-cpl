@@ -15,6 +15,15 @@
 #define HAVE_MCHECK
 #endif
 
+/* Define PY_Type for Python <= 2.6 */
+#ifndef Py_TYPE
+    #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
+#endif
+#ifndef PyVarObject_HEAD_INIT
+    #define PyVarObject_HEAD_INIT(type, size) \
+        PyObject_HEAD_INIT(type) size,
+#endif
+
 #include "CPL_library.h"
 
 #define CPL_list_doc \
@@ -112,7 +121,7 @@ CPL_recipe_dealloc(CPL_recipe* self) {
     if (self->handle != NULL) {
 	dlclose(self->handle);
     }
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject *
@@ -252,13 +261,17 @@ getParameter(CPL_recipe *self, cpl_parameter *param) {
 	ptype = (PyObject *)&PyBool_Type;
 	deflt = (self->cpl->parameter_get_default_bool(param))?Py_True:Py_False;
     } else if (type == self->cpl->TYPE_INT) {
-	ptype = (PyObject *)&PyInt_Type;
+	ptype = (PyObject *)&PyLong_Type;
 	deflt = Py_BuildValue("i", self->cpl->parameter_get_default_int(param));
     } else if (type == self->cpl->TYPE_DOUBLE) {
 	ptype = (PyObject *)&PyFloat_Type;
 	deflt = Py_BuildValue("d", self->cpl->parameter_get_default_double(param));
     } else if (type == self->cpl->TYPE_STRING) {
+#if PY_MAJOR_VERSION < 3
 	ptype = (PyObject *)&PyString_Type;
+#else
+	ptype = (PyObject *)&PyUnicode_Type;
+#endif
 	deflt = Py_BuildValue("s", self->cpl->parameter_get_default_string(param));
     }
     Py_INCREF(deflt);
@@ -489,12 +502,18 @@ set_parameters(CPL_recipe *self, cpl_parameterlist *parameters, PyObject *parlis
 	}
 	cpl_type type = self->cpl->parameter_get_type(par);
 	if (type == self->cpl->TYPE_STRING) {
+#if PY_MAJOR_VERSION < 3
 	    if (PyString_Check(value)) {
 		self->cpl->parameter_set_string(par, PyString_AsString(value));
 	    }
+#else
+	    if (PyBytes_Check(value)) {
+		self->cpl->parameter_set_string(par, PyBytes_AsString(value));
+	    }
+#endif
 	} else if (type == self->cpl->TYPE_INT) {
-	    if (PyInt_Check(value)) {
-		self->cpl->parameter_set_int(par, PyInt_AsLong(value));
+	    if (PyLong_Check(value)) {
+		self->cpl->parameter_set_int(par, PyLong_AsLong(value));
 	    }
 	} else if (type == self->cpl->TYPE_DOUBLE) {
 	    if (PyFloat_Check(value)) {
@@ -519,9 +538,15 @@ set_environment(PyObject *runenv) {
 	if ((name == NULL) || (value == NULL)) {
 	    continue;
 	}
+#if PY_MAJOR_VERSION < 3
 	if (PyString_Check(value)) {
 	    setenv(name, PyString_AsString(value), 1);
 	}
+#else
+	if (PyBytes_Check(value)) {
+	    setenv(name, PyBytes_AsString(value), 1);
+	} 
+#endif
 	if (value == Py_None) {
 	    unsetenv(name);
 	}
@@ -865,8 +890,7 @@ static PyMethodDef CPL_recipe_methods[] = {
 };
 
 static PyTypeObject CPL_recipeType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
     "CPL_recipe.recipe",       /*tp_name*/
     sizeof(CPL_recipe),        /*tp_basicsize*/
     0,                         /*tp_itemsize*/
@@ -906,18 +930,42 @@ static PyTypeObject CPL_recipeType = {
     CPL_recipe_new,            /* tp_new */
 };
 
-#ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
-#define PyMODINIT_FUNC void
-#endif
 
+#if PY_MAJOR_VERSION >= 3
 PyMODINIT_FUNC
-initCPL_recipe(void)
-{
+PyInit_CPL_recipe(void) {
+    static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "CPL_recipe",        /* m_name */
+        NULL,                /* m_doc */
+        -1,                  /* m_size */
+        CPL_methods,         /* m_methods */
+        NULL,                /* m_reload */
+        NULL,                /* m_traverse */
+        NULL,                /* m_clear */
+        NULL,                /* m_free */
+    };
+
     CPL_recipeType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&CPL_recipeType) < 0)
-        return;
-    PyObject *m = Py_InitModule("CPL_recipe", CPL_methods);
+    if (PyType_Ready(&CPL_recipeType) < 0) {
+        return NULL;
+    }
+
+    PyObject *m = PyModule_Create(&moduledef);
+    Py_INCREF(&CPL_recipeType);
+    PyModule_AddObject(m, "recipe", (PyObject *)&CPL_recipeType);
+    return m;
+}
+#else
+PyMODINIT_FUNC
+initCPL_recipe(void) {
+    CPL_recipeType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&CPL_recipeType) < 0) {
+	return;
+    }
+
+    PyObject *m = Py_InitModule3("CPL_recipe", CPL_methods, NULL);
     Py_INCREF(&CPL_recipeType);
     PyModule_AddObject(m, "recipe", (PyObject *)&CPL_recipeType);
 }
-
+#endif
