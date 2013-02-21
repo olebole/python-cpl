@@ -455,7 +455,7 @@ class Recipe(object):
         try:
             bt = os.path.join(output_dir, 'recipe.backtrace-unprocessed')
             if os.path.exists(bt):
-                with file(bt) as bt_file:
+                with open(bt) as bt_file:
                     os.rename(bt, os.path.join(output_dir, 'recipe.backtrace'))
                     ex = RecipeCrash(bt_file)
                     ex.log(logger.logger)
