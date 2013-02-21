@@ -166,20 +166,20 @@ class ProcessingInfo(object):
                          (self.pipeline, self.name, self.version[1], 
                           self.cpl_version))
         scriptfile.write('%s = cpl.Recipe(%s, version = %s)\n' % 
-                         (self.name, `self.name`, `self.version[0]`))
+                         (self.name, repr(self.name), repr(self.version[0])))
         scriptfile.write('\n# Parameters:\n')
         for k,v in self.param.items():
-            scriptfile.write('%s.param.%s = %s\n' % (self.name, k, `v`))
+            scriptfile.write('%s.param.%s = %s\n' % (self.name, k, repr(v)))
         if self.calib:
             scriptfile.write('\n# Calibration frames:\n')
         for k,v in self.calib.items():
-            scriptfile.write('%s.calib.%s = %s\n' % (self.name, k, `v`))
+            scriptfile.write('%s.calib.%s = %s\n' % (self.name, k, repr(v)))
         scriptfile.write('\n# Process input frames:\n')
-        scriptfile.write('%s.tag = %s\n' % (self.name, `self.tag`))
-        scriptfile.write('res = %s(%s)\n' % (self.name, `self.raw`))
+        scriptfile.write('%s.tag = %s\n' % (self.name, repr(self.tag)))
+        scriptfile.write('res = %s(%s)\n' % (self.name, repr(self.raw)))
         scriptfile.write('%s = res.%s\n' % (self.product.lower(), self.product))
         scriptfile.write('%s.writeto(%s)\n' % (self.product.lower(), 
-                                               `self.orig_filename`))
+                                               repr(self.orig_filename)))
 
     def printinfo(self):
         print('Recipe: %s, Version %s, CPL version %s ' % (

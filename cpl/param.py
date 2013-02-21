@@ -101,14 +101,14 @@ class Parameter(object):
 
     def __str__(self):
         return '%s%s' % (
-            `self.value if self.value is not None else self.default`, 
+            repr(self.value if self.value is not None else self.default),
             ' (default)' if self.value is None else '')
 
     def __repr__(self):
         return 'Parameter(%s, %s=%s)' % (
-            `self.name`, 
+            repr(self.name),
             "value" if self.value is not None else "default",
-            `self.value if self.value is not None else self.default`)
+            repr(self.value if self.value is not None else self.default))
 
     def __getitem__(self,i):
         return (self.name, self.value or self.default)[i]
@@ -227,7 +227,7 @@ class ParameterList(object):
                         for d in self._dict.keys() if '.' not in d))
 
     def __repr__(self):
-        return `dict(self)`
+        return repr(dict(self))
 
     def __eq__(self, other):
         return dict(self) == other
@@ -239,7 +239,7 @@ class ParameterList(object):
         maxlen = max(len(p.name) for p in self.param)
         for p in self:
             r += ' %s: %s (default: %s)\n' % (
-                p.name.rjust(maxlen), p.__doc__, `p.default`)
+                p.name.rjust(maxlen), p.__doc__, repr(p.default))
         return r        
 
     def _aslist(self, par):

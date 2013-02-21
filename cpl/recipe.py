@@ -68,8 +68,8 @@ class Recipe(object):
         if not filename:
             filename = Recipe.get_recipefilename(name, version)
             if not filename:
-                raise IOError('Recipe %s not found at path %s' 
-                              % (`name`, `Recipe.path`))
+                raise IOError('Recipe %s not found at path %s'
+                              % (repr(name), repr(Recipe.path)))
         self.__file__ = filename
         '''Shared library file name.'''
 
@@ -179,7 +179,7 @@ class Recipe(object):
         if self.tags is None or t in self.tags:
             self._tag = t 
         else:
-            raise KeyError("Tag %s not in %s" % (`t`, str(self.tags)))
+            raise KeyError("Tag %s not in %s" % (repr(t), str(self.tags)))
 
     @property
     def calib(self):
@@ -473,25 +473,26 @@ class Recipe(object):
             maxlen = max(len(p.name) for p in self.param)
             for p in self.param:
                 r += ' %s: %s (default: %s)\n' % (
-                    p.name.rjust(maxlen), p.__doc__, `p.default`)
+                    p.name.rjust(maxlen), p.__doc__, repr(p.default))
             r += '\n'
         else:
             r = 'No parameters\n'
         if self._recipe.frameConfig() is not None:
-            c = 'Calibration frames: %s\n\n' % `[f.tag for f in self.calib]`
+            c = 'Calibration frames: %s\n\n' % repr([f.tag for f in self.calib])
         else:
             c = ''
         if self.tags is not None:
             t = 'Raw and product frames:\n'
             maxlen = max(len(f) for f in self.tags)
             for f in self.tags:
-                t += ' %s --> %s\n' % (f.rjust(maxlen), `self.output[f]`)
+                t += ' %s --> %s\n' % (f.rjust(maxlen), repr(self.output[f]))
         else:
             t = ''
         return s + r + c + t + '\n\n'
 
     def __repr__(self):
-        return 'Recipe(%s, version = %s)' % (`self.__name__`, `self.version[0]`)
+        return 'Recipe(%s, version = %s)' % (repr(self.__name__), 
+                                             repr(self.version[0]))
 
     @staticmethod
     def list():

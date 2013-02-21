@@ -244,7 +244,7 @@ class CplLogger(object):
             self._init_handler()
 
     def __repr__(self):
-        return 'cpl.esorex.CplLogger(msg=%s)' % `self._msg`
+        return 'cpl.esorex.CplLogger(msg=%s)' % repr(self._msg)
 
 msg = CplLogger(msg = True)
 '''This variable is a :class:`CplLogger` instance that provides a convienience
