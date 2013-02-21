@@ -41,15 +41,12 @@ class LogServer(threading.Thread):
 
     def run(self):
         try:
-            logfile = open(self.logfile, buffering = 0)
-        except:
-            pass
-        try:
-            line = logfile.readline()
-            os.remove(self.logfile)
-            while line:
-                self.log(line)
+            with open(self.logfile, 'rb', buffering = 0) as logfile:
                 line = logfile.readline()
+                os.remove(self.logfile)
+                while line:
+                    self.log(line)
+                    line = logfile.readline()
         except:
             pass
 
