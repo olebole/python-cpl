@@ -182,25 +182,25 @@ class ProcessingInfo(object):
                                                `self.orig_filename`))
 
     def printinfo(self):
-        print 'Recipe: %s, Version %s, CPL version %s ' % (
-            self.name, self.version, self.cpl_version)
-        print 'Parameters:'
+        print('Recipe: %s, Version %s, CPL version %s ' % (
+                self.name, self.version, self.cpl_version))
+        print('Parameters:')
         for k,v in self.param.items():
-            print ' %s.%s.%s = %s' % (self.pipeline, self.name, k, v)
+            print(' %s.%s.%s = %s' % (self.pipeline, self.name, k, v))
         if self.calib:
-            print 'Calibration frames:'
+            print('Calibration frames:')
         for k,v in self.calib.items():
             if isinstance(v, str):
-                print ' %s %s' % (v,k)
+                print(' %s %s' % (v,k))
             else:
                 for n in v:
-                    print ' %s %s' % (n,k)
-        print 'Input frames:'
+                    print(' %s %s' % (n,k))
+        print('Input frames:')
         if isinstance(self.raw, str):
-            print ' %s %s' % (self.raw, self.tag)
+            print(' %s %s' % (self.raw, self.tag))
         else:
             for n in self.raw:
-                print ' %s %s' % (n, self.tag)
+                print(' %s %s' % (n, self.tag))
 
 def _get_rec_keys(header, key, name, value, datapaths = None):
     '''Get a dictionary of key/value pairs from the DFS section of the
@@ -277,7 +277,7 @@ if __name__ == '__main__':
         'WAVECAL_TABLE':'result', 'PIXTABLE_OBJECT':'result', 
         }
     for arg in sys.argv[1:]:
-        print '---------------------' 
-        print 'file: %s' % arg
+        print('---------------------')
+        print('file: %s' % arg)
         pi = ProcessingInfo(arg, datapaths = datapaths)
         pi.printinfo()
