@@ -419,7 +419,7 @@ class Recipe(object):
         try:
             return Result(self._recipe.frameConfig(), output_dir,
                           self._recipe.run(output_dir, parlist, framelist,
-                                           runenv.items(), 
+                                           list(runenv.items()), 
                                            logger.logfile, logger.level,
                                            self.memory_dump),
                           input_len, logger, output_format)
@@ -449,7 +449,7 @@ class Recipe(object):
                 m[tag].append(f)
             else:
                 m[tag] = [ m[tag], f ]
-        return list(m.iteritems())
+        return list(m.items())
 
     def _cleanup(self, output_dir, logger, delete):
         try:

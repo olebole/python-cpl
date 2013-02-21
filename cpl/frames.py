@@ -120,7 +120,7 @@ class FrameList(object):
         return self._cpl_dict or self._values
 
     def __iter__(self):
-        return self._dict.itervalues()
+        return iter(self._dict.values())
 
     def __getitem__(self, key):
         return self._dict[key]
