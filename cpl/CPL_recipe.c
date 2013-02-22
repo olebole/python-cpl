@@ -715,7 +715,6 @@ static int segv_handler(int sig) {
   backtrace();
 
   signal(sig, SIG_DFL);
-  raise(sig);
   return retval;
 }
 
