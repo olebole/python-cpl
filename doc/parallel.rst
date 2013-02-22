@@ -66,3 +66,12 @@ started afterwards.
 
 If the recipe execution fails, the according exception will be raised whenever
 one of the results is accessed.
+
+.. note ::
+
+   Recipes may contain an internal parallelization using the `openMP
+   <http://openmp.org>`_ interface. Although it is recommended to leave them
+   untouched, they may be changed via environment variable settungs in the
+   :attr:`cpl.Recipe.env` attribute. See
+   http://gcc.gnu.org/onlinedocs/libgomp/Environment-Variables.html for a list
+   of environment variables.
