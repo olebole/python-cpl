@@ -134,7 +134,7 @@ class ProcessingInfo(object):
                 self.md5sums[self.calib[cat]] = md5
         raw = _get_rec_keys(header, 'RAW', 'CATG', 'NAME', datapaths)
         if raw:
-            self.tag = raw.keys()[0]
+            self.tag = list(raw.keys())[0]
             self.raw = raw[self.tag]
             md5 = _get_rec_keys(header, 'RAW', 'CATG', 'DATAMD5')[self.tag]
             if isinstance(md5, list):

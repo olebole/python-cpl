@@ -159,7 +159,7 @@ class ParameterList(object):
         if isinstance(other, self.__class__):
             l = ((o.name, o.value) for o in other)
         elif isinstance(other, dict):
-            l = other.iteritems()
+            l = other.items()
         else:
             l = other
         for o in l:

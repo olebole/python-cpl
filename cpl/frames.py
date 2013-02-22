@@ -89,7 +89,7 @@ class FrameList(object):
         if isinstance(other, self.__class__):
             self._set_items((o.tag, o.frames) for o in other)
         elif isinstance(other, dict):
-            self._set_items(other.iteritems())
+            self._set_items(other.items())
         elif other:
             self._set_items(other)
 
