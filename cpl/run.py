@@ -80,7 +80,7 @@ types = { bool:'string', str:'string', int:'int', float:'float' }
 if recipe:
     parser.add_option('--tag', action = 'callback',
                       type='str', help = 
-                      'Input file tag %s' % `recipe.tags`,
+                      'Input file tag %s' % repr(recipe.tags),
                       callback = tag_callback)
 
     group = OptionGroup(parser, 'Recipe parameters')
@@ -122,9 +122,9 @@ try:
     recipe(args[1:])
 except cpl.result.RecipeCrash as ex:
     log.exception(ex)
-    print `ex`
+    print(repr(ex))
 except cpl.result.CplError as ex:
     log.exception(ex)
-    print `ex`
+    print(repr(ex))
     
     
