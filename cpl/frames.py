@@ -64,7 +64,9 @@ class FrameConfig(object):
         return 'FrameDef(%s, frames=%s)' % (repr(self.tag), repr(self.frames))
 
     def _doc(self):
-        if self.max == 1:
+        if self.max is None or self.min is None:
+            r = ' one frame or list of frames'
+        elif self.max == 1:
             r = ' one frame'
         elif self.min > 1 and self.max > self.min:
             r = ' list of %i-%i frames' % (self.min, self.max)
