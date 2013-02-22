@@ -102,15 +102,15 @@ def init(source = None):
     '''
 
     rc = cpl.esorex.load_rc(source)
-    if rc.has_key('esorex.caller.recipe-dir'):
+    if 'esorex.caller.recipe-dir' in rc:
         cpl.Recipe.path = rc['esorex.caller.recipe-dir'].split(':')
-    if rc.has_key('esorex.caller.msg-level'):
+    if 'esorex.caller.msg-level' in rc:
         msg.level = rc['esorex.caller.msg-level']
-    if rc.has_key('esorex.caller.log-level'):
+    if 'esorex.caller.log-level' in rc:
         log.level = rc['esorex.caller.log-level']
-    if rc.has_key('esorex.caller.log-dir'):
+    if 'esorex.caller.log-dir' in rc:
         log.dir = rc['esorex.caller.log-dir']
-    if rc.has_key('esorex.caller.log-file'):
+    if 'esorex.caller.log-file' in rc:
         log.filename = rc['esorex.caller.log-file']
 
 class CplLogger(object):
@@ -163,7 +163,7 @@ class CplLogger(object):
 
     @level.setter
     def level(self, level):
-        if isinstance(level, (str, unicode)):
+        if isinstance(level, (str)):
             level = cpl.logger.level[level.upper()]
         if level == CplLogger.OFF:
             self._shutdown_handler()
