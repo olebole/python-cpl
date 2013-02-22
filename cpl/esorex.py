@@ -35,7 +35,7 @@ def load_sof(source):
     '''
     if isinstance(source, str):
         return load_sof(open(source) if os.path.exists(source) else source.split('\n'))
-    elif isinstance(source, (file, list)):
+    else:
         res = dict()
         for line in source:
             if not line or line.startswith('#'):
@@ -50,9 +50,6 @@ def load_sof(source):
             else:
                 res[key] = [ res[key], fn ]
         return res
-    else:
-        raise ValueError('Cannot assign type %s to framelist' % 
-                         source.__class__.__name__)
 
 def load_rc(source = None):
     '''Read an :program:`EsoRex` configuration file.
@@ -78,7 +75,7 @@ def load_rc(source = None):
         source = open(os.path.expanduser('~/.esorex/esorex.rc'))
     if isinstance(source, str):
         return load_rc(open(source) if os.path.exists(source) else source.split('\n'))
-    elif isinstance(source, (file, list)):
+    else:
         res = dict()
         for line in source:
             if not line or not line.strip() or line.startswith('#'):
@@ -88,9 +85,6 @@ def load_rc(source = None):
             if name and value:
                 res[name.strip()] = value.strip()
         return res
-    else:
-        raise ValueError('Cannot assign type %s to parameter list' % 
-                         source.__class__.__name__)
 
 def init(source = None):
     '''Set up the logging and the recipe search path from the
