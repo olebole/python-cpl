@@ -617,7 +617,9 @@ class RecipeEsorex(CplTestCase):
         filename = os.path.join(dirname, filename)
         logging.getLogger('cpl').info(log_msg)
         self.assertTrue(os.path.exists(filename))
-        log_content = open(filename).read()
+        logfile = open(filename)
+        log_content = logfile.read()
+        logfile.close()
         self.assertTrue(log_msg in log_content)
         self.assertTrue('INFO' in log_content)
 
@@ -635,7 +637,9 @@ class RecipeEsorex(CplTestCase):
         cpl.esorex.log.level = 'off'
         logging.getLogger('cpl').debug(log_msg)
         filename = os.path.join(dirname, filename)
-        log_content = open(filename).read()
+        logfile = open(filename)
+        log_content = logfile.read()
+        logfile.close()
         self.assertEqual(len(log_content), 0)
 
 class RecipeLog(RecipeTestCase):
