@@ -267,8 +267,8 @@ class RecipeCalib(RecipeTestCase):
         '''[TAB] completition. 
         This requires to have   the __dir__() method working.
         '''
-        self.assertEqual(self.recipe.calib.__dir__(), 
-                         [ f.tag for f in self.recipe.calib ])
+        self.assertEqual(set(self.recipe.calib.__dir__()),
+                         set(f.tag for f in self.recipe.calib))
 
 class RecipeExec(RecipeTestCase):
     def setUp(self):
