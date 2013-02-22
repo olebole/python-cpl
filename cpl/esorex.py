@@ -146,6 +146,7 @@ class CplLogger(object):
     def _shutdown_handler(self):
         if self.handler:
             logging.getLogger().removeHandler(self.handler)
+            self.handler.close()
             self.handler = None
 
     @property
