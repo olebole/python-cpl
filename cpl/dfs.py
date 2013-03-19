@@ -34,29 +34,33 @@ class ProcessingInfo(object):
     .. attribute:: calib
 
        Calibration frames from a FITS file processed with CPL.
-       The result of this function may directly set as :attr:`Recipe.calib`
+       The result of this function may directly set as :attr:`cpl.Recipe.calib`
        attribute::
     
          import cpl
          myrecipe = cpl.Recipe('muse_bias')
          myrecipe.calib = cpl.dfs.ProcessingInfo('MASTER_BIAS_0.fits').calib
 
-       .. note:: This will not work properly for files that had
-          :attr:`pyfits.HDUlist` inputs since they have assigned a temporary
+       .. note::
+
+          This will not work properly for files that had
+          :class:`pyfits.HDUList` inputs since they have assigned a temporary
           file name only.
 
     .. attribute:: raw
 
        Raw (input) frames
 
-       .. note:: This will not work properly for files that had
-          :attr:`pyfits.HDUlist` inputs since they have assigned a temporary
+       .. note::
+
+          This will not work properly for files that had
+          :class:`pyfits.HDUList` inputs since they have assigned a temporary
           file name only.
 
     .. attribute:: param
 
        Processing parameters.
-       The result of this function may directly set as :attr:`Recipe.param`
+       The result of this function may directly set as :attr:`cpl.Recipe.param`
        attribute::
     
          import cpl
@@ -73,17 +77,19 @@ class ProcessingInfo(object):
        MD5 sums of the input and calibration files. :class:`dict` with the
        file name as key and the corresponding MD5 sum as value.
 
-       .. note:: Due to a design decision in CPL, the raw input files are not
+       .. note::
+
+          Due to a design decision in CPL, the raw input files are not
           accompanied with the MD5 sum.
     '''
 
     def __init__(self, source, datapaths = None):
         '''
         :param source: Object pointing to the result file header
-        :type source: :class:`str` or :class:`PyFits.HDUList` 
-                      or :class:`PyFits.PrimaryHDU` or :class:`PyFits.Header` 
+        :type source: :class:`str` or :class:`pyfits.HDUList`
+                      or :class:`pyfits.PrimaryHDU` or :class:`pyfits.Header`
         :param datapaths: Dictionary with frame tags as keys and directory paths
-                        as values to provide a full path for the raw and 
+                        as values to provide a full path for the raw and
                         calibration frames. Optional.
         :type datapaths: :class:`dict`
         '''
@@ -128,7 +134,7 @@ class ProcessingInfo(object):
                 self.md5sums[self.calib[cat]] = md5
         raw = _get_rec_keys(header, 'RAW', 'CATG', 'NAME', datapaths)
         if raw:
-            self.tag = raw.keys()[0]
+            self.tag = list(raw.keys())[0]
             self.raw = raw[self.tag]
             md5 = _get_rec_keys(header, 'RAW', 'CATG', 'DATAMD5')[self.tag]
             if isinstance(md5, list):
@@ -160,41 +166,41 @@ class ProcessingInfo(object):
                          (self.pipeline, self.name, self.version[1], 
                           self.cpl_version))
         scriptfile.write('%s = cpl.Recipe(%s, version = %s)\n' % 
-                         (self.name, `self.name`, `self.version[0]`))
+                         (self.name, repr(self.name), repr(self.version[0])))
         scriptfile.write('\n# Parameters:\n')
         for k,v in self.param.items():
-            scriptfile.write('%s.param.%s = %s\n' % (self.name, k, `v`))
+            scriptfile.write('%s.param.%s = %s\n' % (self.name, k, repr(v)))
         if self.calib:
             scriptfile.write('\n# Calibration frames:\n')
         for k,v in self.calib.items():
-            scriptfile.write('%s.calib.%s = %s\n' % (self.name, k, `v`))
+            scriptfile.write('%s.calib.%s = %s\n' % (self.name, k, repr(v)))
         scriptfile.write('\n# Process input frames:\n')
-        scriptfile.write('%s.tag = %s\n' % (self.name, `self.tag`))
-        scriptfile.write('res = %s(%s)\n' % (self.name, `self.raw`))
+        scriptfile.write('%s.tag = %s\n' % (self.name, repr(self.tag)))
+        scriptfile.write('res = %s(%s)\n' % (self.name, repr(self.raw)))
         scriptfile.write('%s = res.%s\n' % (self.product.lower(), self.product))
         scriptfile.write('%s.writeto(%s)\n' % (self.product.lower(), 
-                                               `self.orig_filename`))
+                                               repr(self.orig_filename)))
 
     def printinfo(self):
-        print 'Recipe: %s, Version %s, CPL version %s ' % (
-            self.name, self.version, self.cpl_version)
-        print 'Parameters:'
+        print('Recipe: %s, Version %s, CPL version %s ' % (
+                self.name, self.version, self.cpl_version))
+        print('Parameters:')
         for k,v in self.param.items():
-            print ' %s.%s.%s = %s' % (self.pipeline, self.name, k, v)
+            print(' %s.%s.%s = %s' % (self.pipeline, self.name, k, v))
         if self.calib:
-            print 'Calibration frames:'
+            print('Calibration frames:')
         for k,v in self.calib.items():
             if isinstance(v, str):
-                print ' %s %s' % (v,k)
+                print(' %s %s' % (v,k))
             else:
                 for n in v:
-                    print ' %s %s' % (n,k)
-        print 'Input frames:'
+                    print(' %s %s' % (n,k))
+        print('Input frames:')
         if isinstance(self.raw, str):
-            print ' %s %s' % (self.raw, self.tag)
+            print(' %s %s' % (self.raw, self.tag))
         else:
             for n in self.raw:
-                print ' %s %s' % (n, self.tag)
+                print(' %s %s' % (n, self.tag))
 
 def _get_rec_keys(header, key, name, value, datapaths = None):
     '''Get a dictionary of key/value pairs from the DFS section of the
@@ -271,7 +277,7 @@ if __name__ == '__main__':
         'WAVECAL_TABLE':'result', 'PIXTABLE_OBJECT':'result', 
         }
     for arg in sys.argv[1:]:
-        print '---------------------' 
-        print 'file: %s' % arg
+        print('---------------------')
+        print('file: %s' % arg)
         pi = ProcessingInfo(arg, datapaths = datapaths)
         pi.printinfo()

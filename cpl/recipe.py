@@ -1,46 +1,44 @@
+from __future__ import absolute_import
 import os
 import shutil
 import tempfile
 import threading
 import collections
+import warnings
 
 import pyfits
-import CPL_recipe
-import esorex
-from frames import FrameList, mkabspath, expandframelist
-from result import Result, RecipeCrash
-from parameters import ParameterList
-from log import LogServer, msg
+from . import CPL_recipe
+from . import esorex
+from cpl.frames import FrameList, mkabspath, expandframelist
+from cpl.result import Result, RecipeCrash
+from cpl.param import ParameterList
+from cpl.logger import LogServer
 
 class Recipe(object):
     '''Pluggable Data Reduction Module (PDRM) from a ESO pipeline. 
 
     Recipes are loaded from shared libraries that are provided with the
-    pipeline library of the instrument.
+    pipeline library of the instrument. The module does not need to be
+    linked to the same library version as the one used for the compilation
+    of python-cpl. Currently, recipes compiled with CPL versions from 4.0
+    are supported. The list of supported versions is stored as
+    :attr:`cpl.cpl_versions`.
 
     The libraries are searched in the directories specified by the class
     attribute :attr:`Recipe.path` or its subdirectories. The search path is
     automatically set to the esorex path when :func:`cpl.esorex.init()`
     is called.
-
-    Attributes:
-
-    __name__: Recipe name
-    __filename__: Shared library file name
-    param: Parameter list
-    calib: Calibration frame list
-    tag: default tag
-    tags: list of possible tags
-    __author__: author name
-    __email__: author's email address
-    description: (synopsis, description) pair
-    version: (versionnumber, versionstring) pair
-    memory_dump: If set to 1, a memory dump is issued to stdout if the memory was not
-      totally freed after the execution. If set to 2, the dump is always issued.
-      Standard is 0: nothing dumped.
     '''
 
     path = [ '.' ]
+    '''Search path for the recipes. It may be set to either a string, or to a
+    list of strings. All shared libraries in the search path and their
+    subdirectories are searched for CPL recipes. On default, the path is
+    set to the current directory.
+
+    The search path is automatically set to the esorex path when
+    :func:`cpl.esorex.init()` is called.
+    '''
 
     def __init__(self, name, filename = None, version = None, threaded = False):
         '''Try to load a recipe with the specified name in the directory
@@ -66,31 +64,51 @@ class Recipe(object):
         '''
         self._recipe = None
         self.__name__ = name
+        '''Recipe name.'''
+
         if not filename:
             filename = Recipe.get_recipefilename(name, version)
             if not filename:
-                raise IOError('Recipe %s not found at path %s' 
-                              % (`name`, `Recipe.path`))
+                raise IOError('Recipe %s not found at path %s'
+                              % (repr(name), repr(Recipe.path)))
         self.__file__ = filename
+        '''Shared library file name.'''
+
         self._recipe = CPL_recipe.recipe(filename, name)
         if version and version not in self.version:
             raise IOError('wrong version %s (requested %s) for %s in %s' %
                           (str(self.version), str(version), name, filename))
+        if not self._recipe.cpl_is_supported():
+            warnings.warn("Unsupported CPL version %s linked to %s" %
+                          (self.cpl_version, filename))
         self._param = ParameterList(self)
         self._calib = FrameList(self)
+
+        self.env = dict()
+        '''Bla'''
+
         self._tags = None
+
         self.tag = self.tags[0] if self.tags else None
+        '''Default tag when the recipe is called. This is set automatically
+        only if the recipe provided the information about input
+        tags. Otherwise this tag has to be set manually.
+        '''
+
         self.output_dir = None
+
         self.temp_dir = '.'
+        '''Base directory for temporary directories where the recipe is
+        executed. The working dir is created as a subdir with a random file
+        name. If set to :obj:`None`, the system temp dir is used.  Defaults to
+        :literal:`'.'`.
+        '''
+
         self.memory_dump = 0
+
         self.threaded = threaded
 
-    def reload(self):
-        '''Reload the recipe. 
-
-        All recipe settings remain unchanged.
-        '''
-        self._recipe = CPL_recipe.recipe(self.__file__, self.__name__)
+        self.__doc__ = self._doc()
 
     @property
     def __author__(self):
@@ -119,12 +137,24 @@ class Recipe(object):
 
     @property
     def __copyright__(self):
-        '''Copyright string'''
+        '''Copyright string of the recipe'''
         return self._recipe.copyright()
 
     @property
+    def cpl_version(self):
+        '''Version of the CPL library that is linked to the recipe,
+        as a string'''
+        return self._recipe.cpl_version()
+
+    @property
+    def cpl_description(self):
+        '''Version numbers of CPL and its libraries that were linked to
+        the recipe, as a string.'''
+        return self._recipe.cpl_description()
+
+    @property
     def tags(self):
-        '''Possible tags for the raw input frames, or ':attr:`None` if this
+        '''Possible tags for the raw input frames, or ':obj:`None` if this
         information is not provided by the recipe.'''
         frameconfig = self._recipe.frameConfig()
         return [ c[0][0] for c in frameconfig ] if frameconfig else self._tags
@@ -150,7 +180,7 @@ class Recipe(object):
         if self.tags is None or t in self.tags:
             self._tag = t 
         else:
-            raise KeyError("Tag %s not in %s" % (`t`, str(self.tags)))
+            raise KeyError("Tag %s not in %s" % (repr(t), str(self.tags)))
 
     @property
     def calib(self):
@@ -167,11 +197,13 @@ class Recipe(object):
         BADPIX_TABLE None None ['badpix_1.fits', 'badpix_2.fits']
         MASTER_FLAT None 1 None
 
-        .. note:: Only MUSE recipes are able to provide the full list of
+        .. note::
+
+           Only MUSE recipes are able to provide the full list of
            calibration frames and the minimal/maximal number of calibration
            frames. For other recipes, only frames that were set by the users are
            returned here. Their minimum and maximum value will be set to
-           :attr:`None`.
+           :obj:`None`.
 
         In order to assing a FITS file to a tag, the file name or the
         :class:`pyfits.HDUList` is assigned to the calibration attribute:
@@ -181,9 +213,9 @@ class Recipe(object):
         Using :class:`pyfits.HDUList` is useful when it needs to be patched
         before fed into the recipe. 
 
-        >>> master_bias = pyfits.open('master_bias_0.fits')
+        >>> master_bias = pyfits.open('MASTER_BIAS_0.fits')
         >>> master_bias[0].header['HIERARCH ESO DET CHIP1 OUT1 GAIN'] = 2.5
-        >>> muse_scibasic.calib.MASTER_BIAS = 'master_bias_0.fits'
+        >>> muse_scibasic.calib.MASTER_BIAS = master_bias
 
         Note that :class:`pyfits.HDUList` objects are stored in temporary
         files before the recipe is called which may produce some
@@ -204,12 +236,18 @@ class Recipe(object):
 
         >>> muse_scibasic.calib = { 'MASTER_BIAS':'master_bias_0.fits', 
         ...                'BADPIX_TABLE':[ 'badpix_1.fits', 'badpix_2.fits' ] }
+
+        In a recipe call, the calibration frame lists may be overwritten by
+        specifying them in a :class:`dict`:
+
+        >>> res = muse_scibasic( ..., calib = {'MASTER_BIAS':'master_bias_1.fits'})
+
         '''
         return self._calib
 
     @calib.setter
     def calib(self, source = None):
-        if isinstance(source, (str, file)):
+        if isinstance(source, str) or hasattr(source, 'read'):
             source = esorex.load_sof(source)
         self._calib = FrameList(self, source) 
 
@@ -249,14 +287,14 @@ class Recipe(object):
         >>> muse_scibasic.param.nifu = 1
 
         The new value is checked against parameter type, and possible value
-        limitations provided by the recipe. Dots in parameter names are
+        limitations provided by the recipe. Hyphens in parameter names are
         converted to underscores. In a recipe call, the same parameter can be
-        specified as
+        specified as :class:`dict`:
 
-        >>> res = muse_scibasic( ..., param_nifu = 1)
+        >>> res = muse_scibasic( ..., param = {'nifu':1})
 
         To reset a value to its default, it is either deleted, or set to
-        :attr:`None`. The following two lines:
+        :obj:`None`. The following two lines:
 
         >>> muse_scibasic.param.nifu = None
         >>> del muse_scibasic.param.nifu
@@ -274,7 +312,7 @@ class Recipe(object):
 
     @param.setter
     def param(self, source = None):
-        if isinstance(source, (str, file)):
+        if isinstance(source, str) or hasattr(source, 'read'):
             source = esorex.load_rc(source)
         self._param = ParameterList(self, source)
 
@@ -282,39 +320,33 @@ class Recipe(object):
     def param(self):
         self._param = ParameterList(self, None)
 
-    def output(self, tag = None):
-        '''Return the list of output frame tags.
+    @property
+    def output(self):
+        '''Return a dictionary of output frame tags.
 
-        If the recipe does not provide this information, an exception is raised.
-        
-        :param tag: Input (raw) frame tag. Defaults to the :attr:`Recipe.tag` 
-            attribute if not specified. 
-        :type tag: :class:`str`
+        Keys are the tag names, values are the corresponding list of output
+        tags. If the recipe does not provide this information, an exception is
+        raised.
         '''
-        if tag is None:
-            tag = self.tag
-        for c in self._recipe.frameConfig():
-            if tag == c[0][0]:
-                return c[2]
+        return dict((c[0][0], c[2]) for c in self._recipe.frameConfig())
 
     def __call__(self, *data, **ndata):
         '''Call the recipes execution with a certain input frame.
         
-        :param data:       Data input frames, using the default tag.
-        :type data: :class:`pyfits.HDUlist` or :class:`str` or a :class:`list` 
-            of them.
+        :param raw: Data input frames.
+        :type raw: :class:`pyfits.HDUlist` or :class:`str` or a :class:`list` 
+            of them, or :class:`dict`
         :param tag: Overwrite the :attr:`tag` attribute (optional).
         :type tag: :class:`str`
-        :param raw: Data input frames, sorted by tag
-        :type raw: :class:`dict`
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
         :type threaded: :class:`bool`
         :param loglevel: set the log level for python :mod:`logging` (optional).
         :type loglevel: :class:`int`
-        :param logname: set the log name for the used python 
+        :param logname: set the log name for the python
             :class:`logging.Logger` (optional, default is 'cpl.' + recipename).
         :type logname: :class:`str`
         :param output_dir: Set or overwrite the :attr:`output_dir` attribute.
+            (optional)
         :type output_dir: :class:`str`
         :param param: overwrite the CPL parameters of the recipe specified
             as keys with their dictionary values (optional). 
@@ -322,38 +354,46 @@ class Recipe(object):
         :param calib: Overwrite the calibration frame lists for the tags 
             specified as keys with their dictionary values (optional).
         :type calib: :class:`dict`
+        :param env: overwrite environment variables for the recipe call 
+            (optional). 
+        :type env: :class:`dict`
         :return: The object with the return frames as :class:`pyfits.HDUList` 
             objects
         :rtype: :class:`cpl.Result`
-        :raise: :class:`exceptions.ValueError` If the invocation parameters 
+        :raise: :exc:`exceptions.ValueError` If the invocation parameters
                 are incorrect.
-        :raise: :class:`exceptions.IOError` If the temporary directory could 
+        :raise: :exc:`exceptions.IOError` If the temporary directory could
                 not be built, the recipe could not start or the files could not 
-                be read/written. This error is also raised if the recipe crashed
-                by a segementation fault or similar.
-        :raise: :class:`cpl.CplError` If the recipe returns an error.
+                be read/written.
+        :raise: :exc:`cpl.CplError` If the recipe returns an error.
+        :raise: :exc:`cpl.RecipeCrash` If the CPL recipe crashes with a
+                SIGSEV or a SIGBUS
 
-        .. note:: If the recipe is executed in the background 
+        .. note::
+
+            If the recipe is executed in the background 
             (``threaded = True``) and an exception occurs, this exception is 
             raised whenever result fields are accessed.
         '''
         tmpfiles = []
         threaded = ndata.get('threaded', self.threaded)
-        loglevel = ndata.get('loglevel', msg.DEBUG)
+        loglevel = ndata.get('loglevel')
         logname = ndata.get('logname', 'cpl.%s' % self.__name__)
         output_dir = ndata.get('output_dir', self.output_dir)
         output_format = str if output_dir else pyfits.HDUList
         if output_dir is None:
             output_dir = tempfile.mkdtemp(dir = self.temp_dir, 
                                           prefix = self.__name__ + "-") 
-        parlist = self.param._aslist(**ndata)
+        parlist = self.param._aslist(ndata.get('param'))
         raw_frames = self._get_raw_frames(*data, **ndata)
         if len(raw_frames) < 1:
             raise ValueError('No raw frames specified.')
         input_len = -1 if isinstance(raw_frames[0][1], pyfits.HDUList) else \
             len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
-        calib_frames = self.calib._aslist(**ndata)
+        calib_frames = self.calib._aslist(ndata.get('calib'))
         framelist = expandframelist(raw_frames + calib_frames)
+        runenv = dict(self.env)
+        runenv.update(ndata.get('env', dict()))
         logger = None
         delete = output_format == pyfits.HDUList
         try:
@@ -368,19 +408,21 @@ class Recipe(object):
                 pass
             raise
         if not threaded:
-            return self._exec(output_dir, parlist, framelist, input_len, 
-                              logger, output_format, delete)
+            return self._exec(output_dir, parlist, framelist, runenv, 
+                              input_len, logger, output_format, delete)
         else:
             return  Threaded(
-                self._exec, output_dir, parlist, framelist, input_len, 
-                logger, output_format, delete)
+                self._exec, output_dir, parlist, framelist, runenv, 
+                input_len, logger, output_format, delete)
 
-    def _exec(self, output_dir, parlist, framelist, input_len, 
-              logger, output_format, delete):
+    def _exec(self, output_dir, parlist, framelist, runenv,
+              input_len, logger, output_format, delete):
         try:
             return Result(self._recipe.frameConfig(), output_dir,
                           self._recipe.run(output_dir, parlist, framelist,
-                                           logger.logfile, logger.level, self.memory_dump),
+                                           list(runenv.items()), 
+                                           logger.logfile, logger.level,
+                                           self.memory_dump),
                           input_len, logger, output_format)
         finally:
             self._cleanup(output_dir, logger, delete)
@@ -391,34 +433,30 @@ class Recipe(object):
         Returns a :class:`list` with (tag, the input frame(s)) pairs. Note
         that more than one input tag is not allowed here.
         '''
-        m = ndata.get('raw', { })
+        data = list(data)
+        if 'raw' in ndata:
+            data.append(ndata['raw'])
         tag = ndata.get('tag', self.tag)
-        if tag is None:
-            if data:
+        m = { }
+        for f in data:
+            if isinstance(f, dict):
+                m.update(f)
+            elif tag is None:
                 raise ValueError('No raw input tag')
-        else:
-            for f in data:
-                if self.tag not in m:
-                    m[tag] = f
-                elif isinstance(m[tag], list) \
-                        and not isinstance(m[tag], pyfits.HDUList):
-                    m[tag].append(f)
-                else:
-                    m[tag] = [ m[tag], f ]
-
-        if ndata is not None:
-            for name, tdata in ndata.items():
-                if name.startswith('raw_'):
-                    tag = name.split('_', 1)[1]
-                    m[tag] = tdata
-
-        return list(m.iteritems())
+            elif tag not in m:
+                m[tag] = f
+            elif isinstance(m[tag], list) \
+                    and not isinstance(m[tag], pyfits.HDUList):
+                m[tag].append(f)
+            else:
+                m[tag] = [ m[tag], f ]
+        return list(m.items())
 
     def _cleanup(self, output_dir, logger, delete):
         try:
             bt = os.path.join(output_dir, 'recipe.backtrace-unprocessed')
             if os.path.exists(bt):
-                with file(bt) as bt_file:
+                with open(bt) as bt_file:
                     os.rename(bt, os.path.join(output_dir, 'recipe.backtrace'))
                     ex = RecipeCrash(bt_file)
                     ex.log(logger.logger)
@@ -428,31 +466,34 @@ class Recipe(object):
             if delete:
                 shutil.rmtree(output_dir)
 
-    @property
-    def __doc__(self):
+    def _doc(self):
         s = '%s\n\n%s\n\n' % (self.description[0], self.description[1])
         
-        r = 'Parameters:\n' 
-        maxlen = max(len(p.name) for p in self.param)
-        for p in self.param:
-            r += ' %s: %s (default: %s)\n' % (
-                p.name.rjust(maxlen), p.__doc__, `p.default`)
-        r += '\n'
+        if len(self.param) > 0:
+            r = 'Parameters:\n'
+            maxlen = max(len(p.name) for p in self.param)
+            for p in self.param:
+                r += ' %s: %s (default: %s)\n' % (
+                    p.name.rjust(maxlen), p.__doc__, repr(p.default))
+            r += '\n'
+        else:
+            r = 'No parameters\n'
         if self._recipe.frameConfig() is not None:
-            c = 'Calibration frames: %s\n\n' % `[f.tag for f in self.calib]`
+            c = 'Calibration frames: %s\n\n' % repr([f.tag for f in self.calib])
         else:
             c = ''
         if self.tags is not None:
             t = 'Raw and product frames:\n'
             maxlen = max(len(f) for f in self.tags)
             for f in self.tags:
-                t += ' %s --> %s\n' % (f.rjust(maxlen), `self.output(f)`)
+                t += ' %s --> %s\n' % (f.rjust(maxlen), repr(self.output[f]))
         else:
             t = ''
-        print s + r + c + t + '\n\n'
+        return s + r + c + t + '\n\n'
 
     def __repr__(self):
-        return 'Recipe(%s, version = %s)' % (`self.__name__`, `self.version[0]`)
+        return 'Recipe(%s, version = %s)' % (repr(self.__name__), 
+                                             repr(self.version[0]))
 
     @staticmethod
     def list():
@@ -481,8 +522,8 @@ class Recipe(object):
                         continue
                     if version in p[1:3]:
                         return f
-                    if rversion < p[2]:
-                        rversion = p[2]
+                    if rversion < p[1]:
+                        rversion = p[1]
                         filename = f
         return filename
 
@@ -500,8 +541,12 @@ class Recipe(object):
     def set_maxthreads(n):
         '''Set the maximal number of threads to be executed in parallel.
 
-        .. note:: This affects only threads that are started afterwards with
+        .. note::
+
+            This affects only threads that are started afterwards with
             the ``threaded = True`` flag.
+
+        .. seealso:: :ref:`parallel`
         '''
         Threaded.set_maxthreads(n)
 
@@ -538,12 +583,28 @@ class Threaded(threading.Thread):
             except Exception as exception:
                 self._exception = exception
 
-    def __getattr__(self, name):
+    @property
+    def _result(self):
         self.join()
         if self._exception is None:
-            return self._res.__dict__[name]
+            return self._res
         else:
             raise self._exception
+
+    def __getitem__(self, key):
+        return self._result[key]
+
+    def __contains__(self, key):
+        return key in self._result.tags
+
+    def __len__(self):
+        return len(self._result.tags)
+
+    def __iter__(self):
+        return self._result.__iter__()
+
+    def __getattr__(self, name):
+        return self._result.__dict__[name]
 
     @staticmethod
     def set_maxthreads(n):

@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 import os
 import tempfile
 import pyfits
 
-import md5sum
+from . import md5sum
 
 class FrameConfig(object):
     '''Frame configuration. 
@@ -25,16 +26,16 @@ class FrameConfig(object):
 
     .. attribute:: min
 
-       Minimal number of frames, or :attr:`None` if not specified. A frame is
+       Minimal number of frames, or :obj:`None` if not specified. A frame is
        required if the :attr:`min` is set to a value greater than 0.
 
     .. attribute:: max 
 
-       Maximal number of frames, or :attr:`None` if not specified
+       Maximal number of frames, or :obj:`None` if not specified
 
     .. attribute:: frames
 
-       List of frames (file names or pyfits.HDUList objects) that are 
+       List of frames (file names or :class:`pyfits.HDUList` objects) that are 
        assigned to this frame type.
     '''
     def __init__(self, tag, min_frames = 0, max_frames = 0, frames = None):
@@ -60,10 +61,12 @@ class FrameConfig(object):
         return str(self.frames)
 
     def __repr__(self):
-        return 'FrameDef(%s, frames=%s)' % (`self.tag`, `self.frames`)
+        return 'FrameDef(%s, frames=%s)' % (repr(self.tag), repr(self.frames))
 
     def _doc(self):
-        if self.max == 1:
+        if self.max is None or self.min is None:
+            r = ' one frame or list of frames'
+        elif self.max == 1:
             r = ' one frame'
         elif self.min > 1 and self.max > self.min:
             r = ' list of %i-%i frames' % (self.min, self.max)
@@ -86,19 +89,15 @@ class FrameList(object):
         self._recipe = recipe
         self._values = dict()
         if isinstance(other, self.__class__):
-            self._set_items((o.name, o.value) for o in other)
+            self._set_items((o.tag, o.frames) for o in other)
         elif isinstance(other, dict):
-            self._set_items(other.iteritems())
+            self._set_items(other.items())
         elif other:
             self._set_items(other)
 
     def _set_items(self, l):
         for o in l:
-            if o[1] is not None:
-                try:
-                    self[o[0]] = o[1]
-                except:
-                    pass
+            self[o[0]] = o[1]
 
     @property
     def _cpl_dict(self):
@@ -124,7 +123,7 @@ class FrameList(object):
         return self._cpl_dict or self._values
 
     def __iter__(self):
-        return self._dict.itervalues()
+        return iter(self._dict.values())
 
     def __getitem__(self, key):
         return self._dict[key]
@@ -161,7 +160,10 @@ class FrameList(object):
         return self._dict.keys()
 
     def __repr__(self):
-        return `list(self)`
+        return repr(dict(self))
+
+    def __str__(self):
+        return str(dict(self))
 
     def __eq__(self, other):
         return dict(self) == other
@@ -174,21 +176,11 @@ class FrameList(object):
             r += '%s: %s\n' % (self._key(s), s.__doc__)
         return r        
 
-    def _aslist(self, **ndata):
-        frames = dict()
-        for f in self:
-            frames[f.tag] = f.frames
-        if ndata:
-            for name, tdata in ndata.items():
-                if name.startswith('calib_'):
-                    tag = name.split('_', 1)[1]
-                    frames[tag] = tdata
-            try:
-                for name, tdata in ndata['calib'].items():
-                    frames[name] = tdata
-            except KeyError:
-                pass
-        return list(frames.iteritems())
+    def _aslist(self, frames):
+        flist = FrameList(self._recipe, self)
+        if frames is not None:
+            flist._set_items(frames.items())
+        return [(f.tag, f.frames) for f in flist]
 
 def mkabspath(frames, tmpdir):
     '''Convert all filenames in the frames list into absolute paths.

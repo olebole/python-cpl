@@ -14,3 +14,4 @@ debian_build/
 cpl/version.py
 cpl/CPL_recipe.so
 python-cpl_*
+MANIFEST

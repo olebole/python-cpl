@@ -1,29 +1,33 @@
-This subdir contains an non-official library to access CPL modules via
-Python. It is not meant as part of the MUSE pipeline software, but may be
-useful for testing.
+Python interface for the Common Pipeline Library.
 
-Installation
-============
+This module can list, configure and execute CPL-based recipes from Python.
+The input, calibration and output data can be specified as FITS files
+or as pyfits objects in memory.
 
-1. Check requirements:
-   - CPL 5.X (Esorex is not needed)
-   - Python 2.6 
+The Common Pipeline Library (CPL) comprises a set of ISO-C libraries that
+provide a comprehensive, efficient and robust software toolkit. It forms a
+basis for the creation of automated astronomical data-reduction tasks. One of
+the features provided by the CPL is the ability to create data-reduction
+algorithms that run as plugins (dynamic libraries). These are called "recipes"
+and are one of the main aspects of the CPL data-reduction development
+environment. More information about the CPL can be found here:
+
+  http://www.eso.org/sci/software/cpl/
+
+The interface may be used to run ESO pipeline recipes linked to CPL 
+versions 4.0 to 6.3.
+
+Build instructions
+------------------
+
+python-cpl requires:
+
+   - Python 2.6 or later
    - pyfits
 
-2. Determine where to put the compiled python package. Standard for
-   compilations is /usr/local.
+python-cpl uses the standard Python distutils system to build and install
+itself.  From the command line run::
 
-3. In this directory, run 
+    python setup.py install
 
-   python setup.py install --prefix=<PREFIX>
-
-   where the prefix determines the path for the compiled package. The package 
-   will be installed in the subdir lib/python2.6/site-packages 
-   (lib64/python2.6/site-packages on 64 bit systems) of <PREFIX>
-
-   To specify non-standard include and library paths for CPL, the environment
-   variables LIBRARY_PATH and INCLUDE_PATH may be used.
-
-4. Add the directory <PREFIX>/lib[64]/python2.6/site-packages to your 
-   environment variable PYTHONPATH.
-
+to install python-cpl.

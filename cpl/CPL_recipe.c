@@ -15,23 +15,16 @@
 #define HAVE_MCHECK
 #endif
 
-#include <cpl.h>
+/* Define PY_Type for Python <= 2.6 */
+#ifndef Py_TYPE
+    #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
+#endif
+#ifndef PyVarObject_HEAD_INIT
+    #define PyVarObject_HEAD_INIT(type, size) \
+        PyObject_HEAD_INIT(type) size,
+#endif
 
-#define CPL_version_doc \
-    "Get the CPL version string."
-
-static PyObject *
-CPL_version(PyObject *self) {
-    return Py_BuildValue("s", cpl_version_get_version());
-}
-
-#define CPL_description_doc \
-    "Get the string of version numbers of CPL and its libraries."
-
-static PyObject *
-CPL_description(PyObject *self) {
-    return Py_BuildValue("s", cpl_get_description(CPL_DESCRIPTION_DEFAULT));
-}
+#include "CPL_library.h"
 
 #define CPL_list_doc \
     "List all CPL recipe names contained in a shared library."
@@ -49,240 +42,62 @@ CPL_list(PyObject *self, PyObject *args) {
 	return Py_None;
     }
 
-    dlerror();
+    char *error =dlerror();
     int (*cpl_plugin_get_info)(cpl_pluginlist *) = dlsym(handle,
 							 "cpl_plugin_get_info");
-    char *error = dlerror();
+    error = dlerror();
     if (error != NULL)  {
+	dlclose(handle);
 	Py_INCREF(Py_None);
 	return Py_None;
     }
+
+    cpl_library_t *cpl = create_library(file);
+
     PyObject *res = PyList_New(0);
     Py_INCREF(res);
-    cpl_pluginlist *list = cpl_pluginlist_new();
+    cpl_pluginlist *list = cpl->pluginlist_new();
     (*cpl_plugin_get_info)(list);
     cpl_plugin *plugin;
-    for (plugin = cpl_pluginlist_get_first(list);
+    for (plugin = cpl->pluginlist_get_first(list);
 	 plugin != NULL;
-	 plugin = cpl_pluginlist_get_next(list)) {
-	cpl_error_reset();
-	cpl_plugin_get_init(plugin)(plugin);
+	 plugin = cpl->pluginlist_get_next(list)) {
+	cpl->error_reset();
+	cpl->plugin_get_init(plugin)(plugin);
 	PyList_Append(res, Py_BuildValue("sis", 
-					 cpl_plugin_get_name(plugin),
-					 cpl_plugin_get_version(plugin),
-					 cpl_plugin_get_version_string(plugin)));
-	cpl_plugin_get_deinit(plugin)(plugin);
+					 cpl->plugin_get_name(plugin),
+					 cpl->plugin_get_version(plugin),
+					 cpl->plugin_get_version_string(plugin)));
+	cpl->plugin_get_deinit(plugin)(plugin);
     }
-    cpl_pluginlist_delete(list);
-    cpl_error_reset();
+    cpl->pluginlist_delete(list);
+    cpl->error_reset();
     dlclose(handle);
     return res;
 }
 
-#define CPL_set_msg_level_doc \
-    "Set verbosity level of output to terminal."
+#define CPL_supported_versions_doc \
+    "List all supported CPL versions."
 
 static PyObject *
-CPL_set_msg_level(PyObject *self, PyObject *args) {
-    int level;
-
-    if (!PyArg_ParseTuple(args, "i", &level))
-        return NULL;
-    cpl_msg_set_level(level);
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_get_msg_level_doc \
-    "Get current terminal verbosity level."
-
-static PyObject *
-CPL_get_msg_level(PyObject *self) {
-    return Py_BuildValue("i", cpl_msg_get_level());
-}
-
-#define CPL_set_msg_time_doc \
-    "Enable or disable the time tag in output messages."
-
-static PyObject *
-CPL_set_msg_time(PyObject *self, PyObject *args) {
-    PyObject *enable;
-    if (!PyArg_ParseTuple(args, "O", &enable))
-        return NULL;
-
-    if (PyObject_IsTrue(enable)) {
-	cpl_msg_set_time_on();
-    } else {
-	cpl_msg_set_time_off();
+CPL_supported_versions(PyObject *self, PyObject *args) {
+    PyObject *res = PyList_New(0);
+    Py_INCREF(res);
+    int i;
+    for (i = 0; supported_versions[i] != 0; i++) {
+	PyList_Append(res, Py_BuildValue(
+			  "iii", 
+			  CPL_VERSION_MAJOR_CODE(supported_versions[i]),
+			  CPL_VERSION_MINOR_CODE(supported_versions[i]),
+			  CPL_VERSION_MICRO_CODE(supported_versions[i])));
     }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_set_log_level_doc \
-    "Set verbosity level of output to logfile."
-
-static PyObject *
-CPL_set_log_level(PyObject *self, PyObject *args) {
-    int level;
-
-    if (!PyArg_ParseTuple(args, "i", &level))
-        return NULL;
-    cpl_msg_set_log_level(level);
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_get_log_level_doc \
-    "Get current logfile verbosity level."
-
-static PyObject *
-CPL_get_log_level(PyObject *self) {
-    return Py_BuildValue("i", cpl_msg_get_log_level());
-}
-
-#define CPL_set_log_file_doc \
-    "Set the log file name."
-
-static PyObject *
-CPL_set_log_file(PyObject *self, PyObject *args) {
-    const char *name;
-
-    if (!PyArg_ParseTuple(args, "s", &name))
-        return NULL;
-    cpl_error_code r = cpl_msg_set_log_name(name);
-    if (r != CPL_ERROR_NONE) {
-	PyErr_SetString(PyExc_IOError, cpl_error_get_message());
-	return NULL;
-    }
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_get_log_file_doc \
-    "Get the log file name."
-
-static PyObject *
-CPL_get_log_file(PyObject *self) {
-    return Py_BuildValue("s", cpl_msg_get_log_name());
-}
-
-#define CPL_set_log_domain_doc \
-    "Set the log domain name."
-
-static PyObject *
-CPL_set_log_domain(PyObject *self, PyObject *args) {
-    const char *name;
-
-    if (!PyArg_ParseTuple(args, "s", &name))
-        return NULL;
-    cpl_msg_set_domain(name);
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_get_log_domain_doc \
-    "Get the log domain name."
-
-static PyObject *
-CPL_get_log_domain(PyObject *self) {
-    return Py_BuildValue("s", cpl_msg_get_domain());
-}
-
-#define CPL_log_doc \
-    "Write a log message."
-
-static PyObject *
-CPL_log(PyObject *self, PyObject *args) {
-    int level;
-    const char *msg;
-    const char *caller;
-    if (!PyArg_ParseTuple(args, "iss", &level, &caller, &msg))
-        return NULL;
-    if (level < 0) level = 0;
-    typedef void (*msg_func_t)(const char *, const char *,...);
-    msg_func_t msg_func[]= {
-	cpl_msg_debug,
-	cpl_msg_info,
-	cpl_msg_warning,
-	cpl_msg_error
-    };
-    if (level <=3) {
-	msg_func[level](caller, "%s", msg);
-    }
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_log_indent_more_doc \
-    "Increase the message indentation by one indentation step."
-
-static PyObject *
-CPL_log_indent_more(PyObject *self) {
-    cpl_msg_indent_more();
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_log_indent_less_doc \
-    "Decrease the message indentation by one indentation step."
-
-static PyObject *
-CPL_log_indent_less(PyObject *self) {
-    cpl_msg_indent_less();
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_memory_dump_doc \
-    "Display the memory status."
-
-static PyObject *
-CPL_memory_dump(PyObject *self) {
-    cpl_memory_dump();
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-#define CPL_memory_is_empty_doc \
-    "Tell if there is some memory allocated."
-
-static PyObject *
-CPL_memory_is_empty(PyObject *self) {
-    return Py_BuildValue("i", cpl_memory_is_empty());
+    return res;
 }
 
 static PyMethodDef CPL_methods[] = {
-    {"version", (PyCFunction)CPL_version, METH_NOARGS, CPL_version_doc},
-    {"description", (PyCFunction)CPL_description, METH_NOARGS, CPL_version_doc},
     {"list", CPL_list, METH_VARARGS, CPL_list_doc},
-    {"set_msg_level", CPL_set_msg_level, METH_VARARGS, CPL_set_msg_level_doc},
-    {"get_msg_level", (PyCFunction)CPL_get_msg_level, METH_NOARGS, 
-     CPL_get_msg_level_doc},
-    {"set_msg_time", CPL_set_msg_time, METH_VARARGS, CPL_set_msg_time_doc },
-    {"set_log_level", CPL_set_log_level, METH_VARARGS, CPL_set_log_level_doc},
-    {"get_log_level", (PyCFunction)CPL_get_log_level, METH_NOARGS, 
-     CPL_get_log_level_doc},
-    {"set_log_file", CPL_set_log_file, METH_VARARGS, CPL_set_log_file_doc},
-    {"get_log_file", (PyCFunction)CPL_get_log_file, METH_NOARGS, 
-     CPL_get_log_file_doc },
-    {"set_log_domain", CPL_set_log_domain, METH_VARARGS, 
-     CPL_set_log_domain_doc},
-    {"get_log_domain", (PyCFunction)CPL_get_log_domain, METH_NOARGS, 
-     CPL_get_log_domain_doc },
-    {"log", CPL_log, METH_VARARGS, CPL_log_doc}, 
-    {"log_indent_more", (PyCFunction)CPL_log_indent_more, METH_NOARGS, 
-     CPL_log_indent_more_doc},
-    {"log_indent_less", (PyCFunction)CPL_log_indent_less, METH_NOARGS, 
-     CPL_log_indent_less_doc},
-    {"memory_dump", (PyCFunction)CPL_memory_dump, METH_NOARGS, 
-     CPL_memory_dump_doc},
-    {"memory_is_empty", (PyCFunction)CPL_memory_is_empty, METH_NOARGS, 
-     CPL_memory_is_empty_doc},
+    {"cpl_versions", CPL_supported_versions, METH_NOARGS, 
+     CPL_supported_versions_doc},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -292,20 +107,21 @@ typedef struct {
     cpl_pluginlist *pluginlist;
     void *handle;
     cpl_recipeconfig *recipeconfig;
+    cpl_library_t *cpl;
 } CPL_recipe;
 
 static void
 CPL_recipe_dealloc(CPL_recipe* self) {
     if (self->plugin != NULL) {
-	cpl_plugin_get_deinit(self->plugin)(self->plugin);
+	self->cpl->plugin_get_deinit(self->plugin)(self->plugin);
     }
     if (self->pluginlist != NULL) {
-	cpl_pluginlist_delete(self->pluginlist);
+	self->cpl->pluginlist_delete(self->pluginlist);
     }
     if (self->handle != NULL) {
 	dlclose(self->handle);
     }
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject *
@@ -316,6 +132,7 @@ CPL_recipe_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 	self->pluginlist = NULL;
 	self->handle = NULL;
 	self->recipeconfig = NULL;
+	self->cpl = NULL;
     }
     return (PyObject *)self;
 }
@@ -346,106 +163,116 @@ CPL_recipe_init(CPL_recipe *self, PyObject *args, PyObject *kwds) {
 	PyErr_SetString(PyExc_IOError, error);
 	return -1;
     }
-    cpl_error_reset();
-    self->pluginlist = cpl_pluginlist_new();
+
+    self->cpl = create_library(file);
+    self->cpl->error_reset();
+    self->pluginlist = self->cpl->pluginlist_new();
     (*cpl_plugin_get_info)(self->pluginlist);
-    self->plugin = cpl_pluginlist_find(self->pluginlist, recipe);
+    self->plugin = self->cpl->pluginlist_find(self->pluginlist, recipe);
     if (self->plugin == NULL) {
 	PyErr_SetString(PyExc_IOError, "cannot find recipe in shared library");
 	return -1;
     } else {
-	cpl_plugin_get_init(self->plugin)(self->plugin);
+	self->cpl->plugin_get_init(self->plugin)(self->plugin);
     }
     
-    cpl_recipeconfig *(*get_recipeconfig)(cpl_recipe *) 
-	= dlsym(self->handle, "muse_processing_get_recipeconfig");
-    if (dlerror() == NULL && get_recipeconfig != NULL) {
-	self->recipeconfig = get_recipeconfig((cpl_recipe *)self->plugin);
+    if (self->cpl->get_recipeconfig != NULL) {
+	self->recipeconfig = self->cpl->get_recipeconfig((cpl_recipe *)self->plugin);
     } else {
 	self->recipeconfig = NULL;
     }
     return 0;
 }
 
+#define CPL_is_supported_doc \
+    "Check whether the CPL version is supported by python-cpl."
+
 static PyObject *
-getParameter(cpl_parameter *param) {
-    cpl_type type = cpl_parameter_get_type(param);
-    cpl_parameter_class class = cpl_parameter_get_class(param);
-    const char *name = cpl_parameter_get_alias(param, 
+CPL_is_supported(CPL_recipe *self) {
+    return (self->cpl->is_supported)?Py_True:Py_False;
+}
+
+#define CPL_version_doc \
+    "Get the CPL version string."
+
+static PyObject *
+CPL_version(CPL_recipe *self) {
+    return Py_BuildValue("s", self->cpl->version_get_version());
+}
+
+#define CPL_description_doc \
+    "Get the string of version numbers of CPL and its libraries."
+
+static PyObject *
+CPL_description(CPL_recipe *self) {
+    return Py_BuildValue("s", self->cpl->get_description(CPL_DESCRIPTION_DEFAULT));
+}
+
+static PyObject *
+getParameter(CPL_recipe *self, cpl_parameter *param) {
+    cpl_type type = self->cpl->parameter_get_type(param);
+    cpl_parameter_class class = self->cpl->parameter_get_class(param);
+    const char *name = self->cpl->parameter_get_alias(param, 
 					       CPL_PARAMETER_MODE_CLI);
-    const char *fullname = cpl_parameter_get_name(param);
-    const char *context = cpl_parameter_get_context(param);
-    const char *help = cpl_parameter_get_help(param);
+    const char *fullname = self->cpl->parameter_get_name(param);
+    const char *context = self->cpl->parameter_get_context(param);
+    const char *help = self->cpl->parameter_get_help(param);
     PyObject *range = Py_None;
     if (class == CPL_PARAMETER_CLASS_RANGE) {
-	switch (type) {
-	    case CPL_TYPE_INT:
-		range = Py_BuildValue("ii",
-				      cpl_parameter_get_range_min_int(param),
-				      cpl_parameter_get_range_max_int(param));
-		break;
-	    case CPL_TYPE_DOUBLE:
-		range = Py_BuildValue("dd",
-				      cpl_parameter_get_range_min_double(param),
-				      cpl_parameter_get_range_max_double(param));
-		break;
-	    default:
-		break;
+	if (type == self->cpl->TYPE_INT) {
+	    range = Py_BuildValue("ii",
+				  self->cpl->parameter_get_range_min_int(param),
+				  self->cpl->parameter_get_range_max_int(param));
+	} else if (type == self->cpl->TYPE_DOUBLE) {
+	    range = Py_BuildValue("dd",
+				  self->cpl->parameter_get_range_min_double(param),
+				  self->cpl->parameter_get_range_max_double(param));
 	}
     }
     Py_INCREF(range);
     PyObject *sequence = Py_None;
     if (class == CPL_PARAMETER_CLASS_ENUM) {
 	sequence = PyList_New(0);
-	int n_enum = cpl_parameter_get_enum_size(param);
+	int n_enum = self->cpl->parameter_get_enum_size(param);
 	int i;
 	for (i = 0; i < n_enum; i++) {
-	    switch (type) {
-		case CPL_TYPE_INT:
-		    PyList_Append(
-			sequence, 
-			Py_BuildValue("i",
-				      cpl_parameter_get_enum_int(param, i)));
-		    break;
-		case CPL_TYPE_DOUBLE:
-		    PyList_Append(
-			sequence, 
-			Py_BuildValue("d",
-				      cpl_parameter_get_enum_double(param, i)));
-		    break;
-		case CPL_TYPE_STRING:
-		    PyList_Append(
-			sequence, 
-			Py_BuildValue("s",
-				      cpl_parameter_get_enum_string(param, i)));
-		    break;
-		default:
-		    break;
+	    if (type == self->cpl->TYPE_INT) {
+		PyList_Append(
+		    sequence, 
+		    Py_BuildValue("i",
+				  self->cpl->parameter_get_enum_int(param, i)));
+	    } else if (type == self->cpl->TYPE_DOUBLE) {
+		PyList_Append(
+		    sequence, 
+		    Py_BuildValue("d",
+				  self->cpl->parameter_get_enum_double(param, i)));
+	    } else if (type == self->cpl->TYPE_STRING) {
+		PyList_Append(
+		    sequence, 
+		    Py_BuildValue("s",
+				  self->cpl->parameter_get_enum_string(param, i)));
 	    }
 	}
     }
     Py_INCREF(sequence);
     PyObject *deflt = Py_None;
     PyObject *ptype = Py_None;
-    switch (type) {
-	case CPL_TYPE_BOOL:
-	    ptype = (PyObject *)&PyBool_Type;
-	    deflt = (cpl_parameter_get_default_bool(param))?Py_True:Py_False;
-	    break;
-	case CPL_TYPE_INT:
-	    ptype = (PyObject *)&PyInt_Type;
-	    deflt = Py_BuildValue("i", cpl_parameter_get_default_int(param));
-	    break;
-	case CPL_TYPE_DOUBLE:
-	    ptype = (PyObject *)&PyFloat_Type;
-	    deflt = Py_BuildValue("d", cpl_parameter_get_default_double(param));
-	    break;
-	case CPL_TYPE_STRING:
-	    ptype = (PyObject *)&PyString_Type;
-	    deflt = Py_BuildValue("s", cpl_parameter_get_default_string(param));
-	    break;
-	default:
-	    break;
+    if (type == self->cpl->TYPE_BOOL) {
+	ptype = (PyObject *)&PyBool_Type;
+	deflt = (self->cpl->parameter_get_default_bool(param))?Py_True:Py_False;
+    } else if (type == self->cpl->TYPE_INT) {
+	ptype = (PyObject *)&PyLong_Type;
+	deflt = Py_BuildValue("i", self->cpl->parameter_get_default_int(param));
+    } else if (type == self->cpl->TYPE_DOUBLE) {
+	ptype = (PyObject *)&PyFloat_Type;
+	deflt = Py_BuildValue("d", self->cpl->parameter_get_default_double(param));
+    } else if (type == self->cpl->TYPE_STRING) {
+#if PY_MAJOR_VERSION < 3
+	ptype = (PyObject *)&PyString_Type;
+#else
+	ptype = (PyObject *)&PyUnicode_Type;
+#endif
+	deflt = Py_BuildValue("s", self->cpl->parameter_get_default_string(param));
     }
     Py_INCREF(deflt);
     Py_INCREF(ptype);
@@ -476,12 +303,12 @@ CPL_recipe_get_params(CPL_recipe *self) {
     }
     cpl_parameterlist *pars = ((cpl_recipe *)self->plugin)->parameters;
     PyObject *res = PyList_New(0);
-    if (pars && cpl_parameterlist_get_size(pars)) {
+    if (pars && self->cpl->parameterlist_get_size(pars)) {
 	cpl_parameter *param;
-	for (param = cpl_parameterlist_get_first(pars);
+	for (param = self->cpl->parameterlist_get_first(pars);
 	     param != NULL;  
-	     param = cpl_parameterlist_get_next(pars)) {
-	    PyList_Append(res, getParameter(param));
+	     param = self->cpl->parameterlist_get_next(pars)) {
+	    PyList_Append(res, getParameter(self, param));
 	}
     }
     Py_INCREF(res);
@@ -500,8 +327,8 @@ CPL_recipe_get_author(CPL_recipe *self) {
 	return NULL;
     }
     return Py_BuildValue("ss", 
-			 cpl_plugin_get_author(self->plugin),
-			 cpl_plugin_get_email(self->plugin));
+			 self->cpl->plugin_get_author(self->plugin),
+			 self->cpl->plugin_get_email(self->plugin));
 }
 
 #define CPL_recipe_get_description_doc                                      \
@@ -516,8 +343,8 @@ CPL_recipe_get_description(CPL_recipe *self) {
 	return NULL;
     }
     return Py_BuildValue("ss", 
-			 cpl_plugin_get_synopsis(self->plugin),
-			 cpl_plugin_get_description(self->plugin));
+			 self->cpl->plugin_get_synopsis(self->plugin),
+			 self->cpl->plugin_get_description(self->plugin));
 }
 
 #define CPL_recipe_get_version_doc                                            \
@@ -532,8 +359,8 @@ CPL_recipe_get_version(CPL_recipe *self) {
 	return NULL;
     }
     return Py_BuildValue("is", 
-			 cpl_plugin_get_version(self->plugin),
-			 cpl_plugin_get_version_string(self->plugin));
+			 self->cpl->plugin_get_version(self->plugin),
+			 self->cpl->plugin_get_version_string(self->plugin));
 }
 
 #define CPL_recipe_get_copyright_doc                                          \
@@ -546,7 +373,7 @@ CPL_recipe_get_copyright(CPL_recipe *self) {
 	return NULL;
     }
     return Py_BuildValue("s", 
-			 cpl_plugin_get_copyright(self->plugin));
+			 self->cpl->plugin_get_copyright(self->plugin));
 }
 
 #define CPL_recipe_get_frameconfig_doc                                        \
@@ -571,63 +398,63 @@ CPL_recipe_get_frameconfig(CPL_recipe *self) {
 	return Py_None;
     }
     PyObject *res = PyList_New(0);
-    char **tags = cpl_recipeconfig_get_tags(self->recipeconfig);
+    char **tags = self->cpl->recipeconfig_get_tags(self->recipeconfig);
     int i_tag;
     for (i_tag = 0; tags[i_tag] != NULL; i_tag++) {
-	int min = cpl_recipeconfig_get_min_count(self->recipeconfig,
+	int min = self->cpl->recipeconfig_get_min_count(self->recipeconfig,
 						 tags[i_tag], tags[i_tag]);
-	int max = cpl_recipeconfig_get_max_count(self->recipeconfig,
+	int max = self->cpl->recipeconfig_get_max_count(self->recipeconfig,
 						 tags[i_tag], tags[i_tag]);
 	PyObject *raw = Py_BuildValue("sii", tags[i_tag], min, max);
 	PyObject *calib = PyList_New(0);
 
-	char **inputs = cpl_recipeconfig_get_inputs(self->recipeconfig,
+	char **inputs = self->cpl->recipeconfig_get_inputs(self->recipeconfig,
 						    tags[i_tag]);
 	int i_input;
 	for (i_input = 0; inputs[i_input] != NULL; i_input++) {
-	    int min = cpl_recipeconfig_get_min_count(self->recipeconfig,
+	    int min = self->cpl->recipeconfig_get_min_count(self->recipeconfig,
 						     tags[i_tag], 
 						     inputs[i_input]);
-	    int max = cpl_recipeconfig_get_max_count(self->recipeconfig,
+	    int max = self->cpl->recipeconfig_get_max_count(self->recipeconfig,
 						     tags[i_tag], 
 						     inputs[i_input]);
 	    PyList_Append(calib, Py_BuildValue("sii", inputs[i_input], 
 					       min, max));
-	    cpl_free(inputs[i_input]);
+	    self->cpl->free(inputs[i_input]);
 	}
-	cpl_free(inputs);
+	self->cpl->free(inputs);
 
 	PyObject *output = PyList_New(0);
-	char **outputs = cpl_recipeconfig_get_outputs(self->recipeconfig,
+	char **outputs = self->cpl->recipeconfig_get_outputs(self->recipeconfig,
 						      tags[i_tag]);
 	int i_output;
 	for (i_output = 0; outputs[i_output] != NULL; i_output++) {
 	    PyList_Append(output, Py_BuildValue("s", outputs[i_output]));
-	    cpl_free(outputs[i_output]);
+	    self->cpl->free(outputs[i_output]);
 	}
-	cpl_free(outputs);
+	self->cpl->free(outputs);
 	
 	PyList_Append(res, Py_BuildValue("OOO", raw, calib, output));
 	
-	cpl_free(tags[i_tag]);
+	self->cpl->free(tags[i_tag]);
     }
-    cpl_free(tags);
+    self->cpl->free(tags);
     return res;
 }
 
 static cpl_frameset *
-get_frames(PyObject *framelist) {
-    cpl_frameset *frames = cpl_frameset_new();
+get_frames(CPL_recipe *self, PyObject *framelist) {
+    cpl_frameset *frames = self->cpl->frameset_new();
     PyObject *iter = PyObject_GetIter(framelist);
     PyObject *item;
     while ((item = PyIter_Next(iter))) {
 	const char *tag;
 	const char* file;
 	PyArg_ParseTuple(item, "ss", &tag, &file);
-	cpl_frame *frame = cpl_frame_new();
-	cpl_frame_set_filename(frame, file);
-	cpl_frame_set_tag(frame, tag);
-	cpl_frameset_insert(frames, frame);
+	cpl_frame *frame = self->cpl->frame_new();
+	self->cpl->frame_set_filename(frame, file);
+	self->cpl->frame_set_tag(frame, tag);
+	self->cpl->frameset_insert(frames, frame);
 	Py_DECREF(item);
     }
     Py_DECREF(iter);
@@ -635,74 +462,93 @@ get_frames(PyObject *framelist) {
 }
 
 static void 
-clear_parameters(cpl_parameterlist *parameters) {
-    cpl_parameter *par = cpl_parameterlist_get_first(parameters);
+clear_parameters(CPL_recipe *self, cpl_parameterlist *parameters) {
+    cpl_parameter *par = self->cpl->parameterlist_get_first(parameters);
     while (par != NULL) {
-	cpl_type type = cpl_parameter_get_type(par);
-	switch(type) {
-	    case CPL_TYPE_STRING: {
-		const char *default_value = cpl_parameter_get_default_string(par);
-		if (default_value == NULL) {
-		    default_value = "";
-		}
-		cpl_parameter_set_string(par, default_value);
+	cpl_type type = self->cpl->parameter_get_type(par);
+	if (type == self->cpl->TYPE_STRING) {
+	    const char *default_value = self->cpl->parameter_get_default_string(par);
+	    if (default_value == NULL) {
+		default_value = "";
 	    }
-		break;
-	    case CPL_TYPE_INT:
-		cpl_parameter_set_int(par, 
-				      cpl_parameter_get_default_int(par));
-		break;
-	    case CPL_TYPE_DOUBLE:
-		cpl_parameter_set_double(par, 
-					 cpl_parameter_get_default_double(par));
-		break;
-	    case CPL_TYPE_BOOL:
-		cpl_parameter_set_bool(par, 
-				       cpl_parameter_get_default_bool(par));
-		break;
-	    default:
-		break;
+	    self->cpl->parameter_set_string(par, default_value);
+	} else if (type == self->cpl->TYPE_INT) {
+	    self->cpl->parameter_set_int(par, 
+				 self->cpl->parameter_get_default_int(par));
+	} else if (type == self->cpl->TYPE_DOUBLE) {
+	    self->cpl->parameter_set_double(par, 
+				 self->cpl->parameter_get_default_double(par));
+	} else if (type == self->cpl->TYPE_BOOL) {
+	    self->cpl->parameter_set_bool(par, 
+				 self->cpl->parameter_get_default_bool(par));
 	}
 	
-	par = cpl_parameterlist_get_next(parameters);
+	par = self->cpl->parameterlist_get_next(parameters);
     }
     
 }
 
 static void
-set_parameters(cpl_parameterlist *parameters, PyObject *parlist) {
+set_parameters(CPL_recipe *self, cpl_parameterlist *parameters, PyObject *parlist) {
     PyObject *iter = PyObject_GetIter(parlist);
     PyObject *item;
     while ((item = PyIter_Next(iter))) {
 	const char *name;
 	PyObject *value;
 	PyArg_ParseTuple(item, "sO", &name, &value);
-	cpl_parameter *par = cpl_parameterlist_find(parameters, name);
+	cpl_parameter *par = self->cpl->parameterlist_find(parameters, name);
 	if (par == NULL) {
 	    continue;
 	}
-	cpl_type type = cpl_parameter_get_type(par);
-	switch(type) {
-	    case CPL_TYPE_STRING:
-		if (PyString_Check(value)) {
-		    cpl_parameter_set_string(par, PyString_AsString(value));
-		}
-		break;
-	    case CPL_TYPE_INT:
-		if (PyInt_Check(value)) {
-		    cpl_parameter_set_int(par, PyInt_AsLong(value));
-		}
-		break;
-	    case CPL_TYPE_DOUBLE:
-		if (PyFloat_Check(value)) {
-		    cpl_parameter_set_double(par, PyFloat_AsDouble(value));
-		}
-		break;
-	    case CPL_TYPE_BOOL:
-		cpl_parameter_set_bool(par, PyObject_IsTrue(value));
-		break;
-	    default:
-		break;
+	cpl_type type = self->cpl->parameter_get_type(par);
+	if (type == self->cpl->TYPE_STRING) {
+#if PY_MAJOR_VERSION < 3
+	    if (PyString_Check(value)) {
+		self->cpl->parameter_set_string(par, PyString_AsString(value));
+	    }
+#else
+	    if (PyBytes_Check(value)) {
+		self->cpl->parameter_set_string(par, PyBytes_AsString(value));
+	    }
+#endif
+	} else if (type == self->cpl->TYPE_INT) {
+	    if (PyLong_Check(value)) {
+		self->cpl->parameter_set_int(par, PyLong_AsLong(value));
+	    }
+	} else if (type == self->cpl->TYPE_DOUBLE) {
+	    if (PyFloat_Check(value)) {
+		self->cpl->parameter_set_double(par, PyFloat_AsDouble(value));
+	    }
+	} else if (type == self->cpl->TYPE_BOOL) {
+	    self->cpl->parameter_set_bool(par, PyObject_IsTrue(value));
+	}
+	Py_DECREF(item);
+    }
+    Py_DECREF(iter);
+}
+
+static void
+set_environment(PyObject *runenv) {
+    PyObject *iter = PyObject_GetIter(runenv);
+    PyObject *item;
+    while ((item = PyIter_Next(iter))) {
+	const char *name;
+	PyObject *value;
+	PyArg_ParseTuple(item, "sO", &name, &value);
+	if ((name == NULL) || (value == NULL)) {
+	    continue;
+	}
+#if PY_MAJOR_VERSION < 3
+	if (PyString_Check(value)) {
+	    setenv(name, PyString_AsString(value), 1);
+	}
+#else
+	if (PyBytes_Check(value)) {
+	    setenv(name, PyBytes_AsString(value), 1);
+	} 
+#endif
+	if (value == Py_None) {
+	    unsetenv(name);
 	}
 	Py_DECREF(item);
     }
@@ -750,58 +596,60 @@ exec_build_retval(void *ptr) {
 }
 
 static void *sbuffer_append_string(void *buf, const char *str) {
-    buf = cpl_realloc(buf, ((long *)buf)[0] + strlen(str) + 1);
+    buf = realloc(buf, ((long *)buf)[0] + strlen(str) + 1);
     strcpy(buf + *((long *)buf), str);
     *((long *)buf) += strlen(str) + 1;
     return buf;
 }
 
 static void *sbuffer_append_bytes(void *buf, const void *src, size_t nbytes) {
-    buf = cpl_realloc(buf, ((long *)buf)[0] + nbytes);
+    buf = realloc(buf, ((long *)buf)[0] + nbytes);
     memcpy(buf + *((long *)buf), src, nbytes);
     *((long *)buf) += nbytes;
     return buf;
 }
 
 static void *sbuffer_append_long(void *buf, long val) {
-    buf = cpl_realloc(buf, *((long *)buf) + sizeof(long));
+    buf = realloc(buf, *((long *)buf) + sizeof(long));
     *((long *)(buf + ((long *)buf)[0])) = val;
     *((long *)buf) += sizeof(long);
     return buf;
 }
 
 static void *serialized_error_ptr = NULL;
+static cpl_library_t *serialized_cpl = NULL;
 
 static void 
 exec_serialize_one_error(unsigned self, unsigned first, unsigned last) {
     if (serialized_error_ptr == NULL) {
-	serialized_error_ptr = cpl_malloc(sizeof(long));
+	serialized_error_ptr = malloc(sizeof(long));
 	((long *)serialized_error_ptr)[0] = sizeof(long);
 	serialized_error_ptr = sbuffer_append_long(serialized_error_ptr, 0);
     }
-    if (cpl_error_get_code() == CPL_ERROR_NONE) {
+    if (serialized_cpl->error_get_code() == CPL_ERROR_NONE) {
 	return;
     }
     ((long *)serialized_error_ptr)[1]++; // number of errors
 
     serialized_error_ptr = sbuffer_append_long(serialized_error_ptr, 
-					       cpl_error_get_code());
+					       serialized_cpl->error_get_code());
     serialized_error_ptr = sbuffer_append_long(serialized_error_ptr, 
-					       cpl_error_get_line());
+					       serialized_cpl->error_get_line());
     serialized_error_ptr = sbuffer_append_string(serialized_error_ptr, 
-						 cpl_error_get_message());
+						 serialized_cpl->error_get_message());
     serialized_error_ptr = sbuffer_append_string(serialized_error_ptr, 
-						 cpl_error_get_file());
+						 serialized_cpl->error_get_file());
     serialized_error_ptr = sbuffer_append_string(serialized_error_ptr, 
-						 cpl_error_get_function());
+						 serialized_cpl->error_get_function());
 }
 
 static void *
-exec_serialize_retval(cpl_frameset *frames, cpl_errorstate prestate, int retval, 
+exec_serialize_retval(CPL_recipe *self, cpl_frameset *frames, 
+		      cpl_errorstate prestate, int retval, 
 		      const struct tms *tms_clock) {
-    int n_frames = cpl_frameset_get_size(frames);
+    int n_frames = self->cpl->frameset_get_size(frames);
     int i_frame;
-    void *ptr = cpl_malloc(sizeof(long));
+    void *ptr = malloc(sizeof(long));
     ((long *)ptr)[0] = sizeof(long);
     ptr = sbuffer_append_long(ptr, retval);
     ptr = sbuffer_append_long(ptr, 1000000L * 
@@ -810,21 +658,23 @@ exec_serialize_retval(cpl_frameset *frames, cpl_errorstate prestate, int retval,
     ptr = sbuffer_append_long(ptr, 1000000L * 
 			      (tms_clock->tms_stime + tms_clock->tms_cstime)
 			      / sysconf(_SC_CLK_TCK));
-    ptr = sbuffer_append_long(ptr, cpl_memory_is_empty());
+    ptr = sbuffer_append_long(ptr, self->cpl->memory_is_empty());
 
-    cpl_errorstate_dump(prestate, CPL_FALSE, exec_serialize_one_error);
+    serialized_cpl = self->cpl;
+    self->cpl->errorstate_dump(prestate, CPL_FALSE, exec_serialize_one_error);
     ptr = sbuffer_append_bytes(ptr, serialized_error_ptr + sizeof(long),
 			       ((long *)serialized_error_ptr)[0] - sizeof(long));
-    cpl_free(serialized_error_ptr);
+    free(serialized_error_ptr);
     serialized_error_ptr = NULL;
+    serialized_cpl = NULL;
 
     for (i_frame = 0; i_frame < n_frames; i_frame++) {
-	cpl_frame *f = cpl_frameset_get_frame(frames, i_frame);
-	if (cpl_frame_get_group(f) != CPL_FRAME_GROUP_PRODUCT) {
+	cpl_frame *f = self->cpl->frameset_get_position(frames, i_frame);
+	if (self->cpl->frame_get_group(f) != CPL_FRAME_GROUP_PRODUCT) {
 	    continue;
 	}
-	ptr = sbuffer_append_string(ptr, cpl_frame_get_tag(f));
-	ptr = sbuffer_append_string(ptr, cpl_frame_get_filename(f));
+	ptr = sbuffer_append_string(ptr, self->cpl->frame_get_tag(f));
+	ptr = sbuffer_append_string(ptr, self->cpl->frame_get_filename(f));
     }
     return ptr;
 }
@@ -878,7 +728,7 @@ static void setup_tracing(CPL_recipe *self) {
 #endif
 #ifdef PR_SET_NAME
 /*  Set  the  process  name  for  the  calling  process */
-    prctl(PR_SET_NAME, cpl_plugin_get_name(self->plugin), 0, 0, 0);
+    prctl(PR_SET_NAME, self->cpl->plugin_get_name(self->plugin), 0, 0, 0);
 #endif
 #endif
 #ifdef HAVE_MCHECK
@@ -908,12 +758,13 @@ static PyObject *
 CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     PyObject *parlist;
     PyObject *soflist;
+    PyObject *runenv;
     const char *dirname;
     const char *logfile;
     int loglevel;
     int memory_dump;
-    if (!PyArg_ParseTuple(args, "sOOsii", &dirname, &parlist, &soflist,
-			  &logfile, &loglevel, &memory_dump))
+    if (!PyArg_ParseTuple(args, "sOOOsii", &dirname, &parlist, &soflist,
+			  &runenv, &logfile, &loglevel, &memory_dump))
         return NULL;
     if (!PySequence_Check(parlist)) {
 	PyErr_SetString(PyExc_TypeError, "Second parameter not a list");
@@ -923,18 +774,22 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	PyErr_SetString(PyExc_TypeError, "Third parameter not a list");
 	return NULL;
     }
+    if (!PySequence_Check(runenv)) {
+	PyErr_SetString(PyExc_TypeError, "Fourth parameter not a list");
+	return NULL;
+    }
 
     if (self->plugin == NULL) {
 	PyErr_SetString(PyExc_IOError, "NULL recipe");
 	return NULL;
     }
-    cpl_error_reset();
+    self->cpl->error_reset();
     cpl_recipe *recipe = (cpl_recipe *)self->plugin;
-    cpl_frameset_delete(recipe->frames);
-    recipe->frames = get_frames(soflist);
-    clear_parameters(recipe->parameters);
-    set_parameters(recipe->parameters, parlist);
-    if (cpl_error_get_code() != CPL_ERROR_NONE) {
+    self->cpl->frameset_delete(recipe->frames);
+    recipe->frames = get_frames(self, soflist);
+    clear_parameters(self, recipe->parameters);
+    set_parameters(self, recipe->parameters, parlist);
+    if (self->cpl->error_get_code() != CPL_ERROR_NONE) {
 	PyErr_SetString(PyExc_IOError, "CPL error on inititalization");
 	return NULL;	
     }
@@ -953,33 +808,35 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	close(fd[0]);
 	int retval;
 	struct tms clock_end;
-	cpl_msg_set_log_name(logfile);
-	cpl_msg_set_log_level(loglevel);
-	cpl_errorstate prestate = cpl_errorstate_get();
+	set_environment(runenv);
+	self->cpl->msg_set_log_name(logfile);
+	self->cpl->msg_set_log_level(loglevel);
+	self->cpl->msg_set_level(CPL_MSG_OFF);
+	cpl_errorstate prestate = self->cpl->errorstate_get();
 	if (chdir(dirname) == 0) {
 	    struct tms clock_start;
 	    times(&clock_start);
 	    setup_tracing(self);
-	    retval = cpl_plugin_get_exec(self->plugin)(self->plugin);
-	    int reto = cpl_dfs_update_product_header(recipe->frames);
+	    retval = self->cpl->plugin_get_exec(self->plugin)(self->plugin);
+	    int reto = self->cpl->dfs_update_product_header(recipe->frames);
 	    if (reto != CPL_ERROR_NONE) {
-		cpl_msg_error (__func__, "could not update the product header");
+		self->cpl->msg_error (__func__, "could not update the product header");
 	    }
 	    times(&clock_end);
 	    clock_end.tms_utime -= clock_start.tms_utime;
 	    clock_end.tms_stime -= clock_start.tms_stime;
 	    clock_end.tms_cutime -= clock_start.tms_cutime;
 	    clock_end.tms_cstime -= clock_start.tms_cstime;
-	    cpl_msg_stop_log();
+	    self->cpl->msg_stop_log();
 	} else {
 	    retval = CPL_ERROR_FILE_NOT_CREATED;
-	    cpl_error_set(__func__, retval);
+	    self->cpl->error_set_message_macro(__func__, retval, __FILE__, __LINE__, " ");
 	}
 	if ((memory_dump > 1) 
-	    || ((memory_dump > 0) && (!cpl_memory_is_empty()))) {
-	  cpl_memory_dump();
+	    || ((memory_dump > 0) && (!self->cpl->memory_is_empty()))) {
+	  self->cpl->memory_dump();
 	}
-	void *ptr = exec_serialize_retval(recipe->frames, prestate,
+	void *ptr = exec_serialize_retval(self, recipe->frames, prestate,
 					  retval, &clock_end);
 	long n_bytes = write(fd[1], ptr, ((long *)ptr)[0]);
 	close(fd[1]);
@@ -988,11 +845,11 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     
     close(fd[1]);
     long nbytes;
-    void *ptr = cpl_malloc(2 * sizeof(long));
+    void *ptr = malloc(2 * sizeof(long));
 Py_BEGIN_ALLOW_THREADS
     nbytes = read(fd[0], ptr, 2 * sizeof(long));
     if (nbytes == 2 * sizeof(long)) {
-	ptr = cpl_realloc(ptr, ((long *)ptr)[0]);
+	ptr = realloc(ptr, ((long *)ptr)[0]);
 	nbytes += read(fd[0], ptr + 2 * sizeof(long), 
 		       ((long *)ptr)[0] - 2 * sizeof(long));
     } else { // broken pipe while reading first two bytes
@@ -1006,7 +863,7 @@ Py_END_ALLOW_THREADS
 	return NULL;
     }
     PyObject *retval = exec_build_retval(ptr);
-    cpl_free(ptr);
+    free(ptr);
     return retval;
 }
 
@@ -1025,12 +882,15 @@ static PyMethodDef CPL_recipe_methods[] = {
      CPL_recipe_get_frameconfig_doc},
     {"run",  (PyCFunction)CPL_recipe_exec, METH_VARARGS,
      CPL_recipe_exec_doc},
+    {"cpl_is_supported", (PyCFunction)CPL_is_supported, METH_NOARGS,
+     CPL_is_supported_doc},
+    {"cpl_version", (PyCFunction)CPL_version, METH_NOARGS, CPL_version_doc},
+    {"cpl_description", (PyCFunction)CPL_description, METH_NOARGS, CPL_version_doc},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
 static PyTypeObject CPL_recipeType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
     "CPL_recipe.recipe",       /*tp_name*/
     sizeof(CPL_recipe),        /*tp_basicsize*/
     0,                         /*tp_itemsize*/
@@ -1070,20 +930,42 @@ static PyTypeObject CPL_recipeType = {
     CPL_recipe_new,            /* tp_new */
 };
 
-#ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
-#define PyMODINIT_FUNC void
-#endif
 
+#if PY_MAJOR_VERSION >= 3
 PyMODINIT_FUNC
-initCPL_recipe(void)
-{
-    cpl_init(CPL_INIT_DEFAULT);
+PyInit_CPL_recipe(void) {
+    static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "CPL_recipe",        /* m_name */
+        NULL,                /* m_doc */
+        -1,                  /* m_size */
+        CPL_methods,         /* m_methods */
+        NULL,                /* m_reload */
+        NULL,                /* m_traverse */
+        NULL,                /* m_clear */
+        NULL,                /* m_free */
+    };
 
     CPL_recipeType.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&CPL_recipeType) < 0)
-        return;
-    PyObject *m = Py_InitModule("CPL_recipe", CPL_methods);
+    if (PyType_Ready(&CPL_recipeType) < 0) {
+        return NULL;
+    }
+
+    PyObject *m = PyModule_Create(&moduledef);
+    Py_INCREF(&CPL_recipeType);
+    PyModule_AddObject(m, "recipe", (PyObject *)&CPL_recipeType);
+    return m;
+}
+#else
+PyMODINIT_FUNC
+initCPL_recipe(void) {
+    CPL_recipeType.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&CPL_recipeType) < 0) {
+	return;
+    }
+
+    PyObject *m = Py_InitModule3("CPL_recipe", CPL_methods, NULL);
     Py_INCREF(&CPL_recipeType);
     PyModule_AddObject(m, "recipe", (PyObject *)&CPL_recipeType);
 }
-
+#endif

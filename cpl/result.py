@@ -95,7 +95,7 @@ class Stat(object):
         self.sys_time = stat[2]
         self.memory_is_empty = { -1:None, 0:False, 1:True }[stat[3]]
 
-class CplError(StandardError):
+class CplError(Exception):
     '''Error message from the recipe.
 
     If the CPL recipe invocation returns an error, it is converted into a
@@ -104,7 +104,7 @@ class CplError(StandardError):
 
     The exception is raised on recipe invocation, or when accessing the result
     frames if the recipe was started in background
-    (:attr:`cpl.Recipe.threaded` set to :attr:`True`).
+    (:attr:`cpl.Recipe.threaded` set to :obj:`True`).
 
     Attributes:
 
@@ -128,11 +128,11 @@ class CplError(StandardError):
 
        Log lines of the recipe that lead to this exception.
 
-       .. seealso:: :class:`cpl.log.LogList`
+       .. seealso:: :class:`cpl.logger.LogList`
 
     .. attribute:: next
      
-       Next error, or :attr:`None`.
+       Next error, or :obj:`None`.
 
     '''
     def __init__(self, retval, res, logger = None):
@@ -174,7 +174,7 @@ class CplError(StandardError):
                                                         e.line) 
         return s
 
-class RecipeCrash(StandardError):
+class RecipeCrash(Exception):
     '''Recipe crash exception
 
     If the CPL recipe crashes with a SIGSEV or a SIGBUS, the C stack trace is
@@ -187,7 +187,7 @@ class RecipeCrash(StandardError):
 
     The exception is raised on recipe invocation, or when accessing the result
     frames if the recipe was started in background
-    (:attr:`cpl.Recipe.threaded` set to :attr:`True`).
+    (:attr:`cpl.Recipe.threaded` set to :obj:`True`).
 
     Attributes:
 
@@ -195,7 +195,7 @@ class RecipeCrash(StandardError):
 
        List of stack elements, with the most recent element (the one that
        caused the crash) at the end. Each stack element is a 
-       :class:`collections.namedtuple` with the following attributes:
+       :func:`collections.namedtuple` with the following attributes:
 
        .. attribute:: filename
  
@@ -272,7 +272,7 @@ class RecipeCrash(StandardError):
                                                    e.line, e.func, e.params, 
                                                    e.localvars) 
                           for e in self.elements ]
-        StandardError.__init__(self, str(self))
+        Exception.__init__(self, str(self))
 
     def _add_variable(self, vars, line):
         s = line.strip().split('=', 1)

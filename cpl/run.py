@@ -32,7 +32,7 @@ parser.add_option('--output-dir', action = 'callback',
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
-cpl.msg.level = logging.ERROR
+cpl.esorex.msg.level = logging.ERROR
     
 def logfile_callback(option, opt, value, parser):
     ch = logging.FileHandler(value)
@@ -58,7 +58,7 @@ parser.add_option('--log-level', action = 'callback',
 def msglevel_callback(option, opt, value, parser):
     levels = {'debug':logging.DEBUG, 'info':logging.INFO, 
               'warning':logging.warning, 'error':logging.ERROR }
-    cpl.msg.level = levels[value]
+    cpl.esorex.msg.level = levels[value]
 
 parser.add_option('--msg-level', action = 'callback',
                   type='str', help = 'Controls the severity level of '
@@ -80,7 +80,7 @@ types = { bool:'string', str:'string', int:'int', float:'float' }
 if recipe:
     parser.add_option('--tag', action = 'callback',
                       type='str', help = 
-                      'Input file tag %s' % `recipe.tags`,
+                      'Input file tag %s' % repr(recipe.tags),
                       callback = tag_callback)
 
     group = OptionGroup(parser, 'Recipe parameters')
@@ -122,9 +122,9 @@ try:
     recipe(args[1:])
 except cpl.result.RecipeCrash as ex:
     log.exception(ex)
-    print `ex`
+    print(repr(ex))
 except cpl.result.CplError as ex:
     log.exception(ex)
-    print `ex`
+    print(repr(ex))
     
     
