@@ -1,4 +1,9 @@
-Version 0.4
+Version 0.5 (2013-03-27)
+
+* Support CPL 6.3
+* Support Python3
+
+Version 0.4 (2012-11-26)
 
 * Allow to run recipes that are linked to an older CPL
 * Allow to overwrite environment variables

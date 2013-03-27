@@ -4,7 +4,7 @@ from distutils.core import setup, Extension
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
-cpl_version = '0.4'
+cpl_version = '0.5'
 with open('README') as readme:
     description = readme.read().splitlines()
     long_description = "\n".join(description[2:])
