@@ -13,7 +13,7 @@ with open('README') as readme:
 doc = '%s\n%s' % (description, 
                   long_description[:long_description.find('Build instructions')])
 pkgname = 'python-cpl'
-baseurl = 'http://packages.python.org/%s' % pkgname
+baseurl = 'http://pypi.python.org/packages/source/%s/%s' % (pkgname[0], pkgname)
 classifiers = '''Development Status :: 4 - Beta
 Intended Audience :: Science/Research
 License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)
@@ -49,7 +49,7 @@ setup(
     description = description,
     long_description = long_description,
     license = license_,
-    url = baseurl,
+    url = 'https://pypi.python.org/pypi/%s/%s' % (pkgname, cpl_version),
     download_url = '%s/%s-%s.tar.gz' % (baseurl, pkgname, cpl_version),
     classifiers = classifiers,
     requires = ['pyfits'],
