@@ -6,7 +6,11 @@ import threading
 import collections
 import warnings
 
-import pyfits
+try:
+    from astropy.io import fits
+except:
+    import pyfits as fits
+
 from . import CPL_recipe
 from . import esorex
 from cpl.frames import FrameList, mkabspath, expandframelist
@@ -206,22 +210,23 @@ class Recipe(object):
            :obj:`None`.
 
         In order to assing a FITS file to a tag, the file name or the
-        :class:`pyfits.HDUList` is assigned to the calibration attribute:
+        :class:`astropy.io.fits.HDUList` is assigned to the calibration
+        attribute:
 
         >>> muse_scibasic.calib.MASTER_BIAS = 'MASTER_BIAS_0.fits'
 
-        Using :class:`pyfits.HDUList` is useful when it needs to be patched
-        before fed into the recipe. 
+        Using :class:`astropy.io.fits.HDUList` is useful when it needs to be
+        patched before fed into the recipe.
 
-        >>> master_bias = pyfits.open('MASTER_BIAS_0.fits')
+        >>> master_bias = astropy.io.fits.open('MASTER_BIAS_0.fits')
         >>> master_bias[0].header['HIERARCH ESO DET CHIP1 OUT1 GAIN'] = 2.5
         >>> muse_scibasic.calib.MASTER_BIAS = master_bias
 
-        Note that :class:`pyfits.HDUList` objects are stored in temporary
-        files before the recipe is called which may produce some
+        Note that :class:`astropy.io.fits.HDUList` objects are stored in
+        temporary files before the recipe is called which may produce some
         overhead. Also, the CPL then assigns the random temporary file names
         to the FITS keywords ``HIERARCH ESO PRO RECm RAWn NAME`` which should
-        be corrected afterwards if needed. 
+        be corrected afterwards if needed.
 
         To assign more than one frame, put them into a list:
 
@@ -232,7 +237,7 @@ class Recipe(object):
         the map are set are removed from the list, and unknown frame tags are
         silently ignored. The key of the map is the tag name; the values are
         either a string, or a list of strings, containing the file name(s) or
-        the :class:`pyfits.HDUList` objects.
+        the :class:`astropy.io.fits.HDUList` objects.
 
         >>> muse_scibasic.calib = { 'MASTER_BIAS':'master_bias_0.fits', 
         ...                'BADPIX_TABLE':[ 'badpix_1.fits', 'badpix_2.fits' ] }
@@ -334,8 +339,8 @@ class Recipe(object):
         '''Call the recipes execution with a certain input frame.
         
         :param raw: Data input frames.
-        :type raw: :class:`pyfits.HDUlist` or :class:`str` or a :class:`list` 
-            of them, or :class:`dict`
+        :type raw: :class:`astropy.io.fits.HDUlist` or :class:`str` or a 
+            :class:`list` of them, or :class:`dict`
         :param tag: Overwrite the :attr:`tag` attribute (optional).
         :type tag: :class:`str`
         :param threaded: overwrite the :attr:`threaded` attribute (optional).
@@ -357,8 +362,8 @@ class Recipe(object):
         :param env: overwrite environment variables for the recipe call 
             (optional). 
         :type env: :class:`dict`
-        :return: The object with the return frames as :class:`pyfits.HDUList` 
-            objects
+        :return: The object with the return frames as 
+            :class:`astropy.io.fits.HDUList` objects
         :rtype: :class:`cpl.Result`
         :raise: :exc:`exceptions.ValueError` If the invocation parameters
                 are incorrect.
@@ -380,7 +385,7 @@ class Recipe(object):
         loglevel = ndata.get('loglevel')
         logname = ndata.get('logname', 'cpl.%s' % self.__name__)
         output_dir = ndata.get('output_dir', self.output_dir)
-        output_format = str if output_dir else pyfits.HDUList
+        output_format = str if output_dir else fits.HDUList
         if output_dir is None:
             output_dir = tempfile.mkdtemp(dir = self.temp_dir, 
                                           prefix = self.__name__ + "-") 
@@ -388,14 +393,14 @@ class Recipe(object):
         raw_frames = self._get_raw_frames(*data, **ndata)
         if len(raw_frames) < 1:
             raise ValueError('No raw frames specified.')
-        input_len = -1 if isinstance(raw_frames[0][1], pyfits.HDUList) else \
+        input_len = -1 if isinstance(raw_frames[0][1], fits.HDUList) else \
             len(raw_frames[0][1]) if isinstance(raw_frames[0][1], list) else -1
         calib_frames = self.calib._aslist(ndata.get('calib'))
         framelist = expandframelist(raw_frames + calib_frames)
         runenv = dict(self.env)
         runenv.update(ndata.get('env', dict()))
         logger = None
-        delete = output_format == pyfits.HDUList
+        delete = output_format == fits.HDUList
         try:
             if (not os.access(output_dir, os.F_OK)):
                 os.makedirs(output_dir)
@@ -446,7 +451,7 @@ class Recipe(object):
             elif tag not in m:
                 m[tag] = f
             elif isinstance(m[tag], list) \
-                    and not isinstance(m[tag], pyfits.HDUList):
+                    and not isinstance(m[tag], fits.HDUList):
                 m[tag].append(f)
             else:
                 m[tag] = [ m[tag], f ]

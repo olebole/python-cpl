@@ -4,8 +4,9 @@ Tutorial
 Simple example
 --------------
 
-The following code takes BIAS input file names from the command line and writes the
-MASTER BIAS to the file name provided with the :option:`-o` option::
+The following code takes BIAS input file names from the command line and
+writes the MASTER BIAS to the file name provided with the :option:`-o`
+option::
 
   from optparse import OptionParser
   import sys
@@ -108,16 +109,16 @@ Set calibration frames with files:
 >>> muse_scibasic.calib.TRACE_TABLE    = 'TRACE_TABLE-01.fits'
 >>> muse_scibasic.calib.GEOMETRY_TABLE = 'geometry_table.fits'
 
-You may also set calibration frames with :class:`pyfits.HDUList` objects. This
-is especially useful if you want to change the file on the fly:
+You may also set calibration frames with :class:`astropy.io.fits.HDUList`
+objects. This is especially useful if you want to change the file on the fly:
 
->>> import pyfits
->>> wavecal = pyfits.open('WAVECAL_TABLE-01_flat.fits')
+>>> import astropy.io.fits
+>>> wavecal = astropy.io.fits.open('WAVECAL_TABLE-01_flat.fits')
 >>> wavecal[1].data.field('wlcc00')[:] *= 1.01
 >>> muse_scibasic.calib.WAVECAL_TABLE = wavecal
 
 To set more than one file for a tag, put the file names and/or
-:class:`pyfits.HDUList` objects into a list:
+:class:`astropy.io.fits.HDUList` objects into a list:
 
 >>> muse_scibasic.calib.MASTER_BIAS    = [ 'MASTER_BIAS-%02i.fits' % (i+1) 
 ...                                        for i in range(24) ]
@@ -139,8 +140,8 @@ specifying them as arguments:
 ...                      calib = {'MASTER_FLAT': None,
 ...                               'WAVECAL_TABLE': 'WAVECAL_TABLE_noflat.fits'})
 
-The results of a calibration run are :class:`pyfits.HDUList` objects.  To save
-them (use output tags as attributes):
+The results of a calibration run are :class:`astropy.io.fits.HDUList` objects.
+To save them (use output tags as attributes):
 
 >>> res.PIXTABLE_OBJECT.writeto('Scene_fusion_pixtable.fits')
 
@@ -151,8 +152,8 @@ They can also be used directly as input of other recipes.
 >>> res_sky = muse_sky(res.PIXTABLE_OBJECT)
 
 If not saved, the output is usually lost! During recipe run, a temporary
-directory is created where the :class:`pyfits.HDUList` input objects and the
-output files are put into. This directory is cleaned up afterwards.
+directory is created where the :class:`astropy.io.fits.HDUList` input objects
+and the output files are put into. This directory is cleaned up afterwards.
 
 To control message verbosity on terminal (use :literal:`'debug'`,
 :literal:`'info'`, :literal:`'warn'`, :literal:`'error'` or :literal:`'off'`):

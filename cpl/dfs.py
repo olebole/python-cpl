@@ -1,6 +1,9 @@
 import os
 import sys
-import pyfits
+try:
+    from astropy.io import fits
+except:
+    import pyfits as fits
 
 import cpl
 
@@ -44,8 +47,8 @@ class ProcessingInfo(object):
        .. note::
 
           This will not work properly for files that had
-          :class:`pyfits.HDUList` inputs since they have assigned a temporary
-          file name only.
+          :class:`astropy.io.fits.HDUList` inputs since they have assigned a
+          temporary file name only.
 
     .. attribute:: raw
 
@@ -54,8 +57,8 @@ class ProcessingInfo(object):
        .. note::
 
           This will not work properly for files that had
-          :class:`pyfits.HDUList` inputs since they have assigned a temporary
-          file name only.
+          :class:`astropy.io.fits.HDUList` inputs since they have assigned a
+          temporary file name only.
 
     .. attribute:: param
 
@@ -86,20 +89,21 @@ class ProcessingInfo(object):
     def __init__(self, source, datapaths = None):
         '''
         :param source: Object pointing to the result file header
-        :type source: :class:`str` or :class:`pyfits.HDUList`
-                      or :class:`pyfits.PrimaryHDU` or :class:`pyfits.Header`
+        :type source: :class:`str` or :class:`astropy.io.fits.HDUList`
+                      or :class:`astropy.io.fits.PrimaryHDU` or 
+                      :class:`astropy.io.fits.Header`
         :param datapaths: Dictionary with frame tags as keys and directory paths
                         as values to provide a full path for the raw and
                         calibration frames. Optional.
         :type datapaths: :class:`dict`
         '''
         if isinstance(source, str):
-            header = pyfits.open(source)[0].header
-        elif isinstance(source, pyfits.HDUList):
+            header = fits.open(source)[0].header
+        elif isinstance(source, fits.HDUList):
             header = source[0].header
-        elif isinstance(source, pyfits.PrimaryHDU):
+        elif isinstance(source, fits.PrimaryHDU):
             header = source.header
-        elif isinstance(source, (pyfits.Header, dict)):
+        elif isinstance(source, (fits.Header, dict)):
             header = source
         else:
             raise ValueError('Cannot assign type %s to header' % 

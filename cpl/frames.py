@@ -1,7 +1,10 @@
 from __future__ import absolute_import
 import os
 import tempfile
-import pyfits
+try:
+    from astropy.io import fits
+except:
+    import pyfits as fits
 
 from . import md5sum
 
@@ -35,8 +38,8 @@ class FrameConfig(object):
 
     .. attribute:: frames
 
-       List of frames (file names or :class:`pyfits.HDUList` objects) that are 
-       assigned to this frame type.
+       List of frames (file names or :class:`astropy.io.fits.HDUList` objects)
+       that are assigned to this frame type.
     '''
     def __init__(self, tag, min_frames = 0, max_frames = 0, frames = None):
         self.tag = tag
@@ -185,8 +188,8 @@ class FrameList(object):
 def mkabspath(frames, tmpdir):
     '''Convert all filenames in the frames list into absolute paths.
 
-    :class:`pyfits.HDUList`s will be converted to temporary files located in
-    the temporary directory tmpdir.
+    :class:`astropy.io.fits.HDUList`s will be converted to temporary files
+    located in the temporary directory tmpdir.
 
     The replacement is done in-place. The function will return the list of
     temporary files.
@@ -199,7 +202,7 @@ def mkabspath(frames, tmpdir):
     
     tmpfiles = list()
     for i, frame in enumerate(frames):
-        if isinstance(frame[1], pyfits.HDUList):
+        if isinstance(frame[1], fits.HDUList):
             md5 = md5sum.update_md5(frame[1])
             filename = os.path.abspath(os.path.join(tmpdir, '%s_%s.fits' 
                                                     % (frame[0], md5[:8])))
@@ -220,7 +223,7 @@ def expandframelist(frames):
     '''
     framelist = list()
     for tag, f in frames:
-        if isinstance(f, list) and not isinstance(f, pyfits.HDUList):
+        if isinstance(f, list) and not isinstance(f, fits.HDUList):
             framelist += [ (tag, frame) for frame in f ]
         elif f is not None:
             framelist.append((tag, f))

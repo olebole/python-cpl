@@ -44,8 +44,8 @@ These attributes and methods are available for all recipes.
    directory does not exist, it will be created before the recipe is
    executed. Output files within the output directory will be silently
    overwritten. If no output directory is set, the recipe call will result in
-   :class:`pyfits.HDUList` result objects. The output directory may be also
-   set as parameter in the recipe call.
+   :class:`astropy.io.fits.HDUList` result objects. The output directory may
+   be also set as parameter in the recipe call.
 
 .. attribute:: Recipe.temp_dir
 

@@ -197,5 +197,5 @@ latex_use_modindex = False
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None, 'http://packages.python.org/pyfits/':None}
+intersphinx_mapping = {'http://docs.python.org/': None, 'http://docs.astropy.org/':None}
 

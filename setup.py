@@ -52,7 +52,7 @@ setup(
     url = 'https://pypi.python.org/pypi/%s/%s' % (pkgname, cpl_version),
     download_url = '%s/%s-%s.tar.gz' % (baseurl, pkgname, cpl_version),
     classifiers = classifiers,
-    requires = ['pyfits'],
+    requires = ['astropy'],
     provides = ['cpl'],
     packages = ['cpl'],
     ext_modules = [module1]

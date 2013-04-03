@@ -3,26 +3,30 @@ import os
 import signal
 import logging
 
-import pyfits
+try:
+    from astropy.io import fits
+except:
+    import pyfits as fits
 
 class Result(object):
     def __init__(self, recipedefs, dir, res, input_len = 0, logger = None, 
-                 output_format = pyfits.HDUList):
+                 output_format = fits.HDUList):
         '''Build an object containing all result frames.
 
         Calling :meth:`cpl.Recipe.__call__` returns an object that contains
         all result ('production') frames in attributes. All results for one
         tag are summarized in one attribute of the same name. 
 
-        If the argument `output_format` is :class:`pyfits.HDUList` (default),
-        then the attribute content is either a :class:`pyfits.HDUList` or a
-        class:`list` of HDU lists, depending on the recipe and the call: If
-        the recipe produces one out put frame of a tag per input file, the
-        attribute contains a list if the recipe was called with a list, and if
-        the recipe was called with a single input frame, the result attribute
-        will also contain a single input frame. If the recipe combines all
-        input frames to one output frame, a single :class:`pyfits.HDUList` es
-        returned, independent of the input parameters.
+        If the argument `output_format` is :class:`astropy.io.fits.HDUList`
+        (default), then the attribute content is either a
+        :class:`astropy.io.fits.HDUList` or a class:`list` of HDU lists,
+        depending on the recipe and the call: If the recipe produces one out
+        put frame of a tag per input file, the attribute contains a list if
+        the recipe was called with a list, and if the recipe was called with a
+        single input frame, the result attribute will also contain a single
+        input frame. If the recipe combines all input frames to one output
+        frame, a single :class:`astropy.io.fits.HDUList` es returned,
+        independent of the input parameters.
 
         Similarly, if the argument `output_format` is set to :class:`str`, the
         attribute content is either a :class:`str` or a class:`list` of
@@ -33,8 +37,8 @@ class Result(object):
            number and type of the input frames. The heuristics will go wrong
            if there is only one input frame, specified as a list, but the
            recipe tries to summarize the input. In this case, the attribute
-           will contain a list where a single :class:`pyfits.HDUList` was
-           expected. To solve this problem, the "MASTER" flag has to be
+           will contain a list where a single :class:`astropy.io.fits.HDUList`
+           was expected. To solve this problem, the "MASTER" flag has to be
            forwarded from the (MUSE) recipe which means that it should be
            exported by the recipe -- this is a major change since it probably
            leads into a replacement of CPLs recipeconfig module by something
@@ -47,7 +51,7 @@ class Result(object):
             raise CplError(res[2][0], res[1], logger)
         self.tags = set()
         for tag, frame in res[0]:
-            if (output_format == pyfits.HDUList): 
+            if (output_format == fits.HDUList): 
                 # Move the file to the base dir to avoid NFS problems
                 outframe = os.path.join(
                     os.path.dirname(self.dir), 
@@ -55,8 +59,8 @@ class Result(object):
                 os.rename(os.path.join(self.dir, frame), outframe)
             else:
                 outframe = os.path.join(self.dir, frame)
-            if output_format == pyfits.HDUList:
-                hdulist = pyfits.open(outframe, memmap = True, mode = 'update')
+            if output_format == fits.HDUList:
+                hdulist = fits.open(outframe, memmap = True, mode = 'update')
                 hdulist.readall()
                 os.remove(outframe)
                 outframe = hdulist
@@ -65,7 +69,7 @@ class Result(object):
                 self.__dict__[tag] = outframe if input_len != 1 \
                     else [ outframe ]
                 self.tags.add(tag)
-            elif isinstance(self.__dict__[tag], (pyfits.HDUList, str)):
+            elif isinstance(self.__dict__[tag], (fits.HDUList, str)):
                 self.__dict__[tag] = [ self.__dict__[tag], outframe ]
             else:
                 self.__dict__[tag].append(outframe)

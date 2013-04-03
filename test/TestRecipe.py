@@ -5,7 +5,10 @@ import tempfile
 import unittest
 
 import numpy
-import pyfits
+try:
+    from astropy.io import fits
+except:
+    import pyfits as fits
 import cpl
 
 recipe_name = 'rtest'
@@ -23,8 +26,8 @@ class RecipeTestCase(CplTestCase):
         self.recipe.temp_dir = self.temp_dir
         self.recipe.tag = raw_tag
         self.image_size = (16, 16)
-        self.raw_frame = pyfits.HDUList([
-                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
+        self.raw_frame = fits.HDUList([
+                fits.PrimaryHDU(numpy.random.random_integers(0, 65000,
                                                                self.image_size))])
         self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
         self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', raw_tag)
@@ -273,9 +276,9 @@ class RecipeCalib(RecipeTestCase):
 class RecipeExec(RecipeTestCase):
     def setUp(self):
         RecipeTestCase.setUp(self)
-        self.flat_frame = pyfits.HDUList([
-                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
-                                                               self.image_size))])
+        self.flat_frame = fits.HDUList([
+                fits.PrimaryHDU(numpy.random.random_integers(0, 65000,
+                                                             self.image_size))])
 
     def test_frames_keyword_dict(self):
         '''Raw and calibration frames specified as keyword dict'''
@@ -283,7 +286,7 @@ class RecipeExec(RecipeTestCase):
         res = self.recipe(raw = {'RRRECIPE_DOCATG_RAW': self.raw_frame },
                           calib = { 'FLAT':self.flat_frame })
         self.assertTrue(isinstance(res, cpl.Result))
-        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, fits.HDUList))
         self.assertTrue(abs(self.raw_frame[0].data 
                             - res.THE_PRO_CATG_VALUE[0].data).max() == 0)
         res.THE_PRO_CATG_VALUE.close()
@@ -294,7 +297,7 @@ class RecipeExec(RecipeTestCase):
         self.recipe.calib.FLAT = self.flat_frame
         res = self.recipe({'RRRECIPE_DOCATG_RAW':self.raw_frame})
         self.assertTrue(isinstance(res, cpl.Result))
-        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, fits.HDUList))
         res.THE_PRO_CATG_VALUE.close()
 
     def test_frames_tag_keyword(self):
@@ -303,7 +306,7 @@ class RecipeExec(RecipeTestCase):
         self.recipe.calib.FLAT = self.flat_frame
         res = self.recipe(self.raw_frame, tag = raw_tag)
         self.assertTrue(isinstance(res, cpl.Result))
-        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, fits.HDUList))
         res.THE_PRO_CATG_VALUE.close()
 
     def test_frames_tag_attribute(self):
@@ -311,7 +314,7 @@ class RecipeExec(RecipeTestCase):
         self.recipe.tag = raw_tag
         res = self.recipe(self.raw_frame)
         self.assertTrue(isinstance(res, cpl.Result))
-        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, fits.HDUList))
         res.THE_PRO_CATG_VALUE.close()
 
     def test_frames_one_element_input_list(self):
@@ -319,7 +322,7 @@ class RecipeExec(RecipeTestCase):
         # --> we want a list back'''
         res = self.recipe([self.raw_frame])
         self.assertTrue(isinstance(res, cpl.Result))
-        self.assertFalse(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        self.assertFalse(isinstance(res.THE_PRO_CATG_VALUE, fits.HDUList))
         self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, list))
         res.THE_PRO_CATG_VALUE[0].close()
 
@@ -329,7 +332,7 @@ class RecipeExec(RecipeTestCase):
         # assumed to be a 'master', and we get back a plain frame'''
         res = self.recipe([self.raw_frame, self.raw_frame])
         self.assertTrue(isinstance(res, cpl.Result))
-        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+        self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, fits.HDUList))
         res.THE_PRO_CATG_VALUE.close()
 
     def test_output_dir_attribute(self):
@@ -343,8 +346,8 @@ class RecipeExec(RecipeTestCase):
                          'rtest.fits')
         self.assertTrue(os.path.isdir(output_dir))
         self.assertTrue(os.path.isfile(res.THE_PRO_CATG_VALUE))
-        hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
-        self.assertTrue(isinstance(hdu, pyfits.HDUList))
+        hdu = fits.open(res.THE_PRO_CATG_VALUE)
+        self.assertTrue(isinstance(hdu, fits.HDUList))
         hdu.close()
 
     def test_output_dir_keyword(self):
@@ -359,8 +362,8 @@ class RecipeExec(RecipeTestCase):
         self.assertEqual(os.path.basename(res.THE_PRO_CATG_VALUE), 
                          'rtest.fits')
         self.assertTrue(os.path.isfile(res.THE_PRO_CATG_VALUE))
-        hdu = pyfits.open(res.THE_PRO_CATG_VALUE)
-        self.assertTrue(isinstance(hdu, pyfits.HDUList))
+        hdu = fits.open(res.THE_PRO_CATG_VALUE)
+        self.assertTrue(isinstance(hdu, fits.HDUList))
         hdu.close()
 
     def test_param_default(self):
@@ -462,7 +465,7 @@ class RecipeExec(RecipeTestCase):
                                        threaded = True))
         for i, res in enumerate(results):
             # check if we got the correct type
-            self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, pyfits.HDUList))
+            self.assertTrue(isinstance(res.THE_PRO_CATG_VALUE, fits.HDUList))
             # check if we have the correct parameter
             self.assertEqual(res.THE_PRO_CATG_VALUE[0].header[
                     'HIERARCH ESO QC INTOPT'], i)
@@ -539,12 +542,12 @@ class RecipeRes(RecipeTestCase):
     def test_attribute(self):
         '''The result as an attribute'''
         self.assertTrue(isinstance(self.res.THE_PRO_CATG_VALUE, 
-                                   pyfits.HDUList))
+                                   fits.HDUList))
 
     def test_dict(self):
         '''The result as an attribute'''
         self.assertTrue(isinstance(self.res['THE_PRO_CATG_VALUE'], 
-                                   pyfits.HDUList))
+                                   fits.HDUList))
 
     def test_len(self):
         '''Length of the result'''
@@ -554,7 +557,7 @@ class RecipeRes(RecipeTestCase):
         '''Iterate over the result'''
         for tag, hdu in self.res:
             self.assertEqual(tag, 'THE_PRO_CATG_VALUE')
-            self.assertTrue(isinstance(hdu, pyfits.HDUList))
+            self.assertTrue(isinstance(hdu, fits.HDUList))
 
 class RecipeEsorex(CplTestCase):
     def setUp(self):
@@ -798,8 +801,8 @@ class ProcessingInfo(RecipeTestCase):
         self.recipe.param.floatopt = -0.25
         self.recipe.param.enumopt = 'third'
         self.recipe.param.rangeopt = 0.125
-        self.recipe.calib.FLAT = pyfits.HDUList([
-                pyfits.PrimaryHDU(numpy.random.random_integers(0, 65000,
+        self.recipe.calib.FLAT = fits.HDUList([
+                fits.PrimaryHDU(numpy.random.random_integers(0, 65000,
                                                           self.image_size))])
         self.res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
         self.pinfo = cpl.dfs.ProcessingInfo(self.res)

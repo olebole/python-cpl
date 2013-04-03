@@ -5,7 +5,8 @@ Prequisites
 -----------
 
 * `Python <http://www.python.org/>`_ 2.6 or 2.7, 
-* `Pyfits <http://packages.python.org/pyfits/>`_
+* `Astropy <http://www.astropy.org/>`_ or 
+  `Pyfits <http://packages.python.org/pyfits/>`_
 
 Binary packages
 ---------------
