@@ -137,6 +137,8 @@ class Recipe(object):
 
         self.threaded = threaded
 
+        self.mtrace = False
+
         self.__doc__ = self._doc()
 
     @property
@@ -407,6 +409,7 @@ class Recipe(object):
         '''
         tmpfiles = []
         threaded = ndata.get('threaded', self.threaded)
+        mtrace = ndata.get('mtrace', self.mtrace)
         loglevel = ndata.get('loglevel')
         logname = ndata.get('logname', 'cpl.%s' % self.__name__)
         output_dir = ndata.get('output_dir', self.output_dir)
@@ -439,20 +442,20 @@ class Recipe(object):
             raise
         if not threaded:
             return self._exec(output_dir, parlist, framelist, runenv, 
-                              input_len, logger, output_format, delete)
+                         input_len, logger, output_format, delete, mtrace)
         else:
             return  Threaded(
                 self._exec, output_dir, parlist, framelist, runenv, 
-                input_len, logger, output_format, delete)
+                input_len, logger, output_format, delete, mtrace)
 
     def _exec(self, output_dir, parlist, framelist, runenv,
-              input_len, logger, output_format, delete):
+              input_len, logger, output_format, delete, mtrace):
         try:
             return Result(self._recipe.frameConfig(), output_dir,
                           self._recipe.run(output_dir, parlist, framelist,
                                            list(runenv.items()), 
                                            logger.logfile, logger.level,
-                                           self.memory_dump),
+                                           self.memory_dump, mtrace),
                           input_len, logger, output_format)
         finally:
             self._cleanup(output_dir, logger, delete)

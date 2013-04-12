@@ -73,7 +73,14 @@ class Result(object):
                 self.__dict__[tag] = [ self.__dict__[tag], outframe ]
             else:
                 self.__dict__[tag].append(outframe)
-        self.stat = Stat(res[2])
+        mtracefname = os.path.join(self.dir, 'recipe.mtrace')
+        mtrace = None
+        if os.path.exists(mtracefname):
+            try:
+                mtrace = os.popen("mtrace %s" % mtracefname).read();
+            except:
+                mtrace = None
+        self.stat = Stat(res[2], mtrace)
         self.error = CplError(res[2][0], res[1], logger) if res[1] else None
         self.log = logger.entries if logger else None
 
@@ -93,11 +100,12 @@ class Result(object):
         return iter((key, self.__dict__[key]) for key in self.tags)
 
 class Stat(object):
-    def __init__(self, stat):
+    def __init__(self, stat, mtrace):
         self.return_code = stat[0]
         self.user_time = stat[1]
         self.sys_time = stat[2]
         self.memory_is_empty = { -1:None, 0:False, 1:True }[stat[3]]
+        self.mtrace = mtrace;
 
 class CplError(Exception):
     '''Error message from the recipe.

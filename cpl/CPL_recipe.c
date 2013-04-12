@@ -13,6 +13,7 @@
 #define HAVE_PRCTL
 #include <mcheck.h>
 #define HAVE_MCHECK
+#define HAVE_MTRACE
 #include <malloc.h>
 #define HAVE_MALLOPT
 #endif
@@ -720,7 +721,7 @@ static int segv_handler(int sig) {
   return retval;
 }
 
-static void setup_tracing(CPL_recipe *self) {
+static void setup_tracing(CPL_recipe *self, int memory_trace) {
 
 #ifdef HAVE_PRCTL
 #ifdef PR_SET_PTRACER
@@ -738,6 +739,12 @@ static void setup_tracing(CPL_recipe *self) {
 #endif
 #ifdef HAVE_MALLOPT
     mallopt(M_CHECK_ACTION, 0);
+#endif
+#ifdef HAVE_MTRACE
+    if (memory_trace) {
+	setenv("MALLOC_TRACE", "recipe.mtrace", 1);
+	mtrace();
+    }
 #endif
 
     typedef void (*sighandler_t)(int);
@@ -768,8 +775,10 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     const char *logfile;
     int loglevel;
     int memory_dump;
-    if (!PyArg_ParseTuple(args, "sOOOsii", &dirname, &parlist, &soflist,
-			  &runenv, &logfile, &loglevel, &memory_dump))
+    int memory_trace;
+    if (!PyArg_ParseTuple(args, "sOOOsiii", &dirname, &parlist, &soflist,
+			  &runenv, &logfile, &loglevel,
+			  &memory_dump, &memory_trace))
         return NULL;
     if (!PySequence_Check(parlist)) {
 	PyErr_SetString(PyExc_TypeError, "Second parameter not a list");
@@ -821,7 +830,7 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	if (chdir(dirname) == 0) {
 	    struct tms clock_start;
 	    times(&clock_start);
-	    setup_tracing(self);
+	    setup_tracing(self, memory_trace);
 	    retval = self->cpl->plugin_get_exec(self->plugin)(self->plugin);
 	    int reto = self->cpl->dfs_update_product_header(recipe->frames);
 	    if (reto != CPL_ERROR_NONE) {
