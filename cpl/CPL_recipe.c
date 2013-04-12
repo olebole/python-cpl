@@ -13,6 +13,8 @@
 #define HAVE_PRCTL
 #include <mcheck.h>
 #define HAVE_MCHECK
+#include <malloc.h>
+#define HAVE_MALLOPT
 #endif
 
 /* Define PY_Type for Python <= 2.6 */
@@ -733,6 +735,9 @@ static void setup_tracing(CPL_recipe *self) {
 #endif
 #ifdef HAVE_MCHECK
     mcheck(mcheck_handler);
+#endif
+#ifdef HAVE_MALLOPT
+    mallopt(M_CHECK_ACTION, 0);
 #endif
 
     typedef void (*sighandler_t)(int);
