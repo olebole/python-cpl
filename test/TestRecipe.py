@@ -10,6 +10,7 @@ try:
 except:
     import pyfits as fits
 import cpl
+cpl.Recipe.memory_mode = 0
 
 recipe_name = 'rtest'
 raw_tag = 'RRRECIPE_DOCATG_RAW'

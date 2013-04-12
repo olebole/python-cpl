@@ -44,6 +44,30 @@ class Recipe(object):
     :func:`cpl.esorex.init()` is called.
     '''
 
+    memory_mode = 0
+    '''CPL memory management mode. The valid values are
+
+    0
+      Use the default system functions for memory handling
+
+    1
+      Exit if a memory-allocation fails, provide checking for memory leaks,
+      limited reporting of memory allocation and limited protection on
+      deallocation of invalid pointers.
+
+    2
+      Exit if a memory-allocation fails, provide checking for memory leaks,
+      extended reporting of memory allocation and protection on deallocation
+      of invalid pointers.
+
+    .. note::
+
+      This variable is only effective before the CPL library was
+      initialized. Even :func:`cpl.Recipe.list()` initializes the library.
+      Therefore it is highly recommended to set this as the first action after
+      importing :mod:`cpl`.
+    '''
+
     def __init__(self, name, filename = None, version = None, threaded = False):
         '''Try to load a recipe with the specified name in the directory
         specified by the class attribute :attr:`Recipe.path` or its 
@@ -66,6 +90,7 @@ class Recipe(object):
         :type threaded: :class:`bool`
 
         '''
+        os.putenv('CPL_MEMORY_MODE', str(Recipe.memory_mode));
         self._recipe = None
         self.__name__ = name
         '''Recipe name.'''
@@ -507,6 +532,7 @@ class Recipe(object):
         Searches for all recipes in in the directory specified by the class
         attribute :attr:`Recipe.path` or its subdirectories. 
         '''
+        os.putenv('CPL_MEMORY_MODE', str(Recipe.memory_mode));
         plugins = collections.defaultdict(list)
         for f in Recipe.get_libs():
             plugin_f = CPL_recipe.list(f)
@@ -517,6 +543,7 @@ class Recipe(object):
 
     @staticmethod
     def get_recipefilename(name, version = None):
+        os.putenv('CPL_MEMORY_MODE', str(Recipe.memory_mode));
         filename = None
         rversion = -1
         for f in Recipe.get_libs():

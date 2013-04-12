@@ -73,9 +73,13 @@ Run statistics
    
    .. attribute:: cpl.Result.stat.memory_is_empty
    
-       Flag whether the recipe terminated with freeing all available Memory. If
-       this information is not available, this flag ist set to :obj:`None`.
-   
+       Flag whether the recipe terminated with freeing all available Memory.
+       This information is only available if the CPL internal memory
+       allocation functions are used. If this information is not available,
+       this flag ist set to :obj:`None`.
+
+       .. seealso:: :attribute:`cpl.Recipe.memory_mode`
+
 Execution log
 -------------
 
