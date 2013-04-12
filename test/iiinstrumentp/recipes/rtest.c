@@ -199,6 +199,15 @@ static int rtest_create(cpl_plugin * plugin)
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
+    /* --memleak */
+    p = cpl_parameter_new_value("iiinstrument.rtest.memleak",
+	    CPL_TYPE_BOOL,
+	    "If yes, dont deallocate some memory",
+	    "iiinstrument.rtest", FALSE);
+    cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "memleak");
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
+    cpl_parameterlist_append(recipe->parameters, p);
+
     /* --sleep */
     p = cpl_parameter_new_value("iiinstrument.rtest.sleep",
 	    CPL_TYPE_DOUBLE,
@@ -309,6 +318,11 @@ static int rtest(cpl_frameset            * frameset,
     param = cpl_parameterlist_find_const(parlist,
 					 "iiinstrument.rtest.crashing");
     const char *crashing = cpl_parameter_get_string(param);
+
+    /* --memleak */
+    param = cpl_parameterlist_find_const(parlist,
+					 "iiinstrument.rtest.memleak");
+    int memleak = cpl_parameter_get_bool(param);
 
     /* --sleep */
     param = cpl_parameterlist_find_const(parlist,
@@ -424,6 +438,10 @@ static int rtest(cpl_frameset            * frameset,
     if (strcmp(crashing, "segfault") == 0) {
 	double *crashvar = NULL;
 	*crashvar = 1.99;
+    }
+
+    if (memleak) {
+	cpl_malloc(16);
     }
 
     return (int)cpl_error_get_code();
