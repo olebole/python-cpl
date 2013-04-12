@@ -56,7 +56,6 @@ CPL_list(PyObject *self, PyObject *args) {
     }
 
     cpl_library_t *cpl = create_library(file);
-
     PyObject *res = PyList_New(0);
     Py_INCREF(res);
     cpl_pluginlist *list = cpl->pluginlist_new();
@@ -67,10 +66,12 @@ CPL_list(PyObject *self, PyObject *args) {
 	 plugin = cpl->pluginlist_get_next(list)) {
 	cpl->error_reset();
 	cpl->plugin_get_init(plugin)(plugin);
+	char *version = cpl->plugin_get_version_string(plugin);
 	PyList_Append(res, Py_BuildValue("sis", 
 					 cpl->plugin_get_name(plugin),
 					 cpl->plugin_get_version(plugin),
-					 cpl->plugin_get_version_string(plugin)));
+					 version));
+	cpl->free(version);
 	cpl->plugin_get_deinit(plugin)(plugin);
     }
     cpl->pluginlist_delete(list);
@@ -123,6 +124,9 @@ CPL_recipe_dealloc(CPL_recipe* self) {
     }
     if (self->handle != NULL) {
 	dlclose(self->handle);
+    }
+    if (self->recipeconfig != NULL) {
+	self->cpl->recipeconfig_delete(self->recipeconfig);
     }
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
@@ -846,15 +850,26 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	    retval = CPL_ERROR_FILE_NOT_CREATED;
 	    self->cpl->error_set_message_macro(__func__, retval, __FILE__, __LINE__, " ");
 	}
-	if ((memory_dump > 1) 
-	    || ((memory_dump > 0) && (!self->cpl->memory_is_empty()))) {
-	  self->cpl->memory_dump();
-	}
 	void *ptr = exec_serialize_retval(self, recipe->frames, prestate,
 					  retval, &clock_end);
 	long n_bytes = write(fd[1], ptr, ((long *)ptr)[0]);
 	close(fd[1]);
-	_exit(n_bytes != ((long *)ptr)[0]);
+	retval = (n_bytes != ((long *)ptr)[0]);
+	free(ptr);
+	self->cpl->frameset_delete(recipe->frames);
+	self->cpl->parameterlist_delete(recipe->parameters);
+	recipe->parameters = NULL;
+	recipe->frames = NULL;
+	self->cpl->plugin_get_deinit(self->plugin)(self->plugin);
+	self->cpl->pluginlist_delete(self->pluginlist);
+	Py_TYPE(self)->tp_free((PyObject*)self);
+	if ((memory_dump > 1)
+	    || ((memory_dump > 0) && (!self->cpl->memory_is_empty()))) {
+	  self->cpl->memory_dump();
+	}
+	self->cpl->end();
+	muntrace();
+	_exit(retval);
     }
     
     close(fd[1]);

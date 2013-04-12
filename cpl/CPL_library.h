@@ -27,6 +27,7 @@ typedef struct {
     int is_supported;
 
     typeof(cpl_init) *init;
+    typeof(cpl_end) *end;
     typeof(cpl_get_description) *get_description;
     typeof(cpl_memory_dump) *memory_dump;
     typeof(cpl_memory_is_empty) *memory_is_empty;
@@ -101,11 +102,13 @@ typedef struct {
     typeof(cpl_parameter_set_double) *parameter_set_double;
     typeof(cpl_parameter_set_int) *parameter_set_int;
     typeof(cpl_parameter_set_string) *parameter_set_string;
+    typeof(cpl_parameterlist_delete) *parameterlist_delete;
     typeof(cpl_parameterlist_find) *parameterlist_find;
     typeof(cpl_parameterlist_get_first) *parameterlist_get_first;
     typeof(cpl_parameterlist_get_next) *parameterlist_get_next;
     typeof(cpl_parameterlist_get_size) *parameterlist_get_size;
 
+    typeof(cpl_recipeconfig_delete) *recipeconfig_delete;
     typeof(cpl_recipeconfig_get_inputs) *recipeconfig_get_inputs;
     typeof(cpl_recipeconfig_get_max_count) *recipeconfig_get_max_count;
     typeof(cpl_recipeconfig_get_min_count) *recipeconfig_get_min_count;

@@ -6,7 +6,7 @@
  Since it is mainly copied and pasted, here is the original license
  statement from /usr/include/cpl.h:
  
- * $Id: cpl.h,v 1.31 2009/12/02 10:29:45 lbilbao Exp $
+ * Id: cpl.h,v 1.31 2009/12/02 10:29:45 lbilbao Exp
  *
  * This file is part of the ESO Common Pipeline Library
  * Copyright (C) 2001-2008 European Southern Observatory
@@ -73,6 +73,7 @@ unsigned int cpl_version_get_minor(void);
 unsigned int cpl_version_get_micro(void);
 
 void cpl_init(unsigned);
+void cpl_end(void);
 const char * cpl_get_description(unsigned);
 int cpl_memory_is_empty(void);
 void cpl_memory_dump(void);
@@ -153,12 +154,14 @@ cpl_error_code cpl_parameter_set_int(cpl_parameter *self, int value);
 cpl_error_code cpl_parameter_set_double(cpl_parameter *self, double value);
 cpl_error_code cpl_parameter_set_string(cpl_parameter *self,
                                         const char *value);
+void cpl_parameterlist_delete(cpl_parameterlist *self);
 cpl_parameter *cpl_parameterlist_find(cpl_parameterlist *self,
                                       const char *name);
 cpl_parameter *cpl_parameterlist_get_first(cpl_parameterlist *self);
 cpl_parameter *cpl_parameterlist_get_next(cpl_parameterlist *self);
 cpl_size cpl_parameterlist_get_size(const cpl_parameterlist *self);
 
+void cpl_recipeconfig_delete(const cpl_recipeconfig* self);
 char** cpl_recipeconfig_get_inputs(const cpl_recipeconfig* self,
                                    const char* tag);
 cpl_size cpl_recipeconfig_get_min_count(const cpl_recipeconfig* self,

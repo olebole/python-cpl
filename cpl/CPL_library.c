@@ -75,6 +75,7 @@ cpl_library_t *create_library(const char *fname) {
     typeof(cpl_version_get_micro) *get_micro = dlsym(handle,
 						     "cpl_version_get_micro");
     cpl->version = CPL_VERSION(get_major(), get_minor(), get_micro());
+    cpl->end = dlsym(handle, "cpl_end");
     cpl->version_get_version = dlsym(handle, "cpl_version_get_version");
     cpl->get_description = dlsym(handle, "cpl_get_description");
     cpl->memory_dump = dlsym(handle, "cpl_memory_dump");
@@ -154,11 +155,13 @@ cpl_library_t *create_library(const char *fname) {
     cpl->parameter_set_double = dlsym(handle, "cpl_parameter_set_double");
     cpl->parameter_set_int = dlsym(handle, "cpl_parameter_set_int");
     cpl->parameter_set_string = dlsym(handle, "cpl_parameter_set_string");
+    cpl->parameterlist_delete = dlsym(handle, "cpl_parameterlist_delete");
     cpl->parameterlist_find = dlsym(handle, "cpl_parameterlist_find");
     cpl->parameterlist_get_first = dlsym(handle, "cpl_parameterlist_get_first");
     cpl->parameterlist_get_next = dlsym(handle, "cpl_parameterlist_get_next");
     cpl->parameterlist_get_size = dlsym(handle, "cpl_parameterlist_get_size");
 
+    cpl->recipeconfig_delete = dlsym(handle, "cpl_recipeconfig_delete");
     cpl->recipeconfig_get_inputs = dlsym(handle, "cpl_recipeconfig_get_inputs");
     cpl->recipeconfig_get_max_count = dlsym(handle, "cpl_recipeconfig_get_max_count");
     cpl->recipeconfig_get_min_count = dlsym(handle, "cpl_recipeconfig_get_min_count");
