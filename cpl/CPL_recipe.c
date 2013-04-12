@@ -678,7 +678,7 @@ exec_serialize_retval(CPL_recipe *self, cpl_frameset *frames,
     }
     return ptr;
 }
-static int backtrace(void) {
+static int do_backtrace(void) {
   char cmd[300];
   snprintf(cmd, sizeof(cmd), 
 	   "cat >> gdb_commands << EOF\n"
@@ -701,7 +701,7 @@ static void mcheck_handler(enum mcheck_status status) {
 	   "echo Memory corruption > recipe.backtrace-unprocessed");
   int retval = system(cmd);
   if (retval == 0) {
-      backtrace();
+      do_backtrace();
   }
   abort();
 }
@@ -712,7 +712,7 @@ static int segv_handler(int sig) {
   snprintf(cmd, sizeof(cmd), 
 	   "echo Received signal: %i > recipe.backtrace-unprocessed", sig);
   int retval = system(cmd);
-  backtrace();
+  do_backtrace();
 
   signal(sig, SIG_DFL);
   return retval;
