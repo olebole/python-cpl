@@ -9,6 +9,7 @@ Static members
 --------------
 
 .. autoattribute:: Recipe.path
+.. autoattribute:: Recipe.memory_mode
 .. automethod:: Recipe.list()
 .. automethod:: Recipe.set_maxthreads(n)
 

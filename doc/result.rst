@@ -78,7 +78,7 @@ Run statistics
        allocation functions are used. If this information is not available,
        this flag ist set to :obj:`None`.
 
-       .. seealso:: :attribute:`cpl.Recipe.memory_mode`
+       .. seealso:: :attr:`Recipe.memory_mode`
 
 Execution log
 -------------
