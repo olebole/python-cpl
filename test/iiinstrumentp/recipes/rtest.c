@@ -217,6 +217,16 @@ static int rtest_create(cpl_plugin * plugin)
     cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
     cpl_parameterlist_append(recipe->parameters, p);
 
+    /* --disabled */
+    p = cpl_parameter_new_value("iiinstrument.rtest.disabled",
+	    CPL_TYPE_DOUBLE,
+	    "Dummy disabled parameter",
+	    "iiinstrument.rtest", -0.1);
+    cpl_parameter_set_alias(p, CPL_PARAMETER_MODE_CLI, "disabled");
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_ENV);
+    cpl_parameter_disable(p, CPL_PARAMETER_MODE_CLI);
+    cpl_parameterlist_append(recipe->parameters, p);
+
     return 0;
 }
 
@@ -329,6 +339,10 @@ static int rtest(cpl_frameset            * frameset,
 					 "iiinstrument.rtest.sleep");
     double sleep_secs = cpl_parameter_get_double(param);
 
+    param = cpl_parameterlist_find_const(parlist,
+					 "iiinstrument.rtest.disabled");
+    double disabled_option = cpl_parameter_get_double(param);
+
     if (!cpl_errorstate_is_equal(prestate)) {
 	return (int)cpl_error_set_message(cpl_func, cpl_error_get_code(),
 					  "Could not retrieve the input "
@@ -411,6 +425,7 @@ static int rtest(cpl_frameset            * frameset,
     } else {
 	cpl_propertylist_append_string(qclist, "ESO QC TESTENV", "(null)");
     }
+    cpl_propertylist_append_double(qclist, "ESO QC DISABLEDOPT", disabled_option);
 
     prestate = cpl_errorstate_get();
 
