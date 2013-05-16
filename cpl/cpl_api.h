@@ -154,6 +154,8 @@ cpl_error_code cpl_parameter_set_int(cpl_parameter *self, int value);
 cpl_error_code cpl_parameter_set_double(cpl_parameter *self, double value);
 cpl_error_code cpl_parameter_set_string(cpl_parameter *self,
                                         const char *value);
+int cpl_parameter_is_enabled(const cpl_parameter *self,
+                             cpl_parameter_mode mode);
 void cpl_parameterlist_delete(cpl_parameterlist *self);
 cpl_parameter *cpl_parameterlist_find(cpl_parameterlist *self,
                                       const char *name);
@@ -184,6 +186,8 @@ const char *cpl_version_get_version(void);
 #define CPL_PARAMETER_CLASS_ENUM (1 << 3)
 #define CPL_PARAMETER_CLASS_RANGE (1 << 2)
 #define CPL_PARAMETER_MODE_CLI (1 << 0)
+#define CPL_PARAMETER_MODE_ENV (1 << 1)
+#define CPL_PARAMETER_MODE_CFG (1 << 2)
 #define CPL_TYPE_BOOL (1 << 7)
 #define CPL_TYPE_DOUBLE (1 << 17)
 #define CPL_TYPE_INT (1 << 10)

@@ -69,13 +69,14 @@ class Parameter(object):
 
     def _set_attributes(self, context = None, fullname = None, default = None, 
                         desc = None, range_ = None, sequence = None, 
-                        type = None):
+                        type = None, enabled = None):
         self.context = context
         self.range = range_
         self.sequence = sequence
         self.default = default
         self.fullname = fullname
         self.type = type or default.__class__
+        self.enabled = enabled
         self.__doc__ = "%s (%s)" % (desc, default.__class__.__name__)
 
     @property
@@ -121,8 +122,8 @@ class ParameterList(object):
         self._pars = list()
         self._prefix = prefix
         childs = set()
-        for name, context, fullname, desc, prange, sequence, deflt, ptype \
-                in recipe._recipe.params():
+        for name, context, fullname, desc, prange, \
+                sequence, deflt, ptype, enabled in recipe._recipe.params():
             if prefix:
                 if name.startswith(prefix + '.'):
                     aname = name[len(prefix)+1:]
@@ -138,7 +139,7 @@ class ParameterList(object):
             else:
                 par = Parameter(name)
                 par._set_attributes(context, fullname, deflt,
-                                    desc, prange, sequence, ptype)
+                                    desc, prange, sequence, ptype, enabled)
                 self._dict[name] = par
                 self._dict[fullname] = par
                 self._dict[self._paramname(aname)] = par

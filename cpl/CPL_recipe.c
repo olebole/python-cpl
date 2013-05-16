@@ -283,10 +283,17 @@ getParameter(CPL_recipe *self, cpl_parameter *param) {
     }
     Py_INCREF(deflt);
     Py_INCREF(ptype);
+    PyObject *enabled = Py_BuildValue(
+	"OOO",
+	self->cpl->parameter_is_enabled(param, CPL_PARAMETER_MODE_CLI)?Py_True:Py_False,
+	self->cpl->parameter_is_enabled(param, CPL_PARAMETER_MODE_ENV)?Py_True:Py_False,
+	self->cpl->parameter_is_enabled(param, CPL_PARAMETER_MODE_CFG)?Py_True:Py_False);
+    Py_INCREF(enabled);
 
-    PyObject *par = Py_BuildValue("ssssNNNN", 
+    PyObject *par = Py_BuildValue("ssssNNNNN",
 				  name, context, fullname, help,
-				  range, sequence, deflt, ptype);
+				  range, sequence, deflt, ptype,
+				  enabled);
     Py_INCREF(par);
     return par;
 }
@@ -300,7 +307,8 @@ getParameter(CPL_recipe *self, cpl_parameter *param) {
     " - description\n"                                                     \
     " - range (min, max), if valid range is limited, or None\n"            \
     " - allowed values, if only certain values are allowed, or None\n"     \
-    " - default value"
+    " - default value\n"                                                   \
+    " - triple (cli, env, cfg) with enabled-values for param modes"
 
 static PyObject *
 CPL_recipe_get_params(CPL_recipe *self) {

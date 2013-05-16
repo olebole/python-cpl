@@ -478,6 +478,18 @@ class RecipeExec(RecipeTestCase):
         except:
             pass
         
+    def test_disabled(self):
+        '''Parameter with CLI disabled'''
+        self.assertFalse(self.recipe.param.disabled.enabled[0])
+        self.assertTrue(self.recipe.param.intopt.enabled[0])
+#        self.recipe.param.disabled = 0.2
+#        res = self.recipe(self.raw_frame)
+#        self.assertEqual(res[0].header['HIERARCH ESO QC DISABLED'], 0.2)
+#        try:
+#            res.close()
+#        except:
+#            pass
+
     def test_environment_setting(self):
         '''Additional environment parameter via recipe setting'''
         self.recipe.env['TESTENV'] = 'unkk'

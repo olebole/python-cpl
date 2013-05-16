@@ -102,6 +102,7 @@ typedef struct {
     typeof(cpl_parameter_set_double) *parameter_set_double;
     typeof(cpl_parameter_set_int) *parameter_set_int;
     typeof(cpl_parameter_set_string) *parameter_set_string;
+    typeof(cpl_parameter_is_enabled) *parameter_is_enabled;
     typeof(cpl_parameterlist_delete) *parameterlist_delete;
     typeof(cpl_parameterlist_find) *parameterlist_find;
     typeof(cpl_parameterlist_get_first) *parameterlist_get_first;
