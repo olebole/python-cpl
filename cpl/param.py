@@ -1,3 +1,4 @@
+import textwrap
 
 class Parameter(object):
     '''Runtime configuration parameter of a recipe. 
@@ -69,15 +70,17 @@ class Parameter(object):
 
     def _set_attributes(self, context = None, fullname = None, default = None, 
                         desc = None, range_ = None, sequence = None, 
-                        type = None, enabled = None):
+                        ptype = None, enabled = None):
         self.context = context
         self.range = range_
         self.sequence = sequence
         self.default = default
         self.fullname = fullname
-        self.type = type or default.__class__
+        self.type = ptype or default.__class__
         self.enabled = enabled
-        self.__doc__ = "%s (%s)" % (desc, default.__class__.__name__)
+        self.__doc__ = textwrap.fill("%s (%s; default: %s)" %
+                                     (desc, self.type.__name__,
+                                      repr(self.default)))
 
     @property
     def value(self):
@@ -155,6 +158,7 @@ class ParameterList(object):
             self._dict[aname] = clist
         if other:
             self._set_items(other)
+        self.__doc__ = self._doc()
 
     def _set_items(self, other):
         if isinstance(other, self.__class__):
@@ -233,14 +237,14 @@ class ParameterList(object):
     def __eq__(self, other):
         return dict(self) == other
 
-    @property
-    def __doc__(self):
-        r = 'Parameter list for recipe %s.\n\nAttributes:\n' % (
-            self._recipe.name if self._recipe is not None else '')
-        maxlen = max(len(p.name) for p in self.param)
+    def _doc(self):
+        r = ''
+        maxlen = max(len(p.name) for p in self)
         for p in self:
-            r += ' %s: %s (default: %s)\n' % (
-                p.name.rjust(maxlen), p.__doc__, repr(p.default))
+            r += textwrap.fill(
+                p.__doc__,
+                subsequent_indent = ' ' * (maxlen + 3),
+                initial_indent = ' %s: ' % p.name.rjust(maxlen)) + '\n'
         return r        
 
     def _aslist(self, par):

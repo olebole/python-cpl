@@ -5,6 +5,7 @@ import tempfile
 import threading
 import collections
 import warnings
+import textwrap
 
 try:
     from astropy.io import fits
@@ -278,6 +279,8 @@ class Recipe(object):
 
     @calib.setter
     def calib(self, source = None):
+        if isinstance(source, str) or hasattr(source, 'read'):
+            source = esorex.load_sof(source)
         self._calib = FrameList(self, source) 
 
     @calib.deleter
@@ -341,6 +344,8 @@ class Recipe(object):
 
     @param.setter
     def param(self, source = None):
+        if isinstance(source, str) or hasattr(source, 'read'):
+            source = esorex.load_rc(source)
         self._param = ParameterList(self, source)
 
     @param.deleter
@@ -495,26 +500,26 @@ class Recipe(object):
                 shutil.rmtree(output_dir)
 
     def _doc(self):
-        s = '%s\n\n%s\n\n' % (self.description[0], self.description[1])
+        s = '%s\n\n%s\n\n' % (textwrap.fill(self.description[0]),
+                              textwrap.fill(self.description[1]))
         
         if len(self.param) > 0:
-            r = 'Parameters:\n'
-            maxlen = max(len(p.name) for p in self.param)
-            for p in self.param:
-                r += ' %s: %s (default: %s)\n' % (
-                    p.name.rjust(maxlen), p.__doc__, repr(p.default))
-            r += '\n'
+            r = 'Parameters:\n%s\n' % self._param.__doc__
         else:
             r = 'No parameters\n'
         if self._recipe.frameConfig() is not None:
-            c = 'Calibration frames: %s\n\n' % repr([f.tag for f in self.calib])
+            c = textwrap.fill(repr([f.tag for f in self.calib]),
+                              initial_indent = 'Calibration frames: ',
+                              subsequent_indent = ' ' * 21) + '\n\n'
         else:
             c = ''
         if self.tags is not None:
             t = 'Raw and product frames:\n'
             maxlen = max(len(f) for f in self.tags)
             for f in self.tags:
-                t += ' %s --> %s\n' % (f.rjust(maxlen), repr(self.output[f]))
+                t += textwrap.fill(repr(self.output[f]),
+                                   initial_indent = ' %s --> ' % f.rjust(maxlen),
+                                   subsequent_indent = ' ' * (maxlen + 7)) + '\n'
         else:
             t = ''
         return s + r + c + t + '\n\n'
