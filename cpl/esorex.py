@@ -3,8 +3,9 @@ execution environment for CPL recipes provided by `ESO <http://www.eso.org>`_.
 '''
 
 import os
-import cpl
 import logging
+from .recipe import Recipe
+from . import logger
 
 def load_sof(source):
     '''Read an :program:`EsoRex` SOF file.
@@ -95,9 +96,9 @@ def init(source = None):
     :type source: :class:`str` or :class:`file`
     '''
 
-    rc = cpl.esorex.load_rc(source)
+    rc = load_rc(source)
     if 'esorex.caller.recipe-dir' in rc:
-        cpl.Recipe.path = rc['esorex.caller.recipe-dir'].split(':')
+        Recipe.path = rc['esorex.caller.recipe-dir'].split(':')
     if 'esorex.caller.msg-level' in rc:
         msg.level = rc['esorex.caller.msg-level']
     if 'esorex.caller.log-level' in rc:
@@ -159,7 +160,7 @@ class CplLogger(object):
     @level.setter
     def level(self, level):
         if isinstance(level, (str)):
-            level = cpl.logger.level[level.upper()]
+            level = logger.level[level.upper()]
         if level == CplLogger.OFF:
             self._shutdown_handler()
         else:

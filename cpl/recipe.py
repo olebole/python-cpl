@@ -12,11 +12,10 @@ except:
     import pyfits as fits
 
 from . import CPL_recipe
-from . import esorex
-from cpl.frames import FrameList, mkabspath, expandframelist
-from cpl.result import Result, RecipeCrash
-from cpl.param import ParameterList
-from cpl.logger import LogServer
+from .frames import FrameList, mkabspath, expandframelist
+from .result import Result, RecipeCrash
+from .param import ParameterList
+from .logger import LogServer
 
 class Recipe(object):
     '''Pluggable Data Reduction Module (PDRM) from a ESO pipeline. 
@@ -279,8 +278,6 @@ class Recipe(object):
 
     @calib.setter
     def calib(self, source = None):
-        if isinstance(source, str) or hasattr(source, 'read'):
-            source = esorex.load_sof(source)
         self._calib = FrameList(self, source) 
 
     @calib.deleter
@@ -344,8 +341,6 @@ class Recipe(object):
 
     @param.setter
     def param(self, source = None):
-        if isinstance(source, str) or hasattr(source, 'read'):
-            source = esorex.load_rc(source)
         self._param = ParameterList(self, source)
 
     @param.deleter
