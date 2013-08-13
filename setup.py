@@ -1,5 +1,6 @@
 import os
 from distutils.core import setup, Extension
+from pkg_resources import require, DistributionNotFound
 
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
@@ -40,6 +41,11 @@ create_version_file()
 
 module1 = Extension('cpl.CPL_recipe',
                     sources = ['cpl/CPL_recipe.c', 'cpl/CPL_library.c'])
+try:
+    require('astropy')
+    required='astropy'
+except DistributionNotFound:
+    required = 'pyfits'
 
 setup(
     name = pkgname,
@@ -52,7 +58,7 @@ setup(
     url = 'https://pypi.python.org/pypi/%s/%s' % (pkgname, cpl_version),
     download_url = '%s/%s-%s.tar.gz' % (baseurl, pkgname, cpl_version),
     classifiers = classifiers,
-    requires = ['astropy'],
+    requires = [ required ],
     provides = ['cpl'],
     packages = ['cpl'],
     ext_modules = [module1]
