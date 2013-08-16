@@ -125,9 +125,6 @@ CPL_recipe_dealloc(CPL_recipe* self) {
     if (self->handle != NULL) {
 	dlclose(self->handle);
     }
-    if (self->recipeconfig != NULL) {
-	self->cpl->recipeconfig_delete(self->recipeconfig);
-    }
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
