@@ -13,14 +13,14 @@ Binary packages
 
 * Python CPL comes with the Ubuntu distribution since 12.04. The latest
   version for the current release can be found in a special `Ubuntu repository
-  <https://launchpad.net/~olebole/+archive/astro-quantal>`_ (12.10). 
+  <https://launchpad.net/~olebole/+archive/astro-saucy>`_ (13.10). 
 * Debian package in "Wheezy"
   `<http://packages.debian.org/wheezy/python-cpl>`_
 
 Source code
 -----------
 
-* Current release `python-cpl-0.5.tar.gz <http://www.aip.de/~oles/python-cpl/python-cpl-0.5.tar.gz>`_
+* Current release `python-cpl-0.6.tar.gz <http://pypi.python.org/pypi/python-cpl/python-cpl-0.6.tar.gz>`_
 
 * `Python Package Index <http://pypi.python.org/pypi/python-cpl/>`_
 
@@ -60,7 +60,7 @@ list them.
 Test suite
 ----------
 
-The test suite can be downloaded as tar file `python-cpl-test-0.5.tar.gz <http://www.aip.de/~oles/python-cpl/python-cpl-test-0.5.tar.gz>`_.
+The test suite can be downloaded as tar file `python-cpl-test-0.6.tar.gz <http://pypi.python.org/pypi/python-cpl/python-cpl-test-0.6.tar.gz>`_.
 There are a number of tests defined in :file:`test/TestRecipe.py`. To run
 them, you need first to compile the recipe in :file:`test/iiinstrumentp/`
 
