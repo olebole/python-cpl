@@ -238,6 +238,8 @@ class ParameterList(object):
         return dict(self) == other
 
     def _doc(self):
+        if len(self) == 0:
+            return 'No parameters'
         r = ''
         maxlen = max(len(p.name) for p in self)
         for p in self:
