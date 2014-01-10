@@ -115,34 +115,22 @@ class CplLogger(object):
     ERROR = logging.ERROR
     OFF = logging.CRITICAL + 1
 
-    def __init__(self, msg = True):
+    def __init__(self):
         self.handler = None
         self._component = False
         self._time = False
         self._threadid = False
         self.format = None
-        self._filename = None
         self.dir = None
-        self._msg = msg
         self._level = CplLogger.OFF
 
     def _init_handler(self):
         if not self.handler:
-            if self._msg:
-                self.handler = logging.StreamHandler()
-            elif self._filename:
-                if self.dir:
-                    fname = os.path.join(self.dir, self._filename)
-                    self.handler = logging.FileHandler(fname)
-                else:
-                    self.handler = logging.FileHandler(self._filename)
-            else:
-                self.handler = None
-            if self.handler:
-                logging.getLogger().addHandler(self.handler)
-                self.handler.setLevel(self._level)
-                self.handler.setFormatter(logging.Formatter(self.format,
-                                                            '%H:%M:%S'))
+            self.handler = logging.StreamHandler()
+            logging.getLogger().addHandler(self.handler)
+            self.handler.setLevel(self._level)
+            self.handler.setFormatter(logging.Formatter(self.format,
+                                                        '%H:%M:%S'))
 
     def _shutdown_handler(self):
         if self.handler:
@@ -224,6 +212,31 @@ class CplLogger(object):
         self._threadid = enable
         self.format = None
 
+class CplFileLogger(CplLogger):
+    def __init__(self):
+        CplLogger.__init__(self)
+        self._filename = None
+        self.threadid = True
+        self.component = True
+        self.time = True
+        self.level = CplLogger.INFO
+
+    def _init_handler(self):
+        if not self.handler:
+            if self._filename:
+                if self.dir:
+                    fname = os.path.join(self.dir, self._filename)
+                    self.handler = logging.FileHandler(fname)
+                else:
+                    self.handler = logging.FileHandler(self._filename)
+            else:
+                self.handler = None
+            if self.handler:
+                logging.getLogger().addHandler(self.handler)
+                self.handler.setLevel(self._level)
+                self.handler.setFormatter(logging.Formatter(self.format,
+                                                            '%H:%M:%S'))
+
     @property
     def filename(self):
         '''Log file name.
@@ -232,17 +245,13 @@ class CplLogger(object):
 
     @filename.setter
     def filename(self, name):
-        if self._msg:
-            raise AttributeError('Cannot set file name of message output')
         if self._filename != name:
             self._shutdown_handler()
             self._filename = name
             self._init_handler()
 
-    def __repr__(self):
-        return 'cpl.esorex.CplLogger(msg=%s)' % repr(self._msg)
 
-msg = CplLogger(msg = True)
+msg = CplLogger()
 '''This variable is a :class:`CplLogger` instance that provides a convienience
 stream handler similar to the terminal logging functionality of the CPL. It
 basically does the same as::
@@ -252,13 +261,13 @@ basically does the same as::
   log = logging.getLogger()
   log.setLevel(logging.INFO)
   ch = logging.StreamHandler()
-  ch.setLevel(logging.INFO)
+  ch.setLevel(logging.OFF)
   ch.setFormatter(logging.Formatter('[%(levelname)7s] %(message)s'))
   log.addHandler(ch)
 '''
 
-log = CplLogger(msg = False)
-'''This variable is a :class:`CplLogger` instance that provides a convienience
+log = CplFileLogger()
+'''This variable is a :class:`CplFileLogger` instance that provides a convienience
 file handler similar to the file logging functionality of the CPL. It
 basically does the same as::
 
@@ -271,7 +280,3 @@ basically does the same as::
   ch.setFormatter(logging.Formatter('%(asctime)s [%(levelname)7s] %(funcName)s: %(message)s'))
   log.addHandler(ch)
 '''
-log.threadid = True
-log.component = True
-log.time = True
-log.level = log.INFO
