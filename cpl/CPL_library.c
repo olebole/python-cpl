@@ -186,10 +186,15 @@ cpl_library_t *create_library(const char *fname) {
     cpl->TYPE_DOUBLE = CPL_TYPE_DOUBLE;
     cpl->TYPE_STRING = CPL_TYPE_STRING;
 
-    cpl->is_supported = 0;
+    cpl->is_supported = UNKNOWN_VERSION;
     for (i = 0; supported_versions[i] != 0; i++) {
 	if (cpl->version == supported_versions[i]) {
-	    cpl->is_supported = 1;
+	    cpl->is_supported = KNOWN_VERSION;
+	    break;
+	}
+	if (CPL_VERSION_MAJOR_CODE(cpl->version) ==
+	    CPL_VERSION_MAJOR_CODE(supported_versions[i])) {
+	  cpl->is_supported = KNOWN_MAJOR;
 	}
     }
 

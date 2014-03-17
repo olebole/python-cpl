@@ -21,6 +21,9 @@
 #endif
 
 extern unsigned long supported_versions[];
+#define UNKNOWN_VERSION 0
+#define KNOWN_MAJOR 1
+#define KNOWN_VERSION 2
 
 typedef struct {
     unsigned long version;

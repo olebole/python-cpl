@@ -193,7 +193,7 @@ CPL_recipe_init(CPL_recipe *self, PyObject *args, PyObject *kwds) {
 
 static PyObject *
 CPL_is_supported(CPL_recipe *self) {
-    return (self->cpl->is_supported)?Py_True:Py_False;
+    return (self->cpl->is_supported == UNKNOWN_VERSION)?Py_False:Py_True;
 }
 
 #define CPL_version_doc \
