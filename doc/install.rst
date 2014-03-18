@@ -20,7 +20,7 @@ Binary packages
 Source code
 -----------
 
-* Current release `python-cpl-0.6.tar.gz <http://pypi.python.org/pypi/python-cpl/python-cpl-0.6.tar.gz>`_
+* Current release `python-cpl-0.6.2.tar.gz <http://pypi.python.org/pypi/python-cpl/python-cpl-0.6.2.tar.gz>`_
 
 * `Python Package Index <http://pypi.python.org/pypi/python-cpl/>`_
 
@@ -60,7 +60,7 @@ list them.
 Test suite
 ----------
 
-The test suite can be downloaded as tar file `python-cpl-test-0.6.tar.gz <http://pypi.python.org/pypi/python-cpl/python-cpl-test-0.6.tar.gz>`_.
+The test suite can be downloaded as tar file `python-cpl-test-0.6.2.tar.gz <http://pypi.python.org/pypi/python-cpl/python-cpl-test-0.6.2.tar.gz>`_.
 There are a number of tests defined in :file:`test/TestRecipe.py`. To run
 them, you need first to compile the recipe in :file:`test/iiinstrumentp/`
 
