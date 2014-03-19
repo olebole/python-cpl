@@ -873,7 +873,9 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	  self->cpl->memory_dump();
 	}
 	self->cpl->end();
+#ifdef HAVE_MTRACE
 	muntrace();
+#endif
 	_exit(retval);
     }
     
