@@ -149,6 +149,7 @@ class ProcessingInfo(object):
                 self.md5sums[self.raw] = md5
         else:
             self.tag = None
+            self.raw = None
             self.input = None
         param = _get_rec_keys(header, 'PARAM', 'NAME', 'VALUE')
         self.param = dict()
@@ -197,14 +198,17 @@ class ProcessingInfo(object):
             if isinstance(v, str):
                 print(' %s %s' % (v,k))
             else:
+                m = max(len(n) for n in v)
                 for n in v:
-                    print(' %s %s' % (n,k))
-        print('Input frames:')
-        if isinstance(self.raw, str):
-            print(' %s %s' % (self.raw, self.tag))
-        else:
-            for n in self.raw:
-                print(' %s %s' % (n, self.tag))
+                    print(' %-*s %s' % (m, n, k))
+        if self.raw is not None:
+            print('Input frames:')
+            if isinstance(self.raw, str):
+                print(' %s %s' % (self.raw, self.tag))
+            else:
+                m = max(len(n) for n in self.raw)
+                for n in self.raw:
+                    print(' %-*s %s' % (m, n, self.tag))
 
 def _get_rec_keys(header, key, name, value, datapaths = None):
     '''Get a dictionary of key/value pairs from the DFS section of the
