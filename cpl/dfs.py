@@ -157,6 +157,9 @@ class ProcessingInfo(object):
             self.param[k] = _best_type(v)
             
     def create_recipe(self):
+        '''Create a recipe and configure it with the parameters, calibration frames,
+        and the input tag. The recipe version will be the latest available one.
+        '''
         recipe = cpl.Recipe(self.name)
         recipe.param = self.param
         recipe.calib = self.calib
@@ -164,6 +167,10 @@ class ProcessingInfo(object):
         return recipe
 
     def create_script(self, scriptfile = sys.stdout):
+        '''Create a sample script that creates the recipe, configures it with
+        the parameters, calibration frames and input tags, and finally
+        starts the recipe.
+        '''
         if isinstance(scriptfile, str):
             scriptfile = file(scriptfile, mode='w')
         scriptfile.write('import cpl\n\n')
@@ -187,6 +194,8 @@ class ProcessingInfo(object):
                                                repr(self.orig_filename)))
 
     def printinfo(self):
+        '''Print the recipe information to standard output.
+        '''
         print('Recipe: %s, Version %s, CPL version %s ' % (
                 self.name, self.version, self.cpl_version))
         print('Parameters:')
@@ -285,7 +294,7 @@ if __name__ == '__main__':
         'WAVECAL_TABLE':'result', 'PIXTABLE_OBJECT':'result', 
         }
     for arg in sys.argv[1:]:
-        print('---------------------')
+        print('-' * 72)
         print('file: %s' % arg)
         pi = ProcessingInfo(arg, datapaths = datapaths)
         pi.printinfo()
