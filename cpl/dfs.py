@@ -8,8 +8,8 @@ except:
 import cpl
 
 class ProcessingInfo(object):
-    '''This class contains support for reading input files and parameters from
-    the FITS header of a CPL processed file.
+    '''Support for reading input files and parameters from the FITS
+    header of a CPL processed file.
 
     This is done through the FITS headers that were written by the DFS function
     called within the processing recipe.
@@ -106,8 +106,8 @@ class ProcessingInfo(object):
         elif isinstance(source, (fits.Header, dict)):
             header = source
         else:
-            raise ValueError('Cannot assign type %s to header' % 
-                             source.__class__.__name__)
+            raise ValueError('Cannot assign type {0} to header'.format(
+                    source.__class__.__name__))
         
         self.name = header['HIERARCH ESO PRO REC1 ID']
         self.product = header['HIERARCH ESO PRO CATG']
@@ -174,50 +174,53 @@ class ProcessingInfo(object):
         if isinstance(scriptfile, str):
             scriptfile = file(scriptfile, mode='w')
         scriptfile.write('import cpl\n\n')
-        scriptfile.write('# Recipe: %s.%s, Version %s, CPL version %s\n' % 
-                         (self.pipeline, self.name, self.version[1], 
-                          self.cpl_version))
-        scriptfile.write('%s = cpl.Recipe(%s, version = %s)\n' % 
-                         (self.name, repr(self.name), repr(self.version[0])))
+        scriptfile.write('# Recipe: {0}.{1}, Version {2}, CPL version {3}\n'.format(
+                self.pipeline, self.name, self.version[1], self.cpl_version))
+        scriptfile.write('{0} = cpl.Recipe({1}, version = {2})\n'.format(
+                self.name, repr(self.name), repr(self.version[0])))
         scriptfile.write('\n# Parameters:\n')
         for k,v in self.param.items():
-            scriptfile.write('%s.param.%s = %s\n' % (self.name, k, repr(v)))
+            scriptfile.write('{0}.param.{1} = {2}\n'.format(self.name, k, repr(v)))
         if self.calib:
             scriptfile.write('\n# Calibration frames:\n')
         for k,v in self.calib.items():
-            scriptfile.write('%s.calib.%s = %s\n' % (self.name, k, repr(v)))
+            scriptfile.write('{0}.calib.{1} = {2}\n'.format(self.name, k, repr(v)))
         scriptfile.write('\n# Process input frames:\n')
-        scriptfile.write('%s.tag = %s\n' % (self.name, repr(self.tag)))
-        scriptfile.write('res = %s(%s)\n' % (self.name, repr(self.raw)))
-        scriptfile.write('%s = res.%s\n' % (self.product.lower(), self.product))
-        scriptfile.write('%s.writeto(%s)\n' % (self.product.lower(), 
-                                               repr(self.orig_filename)))
+        scriptfile.write('{0}.tag = {1}\n'.format(self.name, repr(self.tag)))
+        scriptfile.write('res = {0}({1})\n'.format(self.name, repr(self.raw)))
+        scriptfile.write('{0} = res.{1}\n'.format(self.product.lower(), self.product))
+        scriptfile.write('{0}.writeto({1})\n'.format(self.product.lower(),
+                                                     repr(self.orig_filename)))
+
+    def __str__(self):
+        s = 'Recipe: {0}, Version {1}, CPL version {2}\n'.format(
+            self.name, self.version, self.cpl_version)
+        s += 'Parameters:\n'
+        for k,v in self.param.items():
+            s += ' {0}.{1}.{2} = {3}\n'.format(self.pipeline, self.name, k, v)
+        if self.calib:
+            s += 'Calibration frames:\n'
+        for k,v in self.calib.items():
+            if isinstance(v, str):
+                s += ' {0} {1}\n'.format(v,k)
+            else:
+                m = max(len(n) for n in v)
+                for n in v:
+                    s += ' {0:<{width}} {1}\n'.format(n, m, k, width = m)
+        if self.raw is not None:
+            s += 'Input frames:\n'
+            if isinstance(self.raw, str):
+                s += ' {0} {1}\n'.format(self.raw, self.tag)
+            else:
+                m = max(len(n) for n in self.raw)
+                for n in self.raw:
+                    s += ' {0:<{width}} {1}\n'.format(n, self.tag, width = m)
+        return s
 
     def printinfo(self):
         '''Print the recipe information to standard output.
         '''
-        print('Recipe: %s, Version %s, CPL version %s ' % (
-                self.name, self.version, self.cpl_version))
-        print('Parameters:')
-        for k,v in self.param.items():
-            print(' %s.%s.%s = %s' % (self.pipeline, self.name, k, v))
-        if self.calib:
-            print('Calibration frames:')
-        for k,v in self.calib.items():
-            if isinstance(v, str):
-                print(' %s %s' % (v,k))
-            else:
-                m = max(len(n) for n in v)
-                for n in v:
-                    print(' %-*s %s' % (m, n, k))
-        if self.raw is not None:
-            print('Input frames:')
-            if isinstance(self.raw, str):
-                print(' %s %s' % (self.raw, self.tag))
-            else:
-                m = max(len(n) for n in self.raw)
-                for n in self.raw:
-                    print(' %-*s %s' % (m, n, self.tag))
+        print(str(self))
 
 def _get_rec_keys(header, key, name, value, datapaths = None):
     '''Get a dictionary of key/value pairs from the DFS section of the
@@ -294,7 +297,6 @@ if __name__ == '__main__':
         'WAVECAL_TABLE':'result', 'PIXTABLE_OBJECT':'result', 
         }
     for arg in sys.argv[1:]:
-        print('-' * 72)
-        print('file: %s' % arg)
+        print('{0}\nfile: {1}'.format('-' * 72, arg)
         pi = ProcessingInfo(arg, datapaths = datapaths)
         pi.printinfo()
