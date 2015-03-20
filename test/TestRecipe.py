@@ -907,6 +907,12 @@ class ProcessingInfo(RecipeTestCase):
         except:
             pass
 
+    def test_list(self):
+        '''All processing infos as a list'''
+        pi = cpl.dfs.ProcessingInfo.list(self.res[0])
+        self.assertTrue(len(pi), 1)
+        self.assertTrue(pi[0], self.pinfo)
+
     def test_param(self):
         '''Parameter information'''
         self.assertEqual(len(self.pinfo.param), len(self.recipe.param))
