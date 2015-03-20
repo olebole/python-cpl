@@ -30,8 +30,8 @@ class RecipeTestCase(CplTestCase):
         self.raw_frame = fits.HDUList([
                 fits.PrimaryHDU(numpy.random.random_integers(0, 65000,
                                                                self.image_size))])
-        self.raw_frame[0].header.update('HIERARCH ESO DET DIT', 0.0)
-        self.raw_frame[0].header.update('HIERARCH ESO PRO CATG', raw_tag)
+        self.raw_frame[0].header['HIERARCH ESO DET DIT'] = 0.0
+        self.raw_frame[0].header['HIERARCH ESO PRO CATG'] = raw_tag
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
@@ -520,7 +520,7 @@ class RecipeExec(RecipeTestCase):
         results = list()
         for i in range(20):
             # mark each frame so that we can see their order
-            self.raw_frame[0].header.update('HIERARCH ESO RAW1 NR', i)
+            self.raw_frame[0].header['HIERARCH ESO RAW1 NR'] = i
             results.append(self.recipe(self.raw_frame, param = {'intopt':i},
                                        env = {'TESTENV':('knu%02i' % i)},
                                        threaded = True))

@@ -17,5 +17,5 @@ def verify_md5(hdulist):
 
 def update_md5(hdulist):
     sum = datamd5(hdulist)
-    hdulist[0].header.update('DATAMD5', sum, 'MD5 checksum')
+    hdulist[0].header['DATAMD5'] =  (sum, 'MD5 checksum')
     return sum
