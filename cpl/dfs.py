@@ -111,13 +111,13 @@ class ProcessingInfo(object):
             raise ValueError('Cannot assign type {0} to header'.format(
                     source.__class__.__name__))
         
-        self.name = header['HIERARCH ESO PRO REC{1} ID'.format(recno)]
+        self.name = header['HIERARCH ESO PRO REC{0} ID'.format(recno)]
         self.product = header['HIERARCH ESO PRO CATG']
         self.orig_filename = header['PIPEFILE']
         if datapaths and self.product in datapaths:
             self.orig_filename = os.path.join(datapaths[self.product], 
                                               self.orig_filename)
-        pipe_id = header.get('HIERARCH ESO PRO REC{1} PIPE ID'.format(recno))
+        pipe_id = header.get('HIERARCH ESO PRO REC{0} PIPE ID'.format(recno))
         if pipe_id:
             self.pipeline, version = pipe_id.split('/')
             num_version = 0
@@ -127,7 +127,7 @@ class ProcessingInfo(object):
         else:
             self.pipeline =  None
             self.version = None
-        self.cpl_version = header.get('HIERARCH ESO PRO REC{1} DRS ID'.format(recno))
+        self.cpl_version = header.get('HIERARCH ESO PRO REC{0} DRS ID'.format(recno))
         self.md5sum = header.get('DATAMD5')
         self.md5sums = {}
         self.calib = _get_rec_keys(header, recno, 'CAL', 'CATG', 'NAME', datapaths)
@@ -322,6 +322,6 @@ if __name__ == '__main__':
         'WAVECAL_TABLE':'result', 'PIXTABLE_OBJECT':'result', 
         }
     for arg in sys.argv[1:]:
-        print('{0}\nfile: {1}'.format('-' * 72, arg)
+        print('{0}\nfile: {1}'.format('-' * 72, arg))
         pi = ProcessingInfo(arg, datapaths = datapaths)
         pi.printinfo()
