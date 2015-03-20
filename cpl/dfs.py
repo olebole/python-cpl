@@ -130,19 +130,22 @@ class ProcessingInfo(object):
         self.cpl_version = header.get('HIERARCH ESO PRO REC{0} DRS ID'.format(recno))
         self.md5sum = header.get('DATAMD5')
         self.md5sums = {}
-        self.calib = _get_rec_keys(header, recno, 'CAL', 'CATG', 'NAME', datapaths)
-        for cat, md5 in _get_rec_keys(header, recno, 'CAL', 'CATG', 'DATAMD5').items():
+        self.calib = ProcessingInfo._get_rec_keys(header, recno, 'CAL', 'CATG',
+                                                  'NAME', datapaths)
+        for cat, md5 in ProcessingInfo._get_rec_keys(header, recno, 'CAL', 'CATG',
+                                                     'DATAMD5').items():
             if isinstance(md5, list):
                 for m, f in zip(md5, self.calib[cat]):
                     if m is not None: 
                         self.md5sums[f] = m
             elif md5 is not None:
                 self.md5sums[self.calib[cat]] = md5
-        raw = _get_rec_keys(header, recno, 'RAW', 'CATG', 'NAME', datapaths)
+        raw = ProcessingInfo._get_rec_keys(header, recno, 'RAW', 'CATG', 'NAME', datapaths)
         if raw:
             self.tag = list(raw.keys())[0]
             self.raw = raw[self.tag]
-            md5 = _get_rec_keys(header, recno, 'RAW', 'CATG', 'DATAMD5')[self.tag]
+            md5 = ProcessingInfo._get_rec_keys(header, recno, 'RAW', 'CATG',
+                                               'DATAMD5')[self.tag]
             if isinstance(md5, list):
                 for m, f in zip(md5, self.raw):
                     if m is not None: 
@@ -153,10 +156,10 @@ class ProcessingInfo(object):
             self.tag = None
             self.raw = None
             self.input = None
-        param = _get_rec_keys(header, recno, 'PARAM', 'NAME', 'VALUE')
+        param = ProcessingInfo._get_rec_keys(header, recno, 'PARAM', 'NAME', 'VALUE')
         self.param = dict()
         for k,v in param.items():
-            self.param[k] = _best_type(v)
+            self.param[k] = ProcessingInfo._best_type(v)
             
     def create_recipe(self):
         '''Create a recipe and configure it with the parameters, calibration frames,
@@ -224,93 +227,96 @@ class ProcessingInfo(object):
         '''
         print(str(self))
 
-def _get_rec_keys(header, recno, key, name, value, datapaths = None):
-    '''Get a dictionary of key/value pairs from the DFS section of the
-    header.
+    @staticmethod
+    def _get_rec_keys(header, recno, key, name, value, datapaths = None):
+        '''Get a dictionary of key/value pairs from the DFS section of the
+        header.
 
-    :param key: Common keyword for the value. Usually 'PARAM' for 
-                parameters, 'RAW' for raw frames, and 'CAL' for 
-                calibration frames.
-    :type key: :class:`str`
-    :param recno: Record number.
-    :type recno: :class:`int`
-    :param name: Header keyword (last part) for the name of each key
-    :type name: :class:`str`
-    :param value: Header keyword (last part) for the value of each key
-    :type name: :class:`str`
-    :param datapaths: Dictionary with frame tags as keys and directory paths 
-                    as values to provide a full path for the raw and 
-                    calibration frames. Optional.
-    :type datapaths: :class:`dict`
+        :param key: Common keyword for the value. Usually 'PARAM' for
+                    parameters, 'RAW' for raw frames, and 'CAL' for
+                    calibration frames.
+        :type key: :class:`str`
+        :param recno: Record number.
+        :type recno: :class:`int`
+        :param name: Header keyword (last part) for the name of each key
+        :type name: :class:`str`
+        :param value: Header keyword (last part) for the value of each key
+        :type name: :class:`str`
+        :param datapaths: Dictionary with frame tags as keys and directory paths
+                        as values to provide a full path for the raw and
+                        calibration frames. Optional.
+        :type datapaths: :class:`dict`
 
-    When the header
-    
-      HIERARCH ESO PRO REC1 PARAM1 NAME = 'nifu'
-      HIERARCH ESO PRO REC1 PARAM1 VALUE = '1'
-      HIERARCH ESO PRO REC1 PARAM2 NAME = 'combine'
-      HIERARCH ESO PRO REC1 PARAM2 VALUE = 'median'
-      
-    is called with
+        When the header
 
-      _get_rec_keys(1, 'PARAM', 'NAME', 'VALUE')
+          HIERARCH ESO PRO REC1 PARAM1 NAME = 'nifu'
+          HIERARCH ESO PRO REC1 PARAM1 VALUE = '1'
+          HIERARCH ESO PRO REC1 PARAM2 NAME = 'combine'
+          HIERARCH ESO PRO REC1 PARAM2 VALUE = 'median'
 
-    the returned dictionary will contain the keys
+        is called with
 
-      res['nifu'] = '1'
-      res['combine'] = 'median'
-    '''
-    res = dict()
-    for i in range(1, 2**16):
-        try:
-            prefix = 'HIERARCH ESO PRO REC{1} {2}{3}'.format(recno, key, i)
-            k = header['{1} {2}'.format(prefix, name)]
-            fn = header.get('{1} {2}'.format(prefix, value))
-            if datapaths and k in datapaths:
-                fn = os.path.join(datapaths[k], fn)
-            if k not in  res:
-                res[k] = fn
-            elif isinstance(res[k], list):
-                res[k].append(fn)
-            else:
-                res[k] = [ res[k], fn ]
-        except KeyError:
-            break
-    return res
-    
-def _best_type(value):
-    '''Convert the value to the best applicable type: :class:`int`, 
-    :class:`float`, :class:`bool` or :class`str`.
+          ProcessingInfo._get_rec_keys(1, 'PARAM', 'NAME', 'VALUE')
 
-    :param value: Value to convert.
-    :type value: :class:`str`
-    '''
-    for t in int, float:
-        try:
-            return t(value)
-        except ValueError:
-            pass
-    return {'true':True, 'false':False}.get(value, value)
+        the returned dictionary will contain the keys
 
-def list(source, datapaths = None):
-    '''Get a list of all `ProcessingInfo` objects in the FITS header. The
-    list is sorted by the execution order.
+          res['nifu'] = '1'
+          res['combine'] = 'median'
+        '''
+        res = dict()
+        for i in range(1, 2**16):
+            try:
+                prefix = 'HIERARCH ESO PRO REC{0} {1}{2}'.format(recno, key, i)
+                k = header['{0} {1}'.format(prefix, name)]
+                fn = header.get('{0} {1}'.format(prefix, value))
+                if datapaths and k in datapaths:
+                    fn = os.path.join(datapaths[k], fn)
+                if k not in  res:
+                    res[k] = fn
+                elif isinstance(res[k], list):
+                    res[k].append(fn)
+                else:
+                    res[k] = [ res[k], fn ]
+            except KeyError:
+                break
+        return res
 
-    :param source: Object pointing to the result file header
-    :type source: :class:`str` or :class:`astropy.io.fits.HDUList`
-                  or :class:`astropy.io.fits.PrimaryHDU` or
-                  :class:`astropy.io.fits.Header`
-    :param datapaths: Dictionary with frame tags as keys and directory paths
-                      as values to provide a full path for the raw and
-                      calibration frames. Optional.
-    :type datapaths: :class:`dict`
-    '''
-    pi = []
-    for i in range(1, 2**16):
-        try:
-            pi.append(ProcessingInfo(source, i, datapaths))
-        except KeyError:
-            break
-    return pi
+    @staticmethod
+    def _best_type(value):
+        '''Convert the value to the best applicable type: :class:`int`,
+        :class:`float`, :class:`bool` or :class`str`.
+
+        :param value: Value to convert.
+        :type value: :class:`str`
+        '''
+        for t in int, float:
+            try:
+                return t(value)
+            except ValueError:
+                pass
+        return {'true':True, 'false':False}.get(value, value)
+
+    @staticmethod
+    def list(source, datapaths = None):
+        '''Get a list of all `ProcessingInfo` objects in the FITS header. The
+        list is sorted by the execution order.
+
+        :param source: Object pointing to the result file header
+        :type source: :class:`str` or :class:`astropy.io.fits.HDUList`
+                      or :class:`astropy.io.fits.PrimaryHDU` or
+                      :class:`astropy.io.fits.Header`
+        :param datapaths: Dictionary with frame tags as keys and directory paths
+                          as values to provide a full path for the raw and
+                          calibration frames. Optional.
+        :type datapaths: :class:`dict`
+        '''
+        pi = []
+        for i in range(1, 2**16):
+            try:
+                pi.append(ProcessingInfo(source, i, datapaths))
+            except KeyError:
+                break
+        return pi
 
 if __name__ == '__main__':
     import sys
