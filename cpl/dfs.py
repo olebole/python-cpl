@@ -101,7 +101,7 @@ class ProcessingInfo(object):
         '''
         if isinstance(source, str):
             header = fits.open(source)[0].header
-        elif isinstance(source, fits.HDUList):
+        elif isinstance(source, (fits.HDUList, list)):
             header = source[0].header
         elif isinstance(source, fits.PrimaryHDU):
             header = source.header
