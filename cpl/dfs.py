@@ -95,10 +95,10 @@ class ProcessingInfo(object):
         :param recno: Record number. Optional. If not given, the last record
                       (with the highest record number) is used.
         :type recno: :class:`int`
-        :param datapaths: Dictionary with frame tags as keys and directory paths
+        :param md5sums: Dictionary with md5 sums as keys and complete file names
                         as values to provide a full path for the raw and
                         calibration frames. Optional.
-        :type datapaths: :class:`dict`
+        :type md5sums: :class:`dict`
         '''
         if isinstance(source, str):
             header = fits.open(source)[0].header
@@ -120,9 +120,6 @@ class ProcessingInfo(object):
         self.name = header['HIERARCH ESO PRO REC{0} ID'.format(recno)]
         self.product = header['HIERARCH ESO PRO CATG']
         self.orig_filename = header['PIPEFILE']
-        if datapaths and self.product in datapaths:
-            self.orig_filename = os.path.join(datapaths[self.product], 
-                                              self.orig_filename)
         pipe_id = header.get('HIERARCH ESO PRO REC{0} PIPE ID'.format(recno))
         if pipe_id:
             self.pipeline, version = pipe_id.split('/')
@@ -135,28 +132,37 @@ class ProcessingInfo(object):
             self.version = None
         self.cpl_version = header.get('HIERARCH ESO PRO REC{0} DRS ID'.format(recno))
         self.md5sum = header.get('DATAMD5')
+        if md5sums and self.md5sum in md5sums:
+            self.orig_filename = md5sums[self.md5sum]
         self.md5sums = {}
-        self.calib = ProcessingInfo._get_rec_keys(header, recno, 'CAL', 'CATG',
-                                                  'NAME', datapaths)
+        self.calib = ProcessingInfo._get_rec_keys(header, recno, 'CAL', 'CATG', 'NAME')
         for cat, md5 in ProcessingInfo._get_rec_keys(header, recno, 'CAL', 'CATG',
                                                      'DATAMD5').items():
             if isinstance(md5, list):
-                for m, f in zip(md5, self.calib[cat]):
-                    if m is not None: 
-                        self.md5sums[f] = m
+                for i, m in enumerate(md5):
+                    if m is not None:
+                        if md5sums and m in md5sums:
+                            self.calib[cat][i] = md5sums[m]
+                        self.md5sums[self.calib[cat][i]] = m
             elif md5 is not None:
+                if md5sums and md5 in md5sums:
+                    self.calib[cat] = md5sums[md5]
                 self.md5sums[self.calib[cat]] = md5
-        raw = ProcessingInfo._get_rec_keys(header, recno, 'RAW', 'CATG', 'NAME', datapaths)
+        raw = ProcessingInfo._get_rec_keys(header, recno, 'RAW', 'CATG', 'NAME')
         if raw:
             self.tag = list(raw.keys())[0]
             self.raw = raw[self.tag]
             md5 = ProcessingInfo._get_rec_keys(header, recno, 'RAW', 'CATG',
                                                'DATAMD5')[self.tag]
             if isinstance(md5, list):
-                for m, f in zip(md5, self.raw):
+                for i, m in enumerate(md5):
                     if m is not None: 
-                        self.md5sums[f] = m
+                        if md5sums and m in md5sums:
+                            self.raw[i] = md5sums[m]
+                        self.md5sums[self.raw[i]] = m
             elif md5 is not None:
+                if md5sums and md5 in md5sums:
+                    self.raw = md5sums[md5]
                 self.md5sums[self.raw] = md5
         else:
             self.tag = None
@@ -234,7 +240,7 @@ class ProcessingInfo(object):
         print(str(self))
 
     @staticmethod
-    def _get_rec_keys(header, recno, key, name, value, datapaths = None):
+    def _get_rec_keys(header, recno, key, name, value):
         '''Get a dictionary of key/value pairs from the DFS section of the
         header.
 
@@ -248,10 +254,6 @@ class ProcessingInfo(object):
         :type name: :class:`str`
         :param value: Header keyword (last part) for the value of each key
         :type name: :class:`str`
-        :param datapaths: Dictionary with frame tags as keys and directory paths
-                        as values to provide a full path for the raw and
-                        calibration frames. Optional.
-        :type datapaths: :class:`dict`
 
         When the header
 
@@ -275,8 +277,6 @@ class ProcessingInfo(object):
                 prefix = 'HIERARCH ESO PRO REC{0} {1}{2}'.format(recno, key, i)
                 k = header['{0} {1}'.format(prefix, name)]
                 fn = header.get('{0} {1}'.format(prefix, value))
-                if datapaths and k in datapaths:
-                    fn = os.path.join(datapaths[k], fn)
                 if k not in  res:
                     res[k] = fn
                 elif isinstance(res[k], list):
@@ -303,7 +303,7 @@ class ProcessingInfo(object):
         return {'true':True, 'false':False}.get(value, value)
 
     @staticmethod
-    def list(source, datapaths = None):
+    def list(source, md5sums = None):
         '''Get a list of all `ProcessingInfo` objects in the FITS header. The
         list is sorted by the execution order.
 
@@ -311,15 +311,11 @@ class ProcessingInfo(object):
         :type source: :class:`str` or :class:`astropy.io.fits.HDUList`
                       or :class:`astropy.io.fits.PrimaryHDU` or
                       :class:`astropy.io.fits.Header`
-        :param datapaths: Dictionary with frame tags as keys and directory paths
-                          as values to provide a full path for the raw and
-                          calibration frames. Optional.
-        :type datapaths: :class:`dict`
         '''
         pi = []
         for i in range(1, 2**16):
             try:
-                pi.append(ProcessingInfo(source, i, datapaths))
+                pi.append(ProcessingInfo(source, i, md5sums))
             except KeyError:
                 break
         return pi
@@ -327,13 +323,7 @@ class ProcessingInfo(object):
 if __name__ == '__main__':
     import sys
 
-    datapaths = {
-        'BIAS':'raw', 'DARK':'raw', 'FLAT':'raw', 'ARC':'raw', 'OBJECT':'raw', 
-        'LINE_CATALOG':'aux', 'TRACE_TABLE':'aux', 'GEOMETRY_TABLE':'aux',
-        'MASTER_BIAS':'result', 'MASTER_DARK':'result', 'MASTER_FLAT':'result',
-        'WAVECAL_TABLE':'result', 'PIXTABLE_OBJECT':'result', 
-        }
     for arg in sys.argv[1:]:
         print('{0}\nfile: {1}'.format('-' * 72, arg))
-        pi = ProcessingInfo(arg, datapaths = datapaths)
+        pi = cpl.dfs.ProcessingInfo(arg)
         pi.printinfo()
