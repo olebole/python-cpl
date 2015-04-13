@@ -1,3 +1,4 @@
+import itertools
 import os
 import sys
 try:
@@ -205,9 +206,9 @@ class ProcessingInfo(object):
         scriptfile.write('\n# Process input frames:\n')
         scriptfile.write('{0}.tag = {1}\n'.format(self.name, repr(self.tag)))
         scriptfile.write('res = {0}({1})\n'.format(self.name, repr(self.raw)))
-        scriptfile.write('{0} = res.{1}\n'.format(self.product.lower(), self.product))
-        scriptfile.write('{0}.writeto({1})\n'.format(self.product.lower(),
-                                                     repr(self.orig_filename)))
+#        scriptfile.write('{0} = res.{1}\n'.format(self.product.lower(), self.product))
+#        scriptfile.write('{0}.writeto({1})\n'.format(self.product.lower(),
+#                                                     repr(self.orig_filename)))
 
     def __str__(self):
         s = 'Recipe: {0}, Version {1}, CPL version {2}\n'.format(
