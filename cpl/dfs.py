@@ -86,13 +86,14 @@ class ProcessingInfo(object):
           accompanied with the MD5 sum.
     '''
 
-    def __init__(self, source, recno = 1, datapaths = None):
+    def __init__(self, source, recno = -1, md5sums = None):
         '''
         :param source: Object pointing to the result file header
         :type source: :class:`str` or :class:`astropy.io.fits.HDUList`
                       or :class:`astropy.io.fits.PrimaryHDU` or 
                       :class:`astropy.io.fits.Header`
-        :param recno: Record number. Optional.
+        :param recno: Record number. Optional. If not given, the last record
+                      (with the highest record number) is used.
         :type recno: :class:`int`
         :param datapaths: Dictionary with frame tags as keys and directory paths
                         as values to provide a full path for the raw and
@@ -111,6 +112,11 @@ class ProcessingInfo(object):
             raise ValueError('Cannot assign type {0} to header'.format(
                     source.__class__.__name__))
         
+        if recno < 0:
+            for reccnt in range(1, 2**16):
+                if 'HIERARCH ESO PRO REC{0} ID'.format(reccnt) not in header:
+                    break
+            recno += reccnt
         self.name = header['HIERARCH ESO PRO REC{0} ID'.format(recno)]
         self.product = header['HIERARCH ESO PRO CATG']
         self.orig_filename = header['PIPEFILE']
