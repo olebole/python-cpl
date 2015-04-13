@@ -212,7 +212,7 @@ class ProcessingInfo(object):
         if self.calib:
             s += 'Calibration frames:\n'
         for k,v in self.calib.items():
-            if isinstance(v, str):
+            if isinstance(v, (str, unicode)):
                 s += ' {0} {1}\n'.format(v,k)
             else:
                 m = max(len(n) for n in v)
@@ -220,7 +220,7 @@ class ProcessingInfo(object):
                     s += ' {0:<{width}} {1}\n'.format(n, m, k, width = m)
         if self.raw is not None:
             s += 'Input frames:\n'
-            if isinstance(self.raw, str):
+            if isinstance(self.raw, (str, unicode)):
                 s += ' {0} {1}\n'.format(self.raw, self.tag)
             else:
                 m = max(len(n) for n in self.raw)
