@@ -429,28 +429,17 @@ class RecipeExec(RecipeTestCase):
     def test_param_setting(self):
         '''Parameter handling via recipe setting'''
         self.recipe.param.stropt = 'more'
-        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
-        self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
-        try:
-            res.close()
-        except:
-            pass
+        with self.recipe(self.raw_frame).THE_PRO_CATG_VALUE as res:
+            self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
 
     def test_param_delete(self):
         '''Delete a parameter in a second run after setting it'''
         self.recipe.param.intopt = 123
-        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
-        try:
-            res.close()
-        except:
+        with self.recipe(self.raw_frame).THE_PRO_CATG_VALUE as res:
             pass
         del self.recipe.param.intopt
-        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
-        self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'], 2)
-        try:
-            res.close()
-        except:
-            pass
+        with self.recipe(self.raw_frame).THE_PRO_CATG_VALUE as res:
+            self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'], 2)
 
     def test_param_overwrite(self):
         '''Overwrite the recipe setting param via via keyword arg'''
@@ -466,17 +455,13 @@ class RecipeExec(RecipeTestCase):
         self.recipe.param.floatopt = -0.25
         self.recipe.param.enumopt = 'third'
         self.recipe.param.rangeopt = 0.125
-        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
-        self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
-        self.assertEqual(res[0].header['HIERARCH ESO QC BOOLOPT'], False)
-        self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'], 123)
-        self.assertEqual(res[0].header['HIERARCH ESO QC FLOATOPT'], -0.25)
-        self.assertEqual(res[0].header['HIERARCH ESO QC ENUMOPT'], 'third')
-        self.assertEqual(res[0].header['HIERARCH ESO QC RANGEOPT'], 0.125)
-        try:
-            res.close()
-        except:
-            pass
+        with self.recipe(self.raw_frame).THE_PRO_CATG_VALUE as res:
+            self.assertEqual(res[0].header['HIERARCH ESO QC STROPT'], 'more')
+            self.assertEqual(res[0].header['HIERARCH ESO QC BOOLOPT'], False)
+            self.assertEqual(res[0].header['HIERARCH ESO QC INTOPT'], 123)
+            self.assertEqual(res[0].header['HIERARCH ESO QC FLOATOPT'], -0.25)
+            self.assertEqual(res[0].header['HIERARCH ESO QC ENUMOPT'], 'third')
+            self.assertEqual(res[0].header['HIERARCH ESO QC RANGEOPT'], 0.125)
         
     def test_disabled(self):
         '''Parameter with CLI disabled'''
@@ -493,22 +478,14 @@ class RecipeExec(RecipeTestCase):
     def test_environment_setting(self):
         '''Additional environment parameter via recipe setting'''
         self.recipe.env['TESTENV'] = 'unkk'
-        res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
-        self.assertEqual(res[0].header['HIERARCH ESO QC TESTENV'], 'unkk')
-        try:
-            res.close()
-        except:
-            pass
+        with self.recipe(self.raw_frame).THE_PRO_CATG_VALUE as res:
+            self.assertEqual(res[0].header['HIERARCH ESO QC TESTENV'], 'unkk')
 
     def test_environment_keyword(self):
         '''Additional environment parameter via recipe call keyword'''
-        res = self.recipe(self.raw_frame, 
-                          env = {'TESTENV':'kknu'}).THE_PRO_CATG_VALUE
-        self.assertEqual(res[0].header['HIERARCH ESO QC TESTENV'], 'kknu')
-        try:
-            res.close()
-        except:
-            pass
+        with self.recipe(self.raw_frame, 
+                         env = {'TESTENV':'kknu'}).THE_PRO_CATG_VALUE as res:
+            self.assertEqual(res[0].header['HIERARCH ESO QC TESTENV'], 'kknu')
 
     def test_error(self):
         '''Error handling'''
@@ -866,8 +843,8 @@ class RecipeLog(RecipeTestCase):
         '''"log" attribute of the CplError object'''
         try:
             self.recipe('test.fits')
-        except cpl.CplError as res:
-            pass
+        except cpl.CplError as r:
+            res = r
         # Check that we get a not-empty list back
         self.assertTrue(isinstance(res.log, list))
         self.assertNotEqual(len(res.log), 0)
