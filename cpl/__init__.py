@@ -18,4 +18,8 @@ Recipe.dir = '.'
 cpl_versions = [ '%i.%i.%i' % ver for ver in CPL_recipe.cpl_versions() ]
 del CPL_recipe
 del absolute_import
-del recipe, version, param, frames, result, ver, md5sum
+del recipe, version, param, frames, result, md5sum
+try:
+    del ver
+except NameError:
+    pass
