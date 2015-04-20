@@ -519,8 +519,13 @@ set_parameters(CPL_recipe *self, cpl_parameterlist *parameters, PyObject *parlis
 		self->cpl->parameter_set_string(par, PyString_AsString(value));
 	    }
 #else
-	    if (PyBytes_Check(value)) {
-		self->cpl->parameter_set_string(par, PyBytes_AsString(value));
+	    if (PyUnicode_Check(value)) {
+		PyObject* temp = PyUnicode_AsASCIIString(value);
+		if (temp != NULL) {
+		    self->cpl->parameter_set_string(par,
+						    PyBytes_AsString(temp));
+		    Py_XDECREF(temp);
+		}
 	    }
 #endif
 	} else if (type == self->cpl->TYPE_INT) {
@@ -555,9 +560,13 @@ set_environment(PyObject *runenv) {
 	    setenv(name, PyString_AsString(value), 1);
 	}
 #else
-	if (PyBytes_Check(value)) {
-	    setenv(name, PyBytes_AsString(value), 1);
-	} 
+	    if (PyUnicode_Check(value)) {
+		PyObject* temp = PyUnicode_AsASCIIString(value);
+		if (temp != NULL) {
+		    setenv(name, PyBytes_AsString(temp), 1);
+		    Py_XDECREF(temp);
+		}
+	    }
 #endif
 	if (value == Py_None) {
 	    unsetenv(name);
