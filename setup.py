@@ -5,7 +5,7 @@ from pkg_resources import require, DistributionNotFound
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
-cpl_version = '0.6.2'
+cpl_version = '0.7~pre'
 with open('README') as readme:
     description = readme.read().splitlines()
     long_description = "\n".join(description[2:])
