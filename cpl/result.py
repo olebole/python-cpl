@@ -323,7 +323,7 @@ class RecipeCrash(Exception):
                     e.func))
             if os.path.exists(e.filename) and e.line:
                 logc.error('    %s\n' 
-                           % file(e.filename).readlines()[e.line-1].strip())
+                           % open(e.filename).readlines()[e.line-1].strip())
             if e.params:
                 logc.error('  Parameters:')
                 for p, v in e.params.items():
@@ -346,7 +346,7 @@ class RecipeCrash(Exception):
                                              else '', 
                                              e.func)
             if os.path.exists(e.filename) and e.line:
-                s += '    %s\n' % file(e.filename).readlines()[e.line-1].strip()
+                s += '    %s\n' % open(e.filename).readlines()[e.line-1].strip()
         s += RecipeCrash.signals.get(self.signal, '%s: Unknown' % str(self.signal))
         return s
 
