@@ -6,7 +6,7 @@ author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
 cpl_version = '0.7~pre'
-with open('README') as readme:
+with open('README.rst') as readme:
     description = readme.read().splitlines()
     long_description = "\n".join(description[2:])
     description = description[0]
