@@ -9,12 +9,11 @@ python-cpl
 .. image:: https://travis-ci.org/olebole/python-cpl.png
     :target: https://travis-ci.org/olebole/python-cpl
 
-This module can list, configure and execute 
-CPL-based recipes from Python.
-The input, calibration and output data can be specified as FITS files
-or as [`astropy.io.fits`](http://www.astropy.org) objects in memory.
+This module can list, configure and execute CPL-based recipes from Python.
+The input, calibration and output data can be specified as FITS files or as
+`astropy.io.fits` objects in memory.
 
-The [Common Pipeline Library](http://www.eso.org/sci/software/cpl/) (CPL)
+The `Common Pipeline Library <http://www.eso.org/sci/software/cpl/>`_ (CPL)
 comprises a set of ISO-C libraries that provide a comprehensive, efficient and
 robust software toolkit. It forms a basis for the creation of automated
 astronomical data-reduction tasks. One of the features provided by the CPL is
@@ -31,10 +30,11 @@ Build instructions
 python-cpl requires:
 
  * Python 2.6 or later
- * [Astropy](http://www.astropy.org) or [Pyfits](http://www.stsci.edu/institute/software_hardware/pyfits)
+ * `Astropy <http://www.astropy.org>`_
+   or `Pyfits <http://www.stsci.edu/institute/software_hardware/pyfits>`_
 
 python-cpl uses the standard Python distutils system to build and install
-itself.  From the command line run::
+itself. From the command line run::
 
     python setup.py install
 
