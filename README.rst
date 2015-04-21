@@ -11,7 +11,7 @@ python-cpl
 
 This module can list, configure and execute CPL-based recipes from Python.
 The input, calibration and output data can be specified as FITS files or as
-`astropy.io.fits` objects in memory.
+``astropy.io.fits`` objects in memory.
 
 The `Common Pipeline Library <http://www.eso.org/sci/software/cpl/>`_ (CPL)
 comprises a set of ISO-C libraries that provide a comprehensive, efficient and
@@ -27,13 +27,13 @@ versions 4.0 to 6.3.1.
 Build instructions
 ------------------
 
-python-cpl requires:
+Python-cpl requires:
 
- * Python 2.6 or later
- * `Astropy <http://www.astropy.org>`_
-   or `Pyfits <http://www.stsci.edu/institute/software_hardware/pyfits>`_
+* Python 2.6 or later (version 2 and 3 are supported),
+* `Astropy <http://www.astropy.org>`_ or
+  `Pyfits <http://www.stsci.edu/institute/software_hardware/pyfits>`_
 
-python-cpl uses the standard Python distutils system to build and install
+Python-cpl uses the standard Python distutils system to build and install
 itself. From the command line run::
 
     python setup.py install
