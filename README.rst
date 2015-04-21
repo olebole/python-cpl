@@ -6,10 +6,10 @@ python-cpl
 .. image:: https://pypip.in/v/python-cpl/badge.png
     :target: https://pypi.python.org/pypi/python-cpl
 
-.. image:: https://travis-ci.org/olebole/python-cpl.png
-    :target: https://travis-ci.org/olebole/python-cpl
+.. image:: https://pypip.in/d/python-cpl/badge.png
+    :target: https://pypi.python.org/pypi/python-cpl
 
-This module can list, configure and execute CPL-based recipes from Python.
+This module can list, configure and execute CPL-based recipes from Python (python2 and python3).
 The input, calibration and output data can be specified as FITS files or as
 ``astropy.io.fits`` objects in memory.
 
@@ -21,21 +21,13 @@ the ability to create data-reduction algorithms that run as plugins (dynamic
 libraries). These are called "recipes" and are one of the main aspects of the
 CPL data-reduction development environment.
 
-The interface may be used to run ESO pipeline recipes linked to CPL 
-versions 4.0 to 6.3.1.
+Releases are `registered on PyPI <http://pypi.python.org/pypi/python-cpl>`_,
+and development is occurring at the
+`project's github page <http://github.com/olebole/python-cpl>`_.
 
-Build instructions
-------------------
+For installation instructions, see the `online documentation <http://pythonhosted.org/python-cpl/>`_
+or  ``docs/install.rst`` in this source distribution. The travis test status of the github repository is:
 
-Python-cpl requires:
+.. image:: https://travis-ci.org/olebole/python-cpl.png
+    :target: https://travis-ci.org/olebole/python-cpl
 
-* Python 2.6 or later (version 2 and 3 are supported),
-* `Astropy <http://www.astropy.org>`_ or
-  `Pyfits <http://www.stsci.edu/institute/software_hardware/pyfits>`_
-
-Python-cpl uses the standard Python distutils system to build and install
-itself. From the command line run::
-
-    python setup.py install
-
-to install python-cpl.
