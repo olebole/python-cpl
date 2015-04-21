@@ -13,8 +13,12 @@ before_install:
   - sudo apt-get install -y libcpl-dev
 
 install:
+    - pip install coveralls
     - pip install astropy
     - python setup.py install
     - (cd test/iiinstrumentp && ./bootstrap && ./configure && make CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500")
 
-script: (cd test && python TestRecipe.py)
+script: (cd test && coverage run --source=python-cpl TestRecipe.py)
+
+after_success:
+  coveralls
