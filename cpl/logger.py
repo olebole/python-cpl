@@ -46,7 +46,7 @@ class LogServer(threading.Thread):
                 line = logfile.readline()
                 os.remove(self.logfile)
                 while line:
-                    self.log(line.decode('ascii'))
+                    self.log(str(line.decode('ascii')))
                     line = logfile.readline()
         except:
             pass
