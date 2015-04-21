@@ -4,18 +4,23 @@ Installation
 Prequisites
 -----------
 
-* `Python <http://www.python.org/>`_ 2.6 or 2.7, 
+* `Python <http://www.python.org/>`_ 2.6 or higher, 
 * `Astropy <http://www.astropy.org/>`_ or 
   `Pyfits <http://packages.python.org/pyfits/>`_
 
 Binary packages
 ---------------
 
-* Python CPL comes with the Ubuntu distribution since 12.04. The latest
-  version for the current release can be found in a special `Ubuntu repository
-  <https://launchpad.net/~olebole/+archive/astro-saucy>`_ (13.10). 
-* Debian package in "Wheezy"
-  `<http://packages.debian.org/wheezy/python-cpl>`_
+On Debian and debian-based systems (Ubuntu, Mint), python-cpl can be installed with the command
+
+.. code-block:: sh
+
+  apt-get install python-cpl
+
+Python CPL comes with the Ubuntu distribution since 12.04.
+Debian packages are in `Wheezy (Debian 7) <http://packages.debian.org/wheezy/python-cpl>`_, 
+`Wheezy (Debian 8) <http://packages.debian.org/jessie/python-cpl>`_, and 
+`Testing <http://packages.debian.org/testing/python-cpl>`_
 
 Source code
 -----------
@@ -48,7 +53,7 @@ path, add the directory :file:`{PREFIX}/lib/python2.7/site-packages/`
 variable :envvar:`PYTHONPATH` where where :file:`{PREFIX}` is the installation
 path for the package.
 
-In the source directory of cpl-python, run
+In the source directory of python-cpl, run
 
 .. code-block:: sh
 
