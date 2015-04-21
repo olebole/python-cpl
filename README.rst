@@ -31,5 +31,5 @@ or  ``docs/install.rst`` in this source distribution. The travis test status of 
 .. image:: https://travis-ci.org/olebole/python-cpl.png
     :target: https://travis-ci.org/olebole/python-cpl
 
-.. image:: https://readthedocs.org/projects/cpl-python/badge/?version=latest
-:target: https://readthedocs.org/projects/cpl-python/?badge=latest
+.. image:: https://readthedocs.org/projects/cpl-python/badge/?version=master
+    :target: https://readthedocs.org/projects/cpl-python/?badge=master
