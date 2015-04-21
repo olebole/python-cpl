@@ -17,4 +17,4 @@ install:
     - python setup.py install
     - (cd test/iiinstrumentp && ./bootstrap && ./configure && make CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500")
 
-script: test/TestRecipe.py
+script: (cd test && python test/TestRecipe.py)
