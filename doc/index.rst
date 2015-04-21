@@ -26,8 +26,6 @@ second was to provide a software kit of medium-level tools, which allows
 astronomical data-reduction tasks to be built rapidly."
 [`ESO <http://www.eso.org/sci/software/cpl/introduction.html>`_]
 
-A PDF version of the user manual can be downloaded from `here <python-cpl-0.6.2.pdf>`_.
-
 .. toctree::
    :numbered:
 
