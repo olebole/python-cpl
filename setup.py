@@ -5,9 +5,20 @@ from pkg_resources import require, DistributionNotFound
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
-cpl_version = '0.7~pre'
-with open('README.rst') as readme:
-    long_description = readme.read()
+cpl_version = '0.7'
+description = "Python interface for the ESO Common Pipeline Library"
+long_description = '''This module can list, configure and execute CPL-based recipes from Python
+(python2 and python3).  The input, calibration and output data can be
+specified as FITS files or as ``astropy.io.fits`` objects in memory.
+
+The ESO `Common Pipeline Library <http://www.eso.org/sci/software/cpl/>`_
+(CPL) comprises a set of ISO-C libraries that provide a comprehensive,
+efficient and robust software toolkit. It forms a basis for the creation of
+automated astronomical data-reduction tasks. One of the features provided by
+the CPL is the ability to create data-reduction algorithms that run as plugins
+(dynamic libraries). These are called "recipes" and are one of the main
+aspects of the CPL data-reduction development environment.
+'''
 
 pkgname = 'python-cpl'
 baseurl = 'http://pypi.python.org/packages/source/%s/%s' % (pkgname[0], pkgname)
@@ -47,7 +58,7 @@ setup(
     version = cpl_version,
     author = author,
     author_email = email,
-    description = "Python interface for the ESO Common Pipeline Library",
+    description = description,
     long_description = long_description,
     license = license_,
     url = 'https://pypi.python.org/pypi/%s/%s' % (pkgname, cpl_version),
