@@ -27,11 +27,16 @@ and development is occurring at the
 
 For installation instructions, see the 
 `online documentation <http://cpl-python.readthedocs.org/en/master/install.html>`_
-or ``docs/install.rst`` in this source distribution. The travis test status and
-documentation build status of the github repository is:
+or ``docs/install.rst`` in this source distribution.
+The travis test status, coverage, and documentation build status
+of the github repository is:
 
 .. image:: https://travis-ci.org/olebole/python-cpl.png
     :target: https://travis-ci.org/olebole/python-cpl
 
+.. image:: https://coveralls.io/repos/olebole/python-cpl/badge.svg?branch=master
+  :target: https://coveralls.io/r/olebole/python-cpl?branch=master
+
 .. image:: https://readthedocs.org/projects/cpl-python/badge/?version=master
     :target: https://readthedocs.org/projects/cpl-python/?badge=master
+
