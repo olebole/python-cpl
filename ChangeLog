@@ -3,6 +3,8 @@ Version 0.7
 * Fully support Python3
 * Handle cpl.dfs.ProcessingInfo() for more than one history item
 * Better md5sum file path handling for ProcessingInfo
+* Connect development with Travis, Coverage, ReadTheManual
+* Include test sources in distribution
 
 Version 0.6.2 (2104-03-18)
 
