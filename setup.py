@@ -36,14 +36,16 @@ Topic :: Scientific/Engineering :: Astronomy
 
 
 def create_version_file(cpl_version = cpl_version):
-    vfile = open(os.path.join('cpl', 'version.py'), 'w')
-    vfile.write("version = %s\n" % repr(cpl_version))
-    vfile.write("author = %s\n" % repr(author))
-    vfile.write("email = %s\n" % repr(email))
-    vfile.write("license_ = %s\n" % repr(license_))
-    vfile.close()
+    with open(os.path.join('cpl', 'version.py'), 'w') as vfile:
+        vfile.write("version = %s\n" % repr(cpl_version))
+        vfile.write("author = %s\n" % repr(author))
+        vfile.write("email = %s\n" % repr(email))
+        vfile.write("license_ = %s\n" % repr(license_))
 
-create_version_file()
+try:
+    create_version_file()
+except IOError:
+    pass
 
 module1 = Extension('cpl.CPL_recipe',
                     sources = ['cpl/CPL_recipe.c', 'cpl/CPL_library.c'])
