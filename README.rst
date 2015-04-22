@@ -9,17 +9,17 @@ python-cpl
 .. image:: https://pypip.in/d/python-cpl/badge.png
     :target: https://pypi.python.org/pypi/python-cpl
 
-This module can list, configure and execute CPL-based recipes from Python (python2 and python3).
-The input, calibration and output data can be specified as FITS files or as
-``astropy.io.fits`` objects in memory.
+This module can list, configure and execute CPL-based recipes from Python
+(python2 and python3).  The input, calibration and output data can be
+specified as FITS files or as ``astropy.io.fits`` objects in memory.
 
-The `Common Pipeline Library <http://www.eso.org/sci/software/cpl/>`_ (CPL)
-comprises a set of ISO-C libraries that provide a comprehensive, efficient and
-robust software toolkit. It forms a basis for the creation of automated
-astronomical data-reduction tasks. One of the features provided by the CPL is
-the ability to create data-reduction algorithms that run as plugins (dynamic
-libraries). These are called "recipes" and are one of the main aspects of the
-CPL data-reduction development environment.
+The ESO `Common Pipeline Library <http://www.eso.org/sci/software/cpl/>`_
+(CPL) comprises a set of ISO-C libraries that provide a comprehensive,
+efficient and robust software toolkit. It forms a basis for the creation of
+automated astronomical data-reduction tasks. One of the features provided by
+the CPL is the ability to create data-reduction algorithms that run as plugins
+(dynamic libraries). These are called "recipes" and are one of the main
+aspects of the CPL data-reduction development environment.
 
 Releases are `registered on PyPI <http://pypi.python.org/pypi/python-cpl>`_,
 and development is occurring at the
