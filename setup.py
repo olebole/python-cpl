@@ -11,8 +11,6 @@ with open('README.rst') as readme:
     long_description = "\n".join(description[2:])
     description = description[0]
 
-doc = '%s\n%s' % (description, 
-                  long_description[:long_description.find('Build instructions')])
 pkgname = 'python-cpl'
 baseurl = 'http://pypi.python.org/packages/source/%s/%s' % (pkgname[0], pkgname)
 classifiers = '''Development Status :: 4 - Beta
@@ -34,7 +32,6 @@ def create_version_file(cpl_version = cpl_version):
     vfile.write("author = %s\n" % repr(author))
     vfile.write("email = %s\n" % repr(email))
     vfile.write("license_ = %s\n" % repr(license_))
-    vfile.write("doc = %s\n" % repr(doc))
     vfile.close()
 
 create_version_file()

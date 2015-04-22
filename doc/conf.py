@@ -40,7 +40,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Python bindings for CPL recipes'
-copyright = u'2010, Ole Streicher'
+copyright = u'2010-2015, Ole Streicher'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
