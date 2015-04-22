@@ -21,9 +21,9 @@ the CPL is the ability to create data-reduction algorithms that run as plugins
 (dynamic libraries). These are called "recipes" and are one of the main
 aspects of the CPL data-reduction development environment.
 
-Releases are `registered on PyPI <http://pypi.python.org/pypi/python-cpl>`_,
-and development is occurring at the
-`project's github page <http://github.com/olebole/python-cpl>`_.
+Python-cpl releases are `registered on PyPI
+<http://pypi.python.org/pypi/python-cpl>`_, and development is occurring at
+the `project's github page <http://github.com/olebole/python-cpl>`_.
 
 For installation instructions, see the 
 `online documentation <http://cpl-python.readthedocs.org/en/master/install.html>`_
