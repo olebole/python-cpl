@@ -1,1 +1,4 @@
 include cpl/*.h
+include doc/*
+recursive-include test *
+include README.rst
