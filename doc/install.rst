@@ -25,8 +25,6 @@ Debian packages are in `Wheezy (Debian 7) <http://packages.debian.org/wheezy/pyt
 Source code
 -----------
 
-* Current release `python-cpl-0.6.2.tar.gz <http://pypi.python.org/pypi/python-cpl/python-cpl-0.6.2.tar.gz>`_
-
 * `Python Package Index <http://pypi.python.org/pypi/python-cpl/>`_
 
 * `Git repository <http://github.com/olebole/python-cpl>`_. To access, do a::
@@ -65,7 +63,6 @@ list them.
 Test suite
 ----------
 
-The test suite can be downloaded as tar file `python-cpl-test-0.6.2.tar.gz <http://pypi.python.org/pypi/python-cpl/python-cpl-test-0.6.2.tar.gz>`_.
 There are a number of tests defined in :file:`test/TestRecipe.py`. To run
 them, you need first to compile the recipe in :file:`test/iiinstrumentp/`
 
@@ -81,3 +78,5 @@ them, you need first to compile the recipe in :file:`test/iiinstrumentp/`
 Compiling the test recipe needs an installed CPL development environment.
 The tests may print a memory corruption detection by glibc. This is normal,
 since the tests also check this behaviour in the recipe.
+
+Tests are also automatically buils by `Travis CI <https://travis-ci.org/olebole/python-cpl>`_.
