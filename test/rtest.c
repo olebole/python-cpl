@@ -20,6 +20,10 @@
 #include <string.h>
 #include <cpl.h>
 
+#if ( CPL_VERSION_CODE < CPL_VERSION(6,3,0))
+#define cpl_frameset_get_position cpl_frameset_get_frame
+#endif
+
 #define RRRECIPE_RAW                    "RRRECIPE_DOCATG_RAW"
 #define IIINSTRUMENT_CALIB_FLAT         "FLAT"
 
