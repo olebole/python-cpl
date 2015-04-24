@@ -16,9 +16,10 @@ recipe_name = 'rtest'
 raw_tag = 'RRRECIPE_DOCATG_RAW'
 
 def create_recipe(name):
-    cname = name + ".c"
-    oname = name + '.o'
-    soname = name + '.so'
+    d = os.path.dirname(__file__)
+    cname = os.path.join(d, name + ".c")
+    oname = os.path.join(d, name + '.o')
+    soname = os.path.join(d, name + '.so')
     env = {
         'CC':  os.getenv("CC", "gcc"),
         'CPPFLAGS': os.getenv("CPPFLAGS", ""),
@@ -31,7 +32,7 @@ def create_recipe(name):
     }
     if (not os.path.exists(soname) or
         os.path.getmtime(soname) <= os.path.getmtime(cname)):
-        os.system("{CC} {CPPFLAGS} {CFLAGS} -fPIC -c {cname}".format(**env))
+        os.system("{CC} {CPPFLAGS} {CFLAGS} -fPIC -c -o {oname} {cname}".format(**env))
         os.system("{CC} {LDFLAGS} -shared -o {soname} {oname} {LIBS}".format(**env))
         os.remove(oname)
         
@@ -578,17 +579,17 @@ class RecipeExec(RecipeTestCase):
                          len('9d123996fa9a7bda315d07e063043454'))
 
 class RecipeCrashing(RecipeTestCase):
-    def test_corrupted(self):
+    def _test_corrupted(self):
         '''Handling of recipe crashes because of corrupted memory'''
         self.recipe.param.crashing = 'free'
         self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
 
-    def test_segfault(self):
+    def _test_segfault(self):
         '''Handling of recipe crashes because of segmentation fault'''
         self.recipe.param.crashing = 'segfault'
         self.assertRaises(cpl.RecipeCrash, self.recipe, self.raw_frame)
 
-    def test_cleanup_after_crash(self):
+    def _test_cleanup_after_crash(self):
         '''Test that a second run after a crash will succeed'''
         output_dir = os.path.join(self.temp_dir, 'out')
         self.recipe.output_dir = output_dir
