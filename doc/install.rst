@@ -63,20 +63,15 @@ list them.
 Test suite
 ----------
 
-There are a number of tests defined in :file:`test/TestRecipe.py`. To run
-them, you need first to compile the recipe in :file:`test/iiinstrumentp/`
+There are a number of tests defined in :file:`test/TestRecipe.py`:
 
 .. code-block:: sh
 
-  cd test/iiinstrumentp/
-  ./bootstrap
-  ./configure
-  make
-  cd ..
   python TestRecipe.py
 
-Compiling the test recipe needs an installed CPL development environment.
+The test recipe needs an installed CPL development environment.
 The tests may print a memory corruption detection by glibc. This is normal,
 since the tests also check this behaviour in the recipe.
 
-Tests are also automatically buils by `Travis CI <https://travis-ci.org/olebole/python-cpl>`_.
+Tests are also automatically buils by
+`Travis CI <https://travis-ci.org/olebole/python-cpl>`_.
