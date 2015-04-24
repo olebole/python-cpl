@@ -1,4 +1,4 @@
 include cpl/*.h
 include doc/*
-recursive-include test *
+include test/*.py test/*.c
 include README.rst

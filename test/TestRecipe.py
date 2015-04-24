@@ -15,6 +15,26 @@ cpl.Recipe.memory_mode = 0
 recipe_name = 'rtest'
 raw_tag = 'RRRECIPE_DOCATG_RAW'
 
+def create_recipe(name):
+    cname = name + ".c"
+    oname = name + '.o'
+    soname = name + '.so'
+    env = {
+        'CC':  os.getenv("CC", "gcc"),
+        'CPPFLAGS': os.getenv("CPPFLAGS", ""),
+        'CFLAGS': os.getenv("CFLAGS", ""),
+        'LDFLAGS': os.getenv("LDFLAGS", ""),
+        'LIBS': "-lcplcore -lcpldfs",
+        'cname': cname,
+        'oname': oname,
+        'soname': soname,
+    }
+    if (not os.path.exists(soname) or
+        os.path.getmtime(soname) <= os.path.getmtime(cname)):
+        os.system("{CC} {CPPFLAGS} {CFLAGS} -fPIC -c {cname}".format(**env))
+        os.system("{CC} {LDFLAGS} -shared -o {soname} {oname} {LIBS}".format(**env))
+        os.remove(oname)
+        
 class CplTestCase(unittest.TestCase):
     def setUp(self):
         cpl.Recipe.path = os.path.dirname(os.path.abspath(__file__))
@@ -65,8 +85,7 @@ class RecipeStatic(CplTestCase):
     def test_create_recipe_filename(self):
         '''Create a recipe specified by a the name and the filename'''
         recipe = cpl.Recipe(recipe_name, filename = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                'iiinstrumentp', 'recipes', '.libs', 'rtest.so'))
+            os.path.dirname(os.path.abspath(__file__)),'rtest.so'))
         self.assertTrue(isinstance(recipe, cpl.Recipe))
 
     def test_create_recipe_wrong_filename(self):
@@ -927,5 +946,6 @@ class ProcessingInfo(RecipeTestCase):
         md5sum = self.res[0].header.get('HIERARCH ESO PRO REC1 CAL1 DATAMD5')
         self.assertEqual(md5sum, self.pinfo.md5sums[self.pinfo.calib['FLAT']])
 
+create_recipe(recipe_name)
 if __name__ == '__main__':
     unittest.main()

@@ -1,8 +1,6 @@
-/* $Id: rtest.c,v 1.28 2007/07/30 07:08:59 llundin Exp $
- *
- * This file is part of the IIINSTRUMENT Pipeline
+/*
  * Copyright (C) 2002,2003 European Southern Observatory
- * Copyright (C) 2011,2012 Ole Streicher
+ * Copyright (C) 2011-2015 Ole Streicher
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,47 +17,75 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-/*-----------------------------------------------------------------------------
-				Includes
- -----------------------------------------------------------------------------*/
-
 #include <cpl.h>
 
-#include "iiinstrument_utils.h"
-#include "iiinstrument_pfits.h"
-#include "iiinstrument_dfs.h"
-
-/*-----------------------------------------------------------------------------
-			    Private function prototypes
- -----------------------------------------------------------------------------*/
+#define RRRECIPE_RAW                    "RRRECIPE_DOCATG_RAW"
+#define IIINSTRUMENT_CALIB_FLAT         "FLAT"
 
 static int rtest_create(cpl_plugin *);
 static int rtest_exec(cpl_plugin *);
 static int rtest_destroy(cpl_plugin *);
 static int rtest(cpl_frameset *, const cpl_parameterlist *);
 
-/*-----------------------------------------------------------------------------
-			    Static variables
- -----------------------------------------------------------------------------*/
-
 static char rtest_description[] =
 "Recipe to test CPL frameworks like esorex or python-cpl.\n";
+static char *license = "GPL";
 
-/*-----------------------------------------------------------------------------
-				Function code
- -----------------------------------------------------------------------------*/
+/**
+  @brief    Set the group as RAW or CALIB in a frameset
+  @param    set     the input frameset
+  @return   CPL_ERROR_NONE iff OK
+ */
+cpl_error_code dfs_set_groups(cpl_frameset * set)
+{
+    cpl_errorstate prestate = cpl_errorstate_get();
+    cpl_frame * frame = NULL;
+    int i = 0;
+    int n = cpl_frameset_get_size(set);
 
-/*----------------------------------------------------------------------------*/
+    /* Loop on frames */
+    for (i = 0; i < n; i++) {
+	frame = cpl_frameset_get_position(set, i);
+        const char * tag = cpl_frame_get_tag(frame);
+
+        if (tag == NULL) {
+            cpl_msg_warning(cpl_func, "Frame %d has no tag", i);
+        } else if (!strcmp(tag, RRRECIPE_RAW)) {
+            /* RAW frames */
+            cpl_frame_set_group(frame, CPL_FRAME_GROUP_RAW);
+        } else if (!strcmp(tag, IIINSTRUMENT_CALIB_FLAT)) {
+            /* CALIB frames */
+            cpl_frame_set_group(frame, CPL_FRAME_GROUP_CALIB);
+        }
+    }
+
+    if (!cpl_errorstate_is_equal(prestate)) {
+        return cpl_error_set_message(cpl_func, cpl_error_get_code(),
+                                     "Could not identify RAW and CALIB "
+                                     "frames");
+    }
+
+    return CPL_ERROR_NONE;
+}
+
+/**
+  @brief    find out the DIT value 
+  @param    plist       property list to read from
+  @return   the requested value
+ */
+static double pfits_get_dit(const cpl_propertylist * plist)
+{
+    cpl_errorstate prestate = cpl_errorstate_get();
+    const double value = cpl_propertylist_get_double(plist, "ESO DET DIT");
+
+    /* Check for a change in the CPL error state */
+    /* - if it did change then propagate the error and return */
+    cpl_ensure(cpl_errorstate_is_equal(prestate), cpl_error_get_code(), 0.0);
+
+    return value;
+}
+
 /**
   @brief    Build the list of available plugins, for this module.
   @param    list    the plugin list
@@ -69,7 +95,6 @@ static char rtest_description[] =
   Create the recipe instance and make it available to the application using the
   interface.
  */
-/*----------------------------------------------------------------------------*/
 int cpl_plugin_get_info(cpl_pluginlist * list)
 {
     cpl_recipe  *   recipe = cpl_calloc(1, sizeof *recipe );
@@ -77,14 +102,14 @@ int cpl_plugin_get_info(cpl_pluginlist * list)
 
     if (cpl_plugin_init(plugin,
 		    CPL_PLUGIN_API,
-		    IIINSTRUMENT_BINARY_VERSION,
+		    1,
 		    CPL_PLUGIN_TYPE_RECIPE,
 		    "rtest",
 		    "Framework test recipe",
 		    rtest_description,
 		    "Ole Streicher",
 		    "python-cpl@liska.ath.cx",
-		    iiinstrument_get_license(),
+		    license,
 		    rtest_create,
 		    rtest_exec,
 		    rtest_destroy)) {
@@ -102,7 +127,6 @@ int cpl_plugin_get_info(cpl_pluginlist * list)
     return 0;
 }
 
-/*----------------------------------------------------------------------------*/
 /**
   @brief    Setup the recipe options
   @param    plugin  the plugin
@@ -110,7 +134,6 @@ int cpl_plugin_get_info(cpl_pluginlist * list)
 
   Defining the command-line/configuration parameters for the recipe.
  */
-/*----------------------------------------------------------------------------*/
 static int rtest_create(cpl_plugin * plugin)
 {
     cpl_ensure_code((plugin != NULL), CPL_ERROR_NULL_INPUT);
@@ -230,13 +253,11 @@ static int rtest_create(cpl_plugin * plugin)
     return 0;
 }
 
-/*----------------------------------------------------------------------------*/
 /**
   @brief    Execute the plugin instance given by the interface
   @param    plugin  the plugin
   @return   0 if everything is ok
  */
-/*----------------------------------------------------------------------------*/
 static int rtest_exec(cpl_plugin * plugin)
 {
     cpl_ensure_code((plugin != NULL), CPL_ERROR_NULL_INPUT);
@@ -258,13 +279,11 @@ static int rtest_exec(cpl_plugin * plugin)
     return recipe_status;
 }
 
-/*----------------------------------------------------------------------------*/
 /**
   @brief    Destroy what has been created by the 'create' function
   @param    plugin  the plugin
   @return   0 if everything is ok
  */
-/*----------------------------------------------------------------------------*/
 static int rtest_destroy(cpl_plugin * plugin)
 {
     cpl_ensure_code((plugin != NULL), CPL_ERROR_NULL_INPUT);
@@ -277,14 +296,12 @@ static int rtest_destroy(cpl_plugin * plugin)
     return 0;
 }
 
-/*----------------------------------------------------------------------------*/
 /**
   @brief    Interpret the command line options and execute the data processing
   @param    frameset   the frames list
   @param    parlist    the parameters list
   @return   0 if everything is ok
  */
-/*----------------------------------------------------------------------------*/
 static int rtest(cpl_frameset            * frameset,
 		    const cpl_parameterlist * parlist)
 {
@@ -350,7 +367,7 @@ static int rtest(cpl_frameset            * frameset,
     }
 
     /* Identify the RAW and CALIB frames in the input frameset */
-    cpl_ensure_code(iiinstrument_dfs_set_groups(frameset) == CPL_ERROR_NONE,
+    cpl_ensure_code(dfs_set_groups(frameset) == CPL_ERROR_NONE,
 		    cpl_error_get_code());
 
     /*  - raw input file */
@@ -373,7 +390,7 @@ static int rtest(cpl_frameset            * frameset,
 					  "Could not read the FITS header");
     }
 
-    double qc_param = iiinstrument_pfits_get_dit(plist);
+    double qc_param = pfits_get_dit(plist);
     cpl_errorstate_set(prestate);
 
     cpl_propertylist_delete(plist);
@@ -432,7 +449,7 @@ static int rtest(cpl_frameset            * frameset,
     if (cpl_dfs_save_image(frameset, NULL, parlist, frameset, NULL, image,
 			   CPL_BPP_IEEE_FLOAT,
 			   "rtest", qclist, NULL,
-			   PACKAGE "/" PACKAGE_VERSION,
+			   "iiinstrument/0.0.1",
 			   "rtest.fits")) {
 	/* Propagate the error */
 	(void)cpl_error_set_where(cpl_func);
@@ -456,7 +473,7 @@ static int rtest(cpl_frameset            * frameset,
     }
 
     if (memleak) {
-	cpl_malloc(16);
+	__attribute__((unused))	void * r = cpl_malloc(16);
     }
 
     return (int)cpl_error_get_code();
