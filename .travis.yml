@@ -16,7 +16,6 @@ install:
     - pip install coveralls
     - pip install astropy
     - python setup.py install
-    - (cd test/iiinstrumentp && ./bootstrap && ./configure && make CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE=500")
 
 script: (cd test && coverage run --source=cpl TestRecipe.py && mv -f .coverage ..)
 
