@@ -2,11 +2,10 @@ python-cpl
 ==========
 
 *Python interface for the Common Pipeline Library*
-
-.. image:: https://pypip.in/v/python-cpl/badge.png
+.. image:: https://img.shields.io/pypi/v/python-cpl.svg
     :target: https://pypi.python.org/pypi/python-cpl
 
-.. image:: https://pypip.in/d/python-cpl/badge.png
+.. image:: https://img.shields.io/pypi/dm/python-cpl.svg
     :target: https://pypi.python.org/pypi/python-cpl
 
 This module can list, configure and execute CPL-based recipes from Python
