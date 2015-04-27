@@ -37,6 +37,9 @@ of the github repository is:
 .. image:: https://coveralls.io/repos/olebole/python-cpl/badge.svg?branch=master
   :target: https://coveralls.io/r/olebole/python-cpl?branch=master
 
+.. image:: https://landscape.io/github/olebole/python-cpl/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/olebole/python-cpl/master
+	   
 .. image:: https://readthedocs.org/projects/python-cpl/badge/?version=latest
     :target: https://readthedocs.org/projects/python-cpl/?badge=latest
 
