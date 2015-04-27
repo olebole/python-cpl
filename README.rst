@@ -2,6 +2,7 @@ python-cpl
 ==========
 
 *Python interface for the Common Pipeline Library*
+
 .. image:: https://img.shields.io/pypi/v/python-cpl.svg
     :target: https://pypi.python.org/pypi/python-cpl
 
