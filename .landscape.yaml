@@ -1,0 +1,5 @@
+requirements:
+    - pip-requirements
+ignore-paths:
+    - oca
+    - cpl/run.py
