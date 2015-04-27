@@ -9,7 +9,7 @@ import textwrap
 
 try:
     from astropy.io import fits
-except:
+except ImportError:
     import pyfits as fits
 
 from . import CPL_recipe
@@ -407,7 +407,6 @@ class Recipe(object):
             (``threaded = True``) and an exception occurs, this exception is 
             raised whenever result fields are accessed.
         '''
-        tmpfiles = []
         threaded = ndata.get('threaded', self.threaded)
         mtrace = ndata.get('mtrace', self.mtrace)
         loglevel = ndata.get('loglevel')
@@ -451,7 +450,7 @@ class Recipe(object):
     def _exec(self, output_dir, parlist, framelist, runenv,
               input_len, logger, output_format, delete, mtrace):
         try:
-            return Result(self._recipe.frameConfig(), output_dir,
+            return Result(output_dir,
                           self._recipe.run(output_dir, parlist, framelist,
                                            list(runenv.items()), 
                                            logger.logfile, logger.level,
@@ -567,7 +566,7 @@ class Recipe(object):
         libs = [ ]
         path = Recipe.path.split(':') if isinstance(Recipe.path, str) else Recipe.path
         for p in path:
-            for root, dir, files in os.walk(p):
+            for root, d, files in os.walk(p):
                 libs += [ os.path.join(root, f) 
                            for f in files if f.endswith('.so') ]
         return libs

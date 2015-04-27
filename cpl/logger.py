@@ -3,11 +3,8 @@ import datetime
 import logging
 import os
 import re
-import sys
 import tempfile
 import threading
-
-from . import CPL_recipe
 
 class NullHandler(logging.Handler):
     def emit(self, record):

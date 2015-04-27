@@ -1,9 +1,8 @@
 from __future__ import absolute_import
 import os
-import tempfile
 try:
     from astropy.io import fits
-except:
+except ImportError:
     import pyfits as fits
 
 from . import md5sum

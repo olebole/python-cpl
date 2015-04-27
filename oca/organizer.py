@@ -130,7 +130,9 @@ class AssociationRule(object):
         self.condition = condition
         self.cardinality = cardinality
 
-    def __call__(self, var, inputfile = {}):
+    def __call__(self, var, inputfile = None):
+        if inputfile is None:
+            inputfile = dict()
         return [ v for v in var if self.condition(dict(
                     [(key,value) for key, value in v.iteritems()]
                     + [('inputfile.' + key,value) 
@@ -171,7 +173,9 @@ class ActionRule(object):
         self.recipedef = recipedef
         self.products = products 
 
-    def calib(self, var, inputfile = {}):
+    def calib(self, var, inputfile = None):
+        if inputfile is None:
+            inputfile = dict()
         ret = dict()
         for r in self.associations:
             for v in r(var, inputfile):

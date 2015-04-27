@@ -169,7 +169,7 @@ class CplLogger(object):
 
     @format.setter
     def format(self, fmt):
-        if fmt == None:
+        if fmt is None:
             fmt = '%(asctime)s ' if self._time else ''
             fmt += '[%(levelname)7s]'
             fmt += '[%(threadName)s] ' if self._threadid else ' '

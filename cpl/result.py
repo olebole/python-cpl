@@ -5,11 +5,11 @@ import logging
 
 try:
     from astropy.io import fits
-except:
+except ImportError:
     import pyfits as fits
 
 class Result(object):
-    def __init__(self, recipedefs, dir, res, input_len = 0, logger = None, 
+    def __init__(self, directory, res, input_len = 0, logger = None, 
                  output_format = fits.HDUList):
         '''Build an object containing all result frames.
 
@@ -45,7 +45,7 @@ class Result(object):
            more sophisticated. And this is not usable for non-MUSE recipes
            anyway. So, we will skip this to probably some distant future.
         '''
-        self.dir = os.path.abspath(dir)
+        self.dir = os.path.abspath(directory)
         logger.join()
         if res[2][0]:
             raise CplError(res[2][0], res[1], logger)
@@ -162,7 +162,7 @@ class CplError(Exception):
                 o = o.next
     
     def __iter__(self):
-        class Iter:
+        class Iter(object):
             current = self
             def next(self):
                 if Iter.current is None:
@@ -286,10 +286,10 @@ class RecipeCrash(Exception):
                           for e in self.elements ]
         Exception.__init__(self, str(self))
 
-    def _add_variable(self, vars, line):
+    def _add_variable(self, variables, line):
         s = line.strip().split('=', 1)
         if len(s) > 1:
-            vars[s[0].strip()] = s[1].strip()
+            variables[s[0].strip()] = s[1].strip()
 
     def _parse_function_line(self, line):
         s = line.split()
@@ -317,23 +317,22 @@ class RecipeCrash(Exception):
         log.error('Recipe crashed. Traceback (most recent call last):')
         for e in self.elements:
             logc = logging.getLogger('%s.%s' % (logger.name, e.func))
-            logc.error('  File "%s", %sin %s\n' % (
-                    e.filename, 
-                    'line %i, ' % e.line if e.line else '', 
-                    e.func))
+            logc.error('  File "%s", %sin %s\n',e.filename, 
+                       'line %i, ' % e.line if e.line else '', 
+                       e.func)
             if os.path.exists(e.filename) and e.line:
-                logc.error('    %s\n' 
-                           % open(e.filename).readlines()[e.line-1].strip())
+                logc.error('    %s\n',
+                           open(e.filename).readlines()[e.line-1].strip())
             if e.params:
                 logc.error('  Parameters:')
                 for p, v in e.params.items():
-                    logc.error('    %s = %s' % (p, v))
+                    logc.error('    %s = %s', p, v)
             if e.localvars:
                 logc.error('  Local variables:')
                 for p, v in e.localvars.items():
-                    logc.error('    %s = %s' % (p, v))
+                    logc.error('    %s = %s', p, v)
         log.error(RecipeCrash.signals.get(self.signal, 
-                                          '%s: Unknown' % str(self.signal)))
+                                          '%s: Unknown', str(self.signal)))
 
     def __repr__(self):
         return 'RecipeCrash()'

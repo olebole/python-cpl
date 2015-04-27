@@ -1,9 +1,7 @@
-import itertools
-import os
 import sys
 try:
     from astropy.io import fits
-except:
+except ImportError:
     import pyfits as fits
 
 import cpl
@@ -224,7 +222,7 @@ class ProcessingInfo(object):
             else:
                 m = max(len(n) for n in v)
                 for n in v:
-                    s += ' {0:<{width}} {1}\n'.format(n, m, k, width = m)
+                    s += ' {0:<{width}} {1}\n'.format(n, m, width = m)
         if self.raw is not None:
             s += 'Input frames:\n'
             if isinstance(self.raw, (str, unicode)):
@@ -322,8 +320,6 @@ class ProcessingInfo(object):
         return pi
 
 if __name__ == '__main__':
-    import sys
-
     for arg in sys.argv[1:]:
         print('{0}\nfile: {1}'.format('-' * 72, arg))
         pi = cpl.dfs.ProcessingInfo(arg)
