@@ -85,7 +85,7 @@ class ProcessingInfo(object):
           accompanied with the MD5 sum.
     '''
 
-    def __init__(self, source, recno = -1, md5sums = None):
+    def __init__(self, source, recno = -1):
         '''
         :param source: Object pointing to the result file header
         :type source: :class:`str` or :class:`astropy.io.fits.HDUList`
@@ -94,10 +94,6 @@ class ProcessingInfo(object):
         :param recno: Record number. Optional. If not given, the last record
                       (with the highest record number) is used.
         :type recno: :class:`int`
-        :param md5sums: Dictionary with md5 sums as keys and complete file names
-                        as values to provide a full path for the raw and
-                        calibration frames. Optional.
-        :type md5sums: :class:`dict`
         '''
         if isinstance(source, str):
             header = fits.open(source)[0].header
@@ -131,8 +127,6 @@ class ProcessingInfo(object):
             self.version = None
         self.cpl_version = header.get('HIERARCH ESO PRO REC{0} DRS ID'.format(recno))
         self.md5sum = header.get('DATAMD5')
-        if md5sums and self.md5sum in md5sums:
-            self.orig_filename = md5sums[self.md5sum]
         self.md5sums = {}
         self.calib = ProcessingInfo._get_rec_keys(header, recno, 'CAL', 'CATG', 'NAME')
         for cat, md5 in ProcessingInfo._get_rec_keys(header, recno, 'CAL', 'CATG',
@@ -140,12 +134,8 @@ class ProcessingInfo(object):
             if isinstance(md5, list):
                 for i, m in enumerate(md5):
                     if m is not None:
-                        if md5sums and m in md5sums:
-                            self.calib[cat][i] = md5sums[m]
                         self.md5sums[self.calib[cat][i]] = m
             elif md5 is not None:
-                if md5sums and md5 in md5sums:
-                    self.calib[cat] = md5sums[md5]
                 self.md5sums[self.calib[cat]] = md5
         raw = ProcessingInfo._get_rec_keys(header, recno, 'RAW', 'CATG', 'NAME')
         if raw:
@@ -156,12 +146,8 @@ class ProcessingInfo(object):
             if isinstance(md5, list):
                 for i, m in enumerate(md5):
                     if m is not None: 
-                        if md5sums and m in md5sums:
-                            self.raw[i] = md5sums[m]
                         self.md5sums[self.raw[i]] = m
             elif md5 is not None:
-                if md5sums and md5 in md5sums:
-                    self.raw = md5sums[md5]
                 self.md5sums[self.raw] = md5
         else:
             self.tag = None
@@ -302,7 +288,7 @@ class ProcessingInfo(object):
         return {'true':True, 'false':False}.get(value, value)
 
     @staticmethod
-    def list(source, md5sums = None):
+    def list(source):
         '''Get a list of all `ProcessingInfo` objects in the FITS header. The
         list is sorted by the execution order.
 
@@ -314,7 +300,7 @@ class ProcessingInfo(object):
         pi = []
         for i in range(1, 2**16):
             try:
-                pi.append(ProcessingInfo(source, i, md5sums))
+                pi.append(ProcessingInfo(source, i))
             except KeyError:
                 break
         return pi
