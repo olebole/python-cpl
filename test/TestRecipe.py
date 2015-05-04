@@ -626,8 +626,7 @@ class RecipeRes(RecipeTestCase):
 
     def test_keyerror(self):
         '''Accessing an inexisting value'''
-        with self.assertRaises(KeyError):
-            self.res['Anothervalue']
+        self.assertRaises(KeyError, lambda val: self.res[val], 'Anothervalue')
 
     def test_len(self):
         '''Length of the result'''
