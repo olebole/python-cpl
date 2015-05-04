@@ -15,35 +15,33 @@ cpl.Recipe.memory_mode = 0
 recipe_name = 'rtest'
 raw_tag = 'RRRECIPE_DOCATG_RAW'
 
-def create_recipe(name):
-    d = os.path.dirname(__file__)
-    cname = os.path.join(d, name + ".c")
-    oname = os.path.join(d, name + '.o')
-    soname = os.path.join(d, name + '.so')
+def create_recipe(name, builddir):
     env = {
         'CC':  os.getenv("CC", "gcc"),
         'CPPFLAGS': os.getenv("CPPFLAGS", ""),
         'CFLAGS': os.getenv("CFLAGS", ""),
         'LDFLAGS': os.getenv("LDFLAGS", ""),
         'LIBS': "-lcplcore -lcpldfs",
-        'cname': cname,
-        'oname': oname,
-        'soname': soname,
+        'cname': os.path.join(os.path.dirname(__file__), name + ".c"),
+        'oname': os.path.join(builddir, name + '.o'),
+        'soname': os.path.join(builddir, name + '.so'),
     }
-    if (not os.path.exists(soname) or
-        os.path.getmtime(soname) <= os.path.getmtime(cname)):
-        os.system("{CC} {CPPFLAGS} {CFLAGS} -fPIC -c -o {oname} {cname}".format(**env))
-        os.system("{CC} {LDFLAGS} -shared -o {soname} {oname} {LIBS}".format(**env))
-        os.remove(oname)
-        
+    os.system("{CC} {CPPFLAGS} {CFLAGS} -fPIC -c -o {oname} {cname}".format(**env))
+    os.system("{CC} {LDFLAGS} -shared -o {soname} {oname} {LIBS}".format(**env))
+    os.remove(env['oname'])
+
 class CplTestCase(unittest.TestCase):
     def setUp(self):
-        cpl.Recipe.path = os.path.dirname(os.path.abspath(__file__))
+        self.temp_dir = tempfile.mkdtemp()
+        create_recipe(recipe_name, self.temp_dir)
+        cpl.Recipe.path = self.temp_dir
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
 
 class RecipeTestCase(CplTestCase):
     def setUp(self):
         CplTestCase.setUp(self)
-        self.temp_dir = tempfile.mkdtemp()
         self.recipe = cpl.Recipe(recipe_name)
         self.recipe.temp_dir = self.temp_dir
         self.recipe.tag = raw_tag
@@ -53,9 +51,6 @@ class RecipeTestCase(CplTestCase):
                                                                self.image_size))])
         self.raw_frame[0].header['HIERARCH ESO DET DIT'] = 0.0
         self.raw_frame[0].header['HIERARCH ESO PRO CATG'] = raw_tag
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir)
 
 class RecipeStatic(CplTestCase):
     def test_list(self):
@@ -639,15 +634,10 @@ class RecipeRes(RecipeTestCase):
             self.assertTrue(isinstance(hdu, fits.HDUList))
 
 class RecipeEsorex(CplTestCase):
-    def setUp(self):
-        CplTestCase.setUp(self)
-        self.temp_dir = tempfile.mkdtemp()
-
     def tearDown(self):
         CplTestCase.tearDown(self)
         cpl.esorex.msg.level = cpl.esorex.msg.OFF
         cpl.esorex.log.level = cpl.esorex.msg.OFF
-        shutil.rmtree(self.temp_dir)
 
     def test_read_sof(self):
         '''Read a SOF file'''
@@ -971,6 +961,5 @@ class ProcessingInfo(RecipeTestCase):
         self.assertEqual(recipe.version[0], self.recipe.version[0])
         self.assertEqual(len(recipe.param), len(self.recipe.param))
 
-create_recipe(recipe_name)
 if __name__ == '__main__':
     unittest.main()
