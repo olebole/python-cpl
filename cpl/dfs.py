@@ -1,5 +1,5 @@
 import sys
-try:
+try: # pragma: no cover
     from astropy.io import fits
 except ImportError:
     import pyfits as fits

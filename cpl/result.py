@@ -3,7 +3,7 @@ import os
 import signal
 import logging
 
-try:
+try: # pragma: no cover
     from astropy.io import fits
 except ImportError:
     import pyfits as fits
