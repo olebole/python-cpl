@@ -17,10 +17,11 @@ On Debian and debian-based systems (Ubuntu, Mint), python-cpl can be installed w
 
   apt-get install python-cpl
 
-Python CPL comes with the Ubuntu distribution since 12.04.
-Debian packages are in `Wheezy (Debian 7) <http://packages.debian.org/wheezy/python-cpl>`_, 
-`Wheezy (Debian 8) <http://packages.debian.org/jessie/python-cpl>`_, and 
-`Testing <http://packages.debian.org/testing/python-cpl>`_
+Python CPL comes with the `Ubuntu <packages.ubuntu.com/python-cpl>`_
+distribution since 12.04.  Debian packages are in `Wheezy (Debian 7)
+<http://packages.debian.org/wheezy/python-cpl>`_, `Squeeze (Debian 8)
+<http://packages.debian.org/jessie/python-cpl>`_, and `Testing
+<http://packages.debian.org/testing/python-cpl>`_
 
 Source code
 -----------
