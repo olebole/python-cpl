@@ -619,6 +619,16 @@ class RecipeRes(RecipeTestCase):
         self.assertTrue(isinstance(self.res['THE_PRO_CATG_VALUE'], 
                                    fits.HDUList))
 
+    def test_in(self):
+        '''Check whether a tag is part of the result'''
+        self.assertTrue('THE_PRO_CATG_VALUE' in self.res)
+        self.assertFalse('Anothervalue' in self.res)
+
+    def test_keyerror(self):
+        '''Accessing an inexisting value'''
+        with self.assertRaises(KeyError):
+            self.res['Anothervalue']
+
     def test_len(self):
         '''Length of the result'''
         self.assertEqual(len(self.res), 1)
@@ -881,6 +891,11 @@ class RecipeLog(RecipeTestCase):
         # Check that we can read error messages
         self.assertNotEqual(len(res.log.error), 0)
         self.assertTrue(isinstance(res.log.error[0], str))
+        # Check that we can convert the error to a string
+        self.assertTrue(isinstance(res.__str__(), str))
+        # Check that we can iterate over error messages
+        for r in res:
+            self.assertTrue(isinstance(res, cpl.CplError))
 
 class ProcessingInfo(RecipeTestCase):
     def setUp(self):
@@ -946,6 +961,16 @@ class ProcessingInfo(RecipeTestCase):
         self.assertEqual(md5sum, self.pinfo.md5sum)
         md5sum = self.res[0].header.get('HIERARCH ESO PRO REC1 CAL1 DATAMD5')
         self.assertEqual(md5sum, self.pinfo.md5sums[self.pinfo.calib['FLAT']])
+
+    def test_recipe(self):
+        '''Recreate and configure the recipe'''
+        recipe = self.pinfo.create_recipe()
+        self.assertTrue(isinstance(recipe, cpl.Recipe))
+        self.assertEqual(len(recipe.calib), 1)
+        self.assertEqual(recipe.calib.FLAT.frames[-5:], '.fits')
+        self.assertEqual(recipe.__name__, self.recipe.__name__)
+        self.assertEqual(recipe.version[0], self.recipe.version[0])
+        self.assertEqual(len(recipe.param), len(self.recipe.param))
 
 create_recipe(recipe_name)
 if __name__ == '__main__':
