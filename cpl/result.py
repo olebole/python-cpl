@@ -142,7 +142,7 @@ class CplError(Exception):
 
        .. seealso:: :class:`cpl.logger.LogList`
 
-    .. attribute:: next
+    .. attribute:: next_error
      
        Next error, or :obj:`None`.
 
@@ -150,7 +150,7 @@ class CplError(Exception):
     def __init__(self, retval, res, logger = None):
         self.retval = retval
         self.log = logger.entries if logger else None
-        self.next = None
+        self.next_error = None
         if not res:
             self.code, self.msg, self.file, self.line, self.function = (
                 None, None, None, None, None)
@@ -158,18 +158,20 @@ class CplError(Exception):
             self.code, self.msg, self.file, self.line, self.function = res[0]
             o = self
             for r in res[1:]:
-                o.next = CplError(retval, [ r ], logger)
-                o = o.next
+                o.next_error = CplError(retval, [ r ], logger)
+                o = o.next_error
     
     def __iter__(self):
         class Iter(object):
             current = self
-            def next(self):
+            def __next__(self):
                 if Iter.current is None:
                     raise StopIteration
                 s = Iter.current
-                Iter.current = Iter.current.next
+                Iter.current = Iter.current.next_error
                 return s
+            def next(self):
+                return self.__next__()
         return Iter()
 
     def __str__(self):
@@ -179,8 +181,8 @@ class CplError(Exception):
             s = "%s (%i) in %s() (%s:%i)" % (self.msg, self.code, 
                                              self.function, self.file, 
                                              self.line) 
-        if self.next:
-            for e in self.next:
+        if self.next_error:
+            for e in self.next_error:
                 s += "\n    %s (%i) in %s() (%s:%i)" % (e.msg, e.code, 
                                                         e.function, e.file, 
                                                         e.line) 
