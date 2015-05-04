@@ -180,7 +180,7 @@ class CplError(Exception):
                                              self.function, self.file, 
                                              self.line) 
         if self.next:
-            for e in self.next:
+            for e in self.next():
                 s += "\n    %s (%i) in %s() (%s:%i)" % (e.msg, e.code, 
                                                         e.function, e.file, 
                                                         e.line) 
