@@ -26,8 +26,7 @@ Python-CPL releases are `registered on PyPI
 the `project's github page <http://github.com/olebole/python-cpl>`_.
 
 For installation instructions, see the 
-`online documentation <http://python-cpl.readthedocs.org/en/latest/install.html>`_
-or `doc/install.rst <https://github.com/olebole/python-cpl/blob/master/doc/install.rst>`_ in this source distribution.
+`online documentation <http://python-cpl.readthedocs.org/en/latest/install.html>`_.
 The travis test status, coverage, and documentation build status
 of the github repository is:
 
