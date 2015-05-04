@@ -80,8 +80,8 @@ class RecipeStatic(CplTestCase):
 
     def test_create_recipe_filename(self):
         '''Create a recipe specified by a the name and the filename'''
-        recipe = cpl.Recipe(recipe_name, filename = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),'rtest.so'))
+        recipe = cpl.Recipe(recipe_name,
+                            filename = os.path.join(self.temp_dir, 'rtest.so'))
         self.assertTrue(isinstance(recipe, cpl.Recipe))
 
     def test_create_recipe_wrong_filename(self):
