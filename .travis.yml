@@ -17,6 +17,6 @@ install:
     - pip install astropy
     - python setup.py install
 
-script: (cd test && coverage run --source=cpl TestRecipe.py && mv -f .coverage ..)
+script: (cd test && coverage run --source=cpl --omit=cpl/run.py TestRecipe.py && mv -f .coverage ..)
 
 after_success: coveralls
