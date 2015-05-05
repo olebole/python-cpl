@@ -334,7 +334,7 @@ class RecipeCrash(Exception):
                 for p, v in e.localvars.items():
                     logc.error('    %s = %s', p, v)
         log.error(RecipeCrash.signals.get(self.signal, 
-                                          '%s: Unknown', str(self.signal)))
+                                          '%s: Unknown' % str(self.signal)))
 
     def __repr__(self):
         return 'RecipeCrash()'
