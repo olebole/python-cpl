@@ -16,7 +16,7 @@ recipe_name = 'rtest'
 raw_tag = 'RRRECIPE_DOCATG_RAW'
 
 def create_recipe(name, builddir):
-    env = {
+    var = {
         'CC':  os.getenv("CC", "gcc"),
         'CPPFLAGS': os.getenv("CPPFLAGS", ""),
         'CFLAGS': os.getenv("CFLAGS", ""),
@@ -26,9 +26,9 @@ def create_recipe(name, builddir):
         'oname': os.path.join(builddir, name + '.o'),
         'soname': os.path.join(builddir, name + '.so'),
     }
-    os.system("{CC} {CPPFLAGS} {CFLAGS} -fPIC -c -o {oname} {cname}".format(**env))
-    os.system("{CC} {LDFLAGS} -shared -o {soname} {oname} {LIBS}".format(**env))
-    os.remove(env['oname'])
+    os.system("{CC} {CPPFLAGS} {CFLAGS} -fPIC -c -o {oname} {cname}".format(**var))
+    os.system("{CC} {LDFLAGS} -shared -o {soname} {oname} {LIBS}".format(**var))
+    os.remove(var['oname'])
 
 class CplTestCase(unittest.TestCase):
     def setUp(self):
