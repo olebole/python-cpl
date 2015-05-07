@@ -32,11 +32,13 @@ def create_recipe(name, builddir):
 
 class CplTestCase(unittest.TestCase):
     def setUp(self):
+        unittest.TestCase.setUp(self)
         self.temp_dir = tempfile.mkdtemp()
         create_recipe(recipe_name, self.temp_dir)
         cpl.Recipe.path = self.temp_dir
 
     def tearDown(self):
+        unittest.TestCase.tearDown(self)
         shutil.rmtree(self.temp_dir)
 
 class RecipeTestCase(CplTestCase):
@@ -599,6 +601,7 @@ class RecipeRes(RecipeTestCase):
         self.res = self.recipe(self.raw_frame)
 
     def tearDown(self):
+        RecipeTestCase.tearDown(self)
         try:
             res.THE_PRO_CATG_VALUE.close()
         except:
@@ -903,6 +906,7 @@ class ProcessingInfo(RecipeTestCase):
         self.pinfo = cpl.dfs.ProcessingInfo(self.res)
 
     def tearDown(self):
+        RecipeTestCase.tearDown(self)
         try:
             self.res.close()
         except:
