@@ -280,7 +280,8 @@ class Recipe(object):
     @calib.setter
     def calib(self, source = None):
         if isinstance(source, str) or hasattr(source, 'read'):
-            source = esorex.load_sof(source)
+            from .esorex import load_sof
+            source = load_sof(source)
         self._calib = FrameList(self, source) 
 
     @calib.deleter
@@ -345,7 +346,8 @@ class Recipe(object):
     @param.setter
     def param(self, source = None):
         if isinstance(source, str) or hasattr(source, 'read'):
-            source = esorex.load_rc(source)
+            from .esorex import load_sof
+            source = load_rc(source)
         self._param = ParameterList(self, source)
 
     @param.deleter
