@@ -14,6 +14,15 @@ cpl.Recipe.memory_mode = 0
 
 recipe_name = 'rtest'
 raw_tag = 'RRRECIPE_DOCATG_RAW'
+rtest_esorexrc = '''# example RC file
+iiinstrument.rtest.string_option = more
+iiinstrument.rtest.bool_option = False
+iiinstrument.rtest.float_option = 1.125
+iiinstrument.rtest.int_option = -2
+iiinstrument.rtest.enum_option = second
+iiinstrument.rtest.range_option = 0.5
+iiinstrument.rtest.dotted.opt = 1
+'''
 
 def create_recipe(name, builddir):
     var = {
@@ -238,6 +247,17 @@ class RecipeParams(RecipeTestCase):
         self.assertEqual(self.recipe.param.floatopt.value, 1.5)
         self.assertEqual(self.recipe.param.boolopt.value, True)
 
+    def test_param_load_from_esorexrc(self):
+        '''Load parameters from an Esorex .rc file'''
+        self.recipe.param = rtest_esorexrc
+        self.assertEqual(self.recipe.param.stropt.value, 'more')
+        self.assertEqual(self.recipe.param.boolopt.value, False)
+        self.assertEqual(self.recipe.param.floatopt.value, 1.125)
+        self.assertEqual(self.recipe.param.intopt.value, -2)
+        self.assertEqual(self.recipe.param.enumopt.value, 'second')
+        self.assertEqual(self.recipe.param.rangeopt.value, 0.5)
+        self.assertEqual(self.recipe.param.dot.opt.value, 1)
+
     def test_delete(self):
         '''Delete all parameter values to reset to default'''
         self.recipe.param.boolopt.value = True
@@ -266,6 +286,11 @@ class RecipeCalib(RecipeTestCase):
         '''Assign a dictionary to the calibration frame list'''
         self.recipe.calib = { 'FLAT':'flat2.fits' }
         self.assertEqual(self.recipe.calib.FLAT.frames, 'flat2.fits')
+
+    def test_param_load_from_esorexsof(self):
+        '''Load calibration from an Esorex SOF file'''
+        self.recipe.calib = 'flat.fits   FLAT\n'
+        self.assertEqual(self.recipe.calib.FLAT.frames, 'flat.fits')
 
     def test_del(self):
         '''Delete a calibration frame set'''
@@ -659,12 +684,15 @@ class RecipeEsorex(CplTestCase):
                            
     def test_read_rc(self):
         '''Read an EsoRec .rc file'''
-        rcfile = '# environment variable lambda_low.\n' \
-        'muse.muse_sky.lambda_low=4.65e+03\n' \
-        'muse.muse_sky.lambda_high=9.3e+03\n'
-        self.assertEqual(cpl.esorex.load_rc(rcfile), 
-                         { 'muse.muse_sky.lambda_low': '4.65e+03',
-                           'muse.muse_sky.lambda_high': '9.3e+03'})
+        self.assertEqual(cpl.esorex.load_rc(rtest_esorexrc), 
+                         { 'iiinstrument.rtest.string_option': 'more',
+                           'iiinstrument.rtest.bool_option': 'False',
+                           'iiinstrument.rtest.float_option': '1.125',
+                           'iiinstrument.rtest.int_option': '-2',
+                           'iiinstrument.rtest.enum_option': 'second',
+                           'iiinstrument.rtest.range_option': '0.5',
+                           'iiinstrument.rtest.dotted.opt': '1',
+                       })
         
     def test_esorex_init(self):
         '''Init CPL from an esorex.rc file'''

@@ -346,7 +346,7 @@ class Recipe(object):
     @param.setter
     def param(self, source = None):
         if isinstance(source, str) or hasattr(source, 'read'):
-            from .esorex import load_sof
+            from .esorex import load_rc
             source = load_rc(source)
         self._param = ParameterList(self, source)
 
