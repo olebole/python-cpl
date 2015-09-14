@@ -9,7 +9,9 @@ python-cpl
 .. image:: https://img.shields.io/pypi/dm/python-cpl.svg
     :target: https://pypi.python.org/pypi/python-cpl
 
-This module can list, configure and execute CPL-based recipes from Python
+Python-cpl is an `Astropy Affiliated Package <http://www.astropy.org/affiliated/>`_ 
+that can list, configure and execute recipes from `ESO data reduction
+pipelines <http://www.eso.org/sci/software/pipelines/>`_ from Python
 (python2 and python3).  The input, calibration and output data can be
 specified as FITS files or as ``astropy.io.fits`` objects in memory.
 
