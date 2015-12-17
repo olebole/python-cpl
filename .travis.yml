@@ -11,7 +11,7 @@ python:
 addons:
   apt:
     packages:
-      libcpl-dev
+      - libcpl-dev
 
 install:
     - pip install coveralls
