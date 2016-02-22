@@ -58,8 +58,8 @@ class RecipeTestCase(CplTestCase):
         self.recipe.tag = raw_tag
         self.image_size = (16, 16)
         self.raw_frame = fits.HDUList([
-                fits.PrimaryHDU(numpy.random.random_integers(0, 65000,
-                                                               self.image_size))])
+                fits.PrimaryHDU(numpy.random.randint(0, 65001,
+                                                     self.image_size))])
         self.raw_frame[0].header['HIERARCH ESO DET DIT'] = 0.0
         self.raw_frame[0].header['HIERARCH ESO PRO CATG'] = raw_tag
 
@@ -320,8 +320,8 @@ class RecipeExec(RecipeTestCase):
     def setUp(self):
         RecipeTestCase.setUp(self)
         self.flat_frame = fits.HDUList([
-                fits.PrimaryHDU(numpy.random.random_integers(0, 65000,
-                                                             self.image_size))])
+                fits.PrimaryHDU(numpy.random.randint(0, 65001,
+                                                     self.image_size))])
 
     def test_frames_keyword_dict(self):
         '''Raw and calibration frames specified as keyword dict'''
@@ -928,8 +928,8 @@ class ProcessingInfo(RecipeTestCase):
         self.recipe.param.enumopt = 'third'
         self.recipe.param.rangeopt = 0.125
         self.recipe.calib.FLAT = fits.HDUList([
-                fits.PrimaryHDU(numpy.random.random_integers(0, 65000,
-                                                          self.image_size))])
+                fits.PrimaryHDU(numpy.random.randint(0, 65001,
+                                                     self.image_size))])
         self.res = self.recipe(self.raw_frame).THE_PRO_CATG_VALUE
         self.pinfo = cpl.dfs.ProcessingInfo(self.res)
 
