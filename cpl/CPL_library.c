@@ -4,6 +4,8 @@
 #include "CPL_library.h"
 
 unsigned long supported_versions[] = {
+    CPL_VERSION(7,0,0),
+    CPL_VERSION(6,6,1),
     CPL_VERSION(6,6,0),
     CPL_VERSION(6,5,1),
     CPL_VERSION(6,5,0),
