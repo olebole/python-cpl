@@ -5,7 +5,7 @@ from pkg_resources import require, DistributionNotFound
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
-cpl_version = '0.7.1'
+cpl_version = '0.7.2'
 description = "Python interface for the ESO Common Pipeline Library"
 long_description = '''This module can list, configure and execute CPL-based recipes from Python
 (python2 and python3).  The input, calibration and output data can be
