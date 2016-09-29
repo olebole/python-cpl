@@ -825,6 +825,9 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	PyErr_SetString(PyExc_IOError, "CPL error on inititalization");
 	return NULL;	
     }
+
+    signal(SIGWINCH, SIG_IGN);
+
     int fd[2];
     if (pipe(fd) == -1) {
 	PyErr_SetString(PyExc_IOError, "Cannot pipe()");
