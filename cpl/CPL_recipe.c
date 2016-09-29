@@ -825,9 +825,6 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	PyErr_SetString(PyExc_IOError, "CPL error on inititalization");
 	return NULL;	
     }
-
-    signal(SIGWINCH, SIG_IGN);
-
     int fd[2];
     if (pipe(fd) == -1) {
 	PyErr_SetString(PyExc_IOError, "Cannot pipe()");
@@ -893,15 +890,25 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
     
     close(fd[1]);
     long nbytes;
+    long nbytes2;
     void *ptr = malloc(2 * sizeof(long));
 Py_BEGIN_ALLOW_THREADS
-    nbytes = read(fd[0], ptr, 2 * sizeof(long));
+    do {
+        nbytes = read(fd[0], ptr, 2 * sizeof(long));
+        if (nbytes >= 0 || errno != EINTR)
+            break;
+    } while (1);
     if (nbytes == 2 * sizeof(long)) {
-	ptr = realloc(ptr, ((long *)ptr)[0]);
-	nbytes += read(fd[0], ptr + 2 * sizeof(long), 
-		       ((long *)ptr)[0] - 2 * sizeof(long));
+        ptr = realloc(ptr, ((long *)ptr)[0]);
+        do {
+            nbytes2 = read(fd[0], ptr + 2 * sizeof(long), 
+                    ((long *)ptr)[0] - 2 * sizeof(long));
+            if (nbytes2 >= 0 || errno != EINTR)
+                break;
+        } while (1);
+        nbytes += nbytes2;
     } else { // broken pipe while reading first two bytes
-	((long *)ptr)[0] = 2 * sizeof(long); 
+        ((long *)ptr)[0] = 2 * sizeof(long); 
     }
     close(fd[0]);
     waitpid(childpid, NULL, 0);
