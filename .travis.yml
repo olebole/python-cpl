@@ -1,5 +1,5 @@
 language: python
-sudo: false 
+sudo: false
 
 python:
     - 2.7
@@ -14,7 +14,7 @@ addons:
 
 install:
     - pip install coveralls
-    - pip install astropy
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install astropy==1.0.10; else pip install astropy; fi
     - python setup.py install
 
 script: (cd test && coverage run --source=cpl TestRecipe.py && mv -f .coverage ..)
