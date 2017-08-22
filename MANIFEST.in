@@ -2,3 +2,4 @@ include cpl/*.h
 include doc/*
 include test/*.py test/*.c
 include README.rst
+include COPYING
