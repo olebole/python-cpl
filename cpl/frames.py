@@ -1,9 +1,6 @@
 from __future__ import absolute_import
 import os
-try: # pragma: no cover
-    from astropy.io import fits
-except ImportError:
-    import pyfits as fits
+from astropy.io import fits
 
 from . import md5sum
 

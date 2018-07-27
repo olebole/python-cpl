@@ -3,10 +3,7 @@ import os
 import signal
 import logging
 
-try: # pragma: no cover
-    from astropy.io import fits
-except ImportError:
-    import pyfits as fits
+from astropy.io import fits
 
 class Result(object):
     def __init__(self, directory, res, input_len = 0, logger = None, 

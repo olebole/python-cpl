@@ -7,10 +7,7 @@ import collections
 import warnings
 import textwrap
 
-try: # pragma: no cover
-    from astropy.io import fits
-except ImportError:
-    import pyfits as fits
+from astropy.io import fits
 
 from . import CPL_recipe
 from .frames import FrameList, mkabspath, expandframelist
