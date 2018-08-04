@@ -3,9 +3,9 @@ sudo: false
 
 python:
     - 2.7
-    - 3.3
     - 3.4
     - 3.5
+    - 3.6
 
 addons:
   apt:
@@ -14,8 +14,7 @@ addons:
 
 install:
     - pip install coveralls
-    - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install astropy==1.0.10; else pip install astropy; fi
-    - python setup.py install
+    - pip install .
 
 script: (cd test && coverage run --source=cpl TestRecipe.py && mv -f .coverage ..)
 

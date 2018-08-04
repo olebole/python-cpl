@@ -3,7 +3,7 @@ from optparse import OptionParser
 import fnmatch
 
 import numpy
-import pyfits
+from astropy.io import fits
 
 class Constant(object):
     def __init__(self, value):
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
     files = list()
     for f in filenames:
-        hdulist = pyfits.open(f)
+        hdulist = fits.open(f)
         var = dict(hdulist[0].header)
         var.setdefault('FILENAME', f)
         organizer.classify(var)

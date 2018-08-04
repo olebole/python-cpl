@@ -5,10 +5,7 @@ import tempfile
 import unittest
 
 import numpy
-try:
-    from astropy.io import fits
-except:
-    import pyfits as fits
+from astropy.io import fits
 import cpl
 cpl.Recipe.memory_mode = 0
 
