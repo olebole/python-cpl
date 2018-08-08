@@ -6,10 +6,7 @@ python-cpl
 .. image:: https://img.shields.io/pypi/v/python-cpl.svg
     :target: https://pypi.python.org/pypi/python-cpl
 
-.. image:: https://img.shields.io/pypi/dm/python-cpl.svg
-    :target: https://pypi.python.org/pypi/python-cpl
-
-Python-cpl is an `Astropy Affiliated Package <http://www.astropy.org/affiliated/>`_ 
+Python-cpl is an `Astropy Affiliated Package <http://www.astropy.org/affiliated/>`_
 that can list, configure and execute recipes from `ESO data reduction
 pipelines <http://www.eso.org/sci/software/pipelines/>`_ from Python
 (python2 and python3).  The input, calibration and output data can be
@@ -27,7 +24,7 @@ Python-CPL releases are `registered on PyPI
 <http://pypi.python.org/pypi/python-cpl>`_, and development is occurring at
 the `project's github page <http://github.com/olebole/python-cpl>`_.
 
-For installation instructions, see the 
+For installation instructions, see the
 `online documentation <http://python-cpl.readthedocs.org/en/latest/install.html>`_.
 The travis test status, coverage, and documentation build status
 of the github repository is:
@@ -40,7 +37,7 @@ of the github repository is:
 
 .. image:: https://landscape.io/github/olebole/python-cpl/master/landscape.svg?style=flat
    :target: https://landscape.io/github/olebole/python-cpl/master
-	   
+
 .. image:: https://readthedocs.org/projects/python-cpl/badge/?version=latest
     :target: https://readthedocs.org/projects/python-cpl/?badge=latest
 
