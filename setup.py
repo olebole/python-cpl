@@ -64,6 +64,7 @@ setup(
     url='https://pypi.org/project/%s/%s' % (pkgname, cpl_version),
     download_url='%s/%s-%s.tar.gz' % (baseurl, pkgname, cpl_version),
     classifiers=classifiers,
+    python_requires='>=2.7',
     install_requires=['astropy'],
     provides=['cpl'],
     packages=['cpl'],
