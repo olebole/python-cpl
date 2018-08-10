@@ -1,3 +1,10 @@
+Version 0.7.3 (2018-08-10)
+
+* Add signal handler to ignore SIGWINCH (fix #8)
+* Add GPLv2 license text
+* Remove pyfits support in favour of astropy
+* Use setuptools instead of distutils
+
 Version 0.7.2 (2016-02-22)
 
 * No-change re-upload to pypi
