@@ -7,6 +7,12 @@ python:
     - 3.5
     - 3.6
 
+matrix: # workaround for 3.7; see https://github.com/travis-ci/travis-ci/issues/9815
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
+
 addons:
   apt:
     packages:
