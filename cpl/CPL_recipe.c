@@ -852,7 +852,13 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	    retval = self->cpl->plugin_get_exec(self->plugin)(self->plugin);
 	    int reto = self->cpl->dfs_update_product_header(recipe->frames);
 	    if (reto != CPL_ERROR_NONE) {
-		self->cpl->msg_error (__func__, "could not update the product header");
+		self->cpl->msg_error (__func__,
+				      "could not update the product header."
+				      " %s (%s:%s:%u)",
+				      self->cpl->error_get_message(),
+				      self->cpl->error_get_function(),
+				      self->cpl->error_get_file(),
+				      self->cpl->error_get_line());
 	    }
 	    times(&clock_end);
 	    clock_end.tms_utime -= clock_start.tms_utime;
