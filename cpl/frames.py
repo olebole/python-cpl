@@ -159,13 +159,13 @@ class FrameList(object):
         return self._dict.keys()
 
     def __repr__(self):
-        return repr(dict(self))
+        return repr(dict(iter(self)))
 
     def __str__(self):
-        return str(dict(self))
+        return str(dict(iter(self)))
 
     def __eq__(self, other):
-        return dict(self) == other
+        return dict(iter(self)) == other
 
     @property
     def __doc__(self):

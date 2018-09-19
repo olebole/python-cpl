@@ -207,7 +207,7 @@ class ParameterList(object):
             del p.value
 
     def __str__(self):
-        return dict(self).__str__()
+        return dict(iter(self)).__str__()
     
     def __contains__(self, key):
         return key in self._dict
@@ -232,10 +232,10 @@ class ParameterList(object):
                         for d in self._dict.keys() if '.' not in d))
 
     def __repr__(self):
-        return repr(dict(self))
+        return repr(dict(iter(self)))
 
     def __eq__(self, other):
-        return dict(self) == other
+        return dict(iter(self)) == other
 
     def _doc(self):
         if len(self) == 0:
