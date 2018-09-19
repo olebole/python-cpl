@@ -125,7 +125,7 @@ class RecipeCommon(RecipeTestCase):
         self.assertTrue(len(self.recipe.__copyright__) > 0)
 
 class RecipeParams(RecipeTestCase):
-    def test_str(self):
+    def test_string_parameter(self):
         '''String parameter'''
         self.assertTrue(isinstance(self.recipe.param.stropt, cpl.Parameter))
         self.assertEqual(self.recipe.param.stropt.name, 'stropt')
@@ -140,7 +140,7 @@ class RecipeParams(RecipeTestCase):
         del self.recipe.param.stropt 
         self.assertEqual(self.recipe.param.stropt.value, None)
 
-    def test_bool(self):
+    def test_boolean_parameter(self):
         '''Boolean parameter'''
         self.assertTrue(isinstance(self.recipe.param.boolopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.boolopt.name, 'boolopt')
@@ -151,7 +151,7 @@ class RecipeParams(RecipeTestCase):
         del self.recipe.param.boolopt 
         self.assertEqual(self.recipe.param.boolopt.value, None)
         
-    def test_float(self):
+    def test_float_parameter(self):
         '''Float parameter'''
         self.assertTrue(isinstance(self.recipe.param.floatopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.floatopt.name, 'floatopt')
@@ -162,7 +162,7 @@ class RecipeParams(RecipeTestCase):
         del self.recipe.param.floatopt 
         self.assertEqual(self.recipe.param.floatopt.value, None)
 
-    def test_int(self):
+    def test_int_parameter(self):
         '''Integer parameter'''
         self.assertTrue(isinstance(self.recipe.param.intopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.intopt.name, 'intopt')
@@ -173,7 +173,7 @@ class RecipeParams(RecipeTestCase):
         del self.recipe.param.intopt 
         self.assertEqual(self.recipe.param.intopt.value, None)
 
-    def test_enum(self):
+    def test_enum_parameter(self):
         '''Enumeration (string) parameter'''
         self.assertTrue(isinstance(self.recipe.param.enumopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.enumopt.name, 'enumopt')
@@ -187,7 +187,7 @@ class RecipeParams(RecipeTestCase):
             self.recipe.param.enumopt = 'invalid'
         self.assertRaises(ValueError, setenumoptinvalid)
 
-    def test_range(self):
+    def test_range_parameter(self):
         '''Range (float) parameter'''
         self.assertTrue(isinstance(self.recipe.param.rangeopt, cpl.Parameter))
         self.assertEqual(self.recipe.param.rangeopt.name, 'rangeopt')
@@ -273,6 +273,49 @@ class RecipeParams(RecipeTestCase):
                              for p in self.recipe.param
                              ))
 
+    def test_str(self):
+        '''Parameter string representation.
+        
+        Since the string depends on the order of parameter, we check
+        that it evaluates to the correct dict.
+        '''
+        self.assertEqual(eval(str(self.recipe.param)), {
+            'stropt': None,
+            'boolopt': True,
+            'floatopt': 0.1,
+            'intopt': 2,
+            'enumopt': 'first',
+            'rangeopt': 0.1,
+            'crashing': 'no',
+            'memleak': False,
+            'sleep': 0.1,
+            'disabled': -0.1,
+            'dot.opt': 0})
+        
+    def test_repr(self):
+        '''Canonical parameter string representation.
+        
+        Since the string depends on the order of parameter, we check
+        that it evaluates to the correct dict.
+        '''
+        self.assertEqual(eval(repr(self.recipe.param)), {
+            'stropt': None,
+            'boolopt': True,
+            'floatopt': 0.1,
+            'intopt': 2,
+            'enumopt': 'first',
+            'rangeopt': 0.1,
+            'crashing': 'no',
+            'memleak': False,
+            'sleep': 0.1,
+            'disabled': -0.1,
+            'dot.opt': 0})
+
+    def test_eq(self):
+        '''Trivial equality test'''
+        self.assertTrue(self.recipe.param == self.recipe.param)
+
+        
 class RecipeCalib(RecipeTestCase):
     def test_set(self):
         '''Set a calibration frame'''
@@ -312,6 +355,20 @@ class RecipeCalib(RecipeTestCase):
         '''
         self.assertEqual(set(self.recipe.calib.__dir__()),
                          set(f.tag for f in self.recipe.calib))
+
+    def test_str(self):
+        '''Calibration frames string representation'''
+        self.assertEqual(str(self.recipe.calib),
+                             "{}")
+        
+    def test_repr(self):
+        '''Canonical calibration frames string representation'''
+        self.assertEqual(repr(self.recipe.calib),
+                             "{}")
+
+    def test_eq(self):
+        '''Trivial equality test'''
+        self.assertTrue(self.recipe.calib == self.recipe.calib)
 
 class RecipeExec(RecipeTestCase):
     def setUp(self):
@@ -638,7 +695,6 @@ class RecipeRes(RecipeTestCase):
         '''The result as an attribute'''
         self.assertTrue(isinstance(self.res['THE_PRO_CATG_VALUE'], 
                                    fits.HDUList))
-
     def test_in(self):
         '''Check whether a tag is part of the result'''
         self.assertTrue('THE_PRO_CATG_VALUE' in self.res)
