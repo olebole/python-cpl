@@ -54,6 +54,7 @@ typedef struct {
     typeof(cpl_pluginlist_new) *pluginlist_new;
 
     typeof(cpl_dfs_update_product_header) *dfs_update_product_header;
+    typeof(cpl_dfs_sign_products) *dfs_sign_products;
 
     typeof(cpl_error_get_code) *error_get_code;
     typeof(cpl_error_get_file) *error_get_file;

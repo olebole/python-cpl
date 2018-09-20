@@ -95,6 +95,7 @@ cpl_plugin *cpl_pluginlist_get_first(cpl_pluginlist *);
 cpl_plugin *cpl_pluginlist_get_next(cpl_pluginlist *);
 cpl_pluginlist *cpl_pluginlist_new(void);
 cpl_error_code cpl_dfs_update_product_header(cpl_frameset *);
+cpl_error_code cpl_dfs_sign_products(const cpl_frameset *, unsigned int);
 
 void cpl_msg_error(const char *, const char *, ...);
 cpl_error_code cpl_error_get_code(void);
@@ -192,5 +193,7 @@ const char *cpl_version_get_version(void);
 #define CPL_TYPE_DOUBLE (1 << 17)
 #define CPL_TYPE_INT (1 << 10)
 #define CPL_TYPE_STRING ((1 << 5)|(1 << 0))
+#define CPL_DFS_SIGNATURE_DATAMD5  (1 << 0)
+#define CPL_DFS_SIGNATURE_CHECKSUM  (1 << 1)
 
 #endif /* CPL_API_H */

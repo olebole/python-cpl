@@ -850,7 +850,14 @@ CPL_recipe_exec(CPL_recipe *self, PyObject *args) {
 	    times(&clock_start);
 	    setup_tracing(self, memory_trace);
 	    retval = self->cpl->plugin_get_exec(self->plugin)(self->plugin);
-	    int reto = self->cpl->dfs_update_product_header(recipe->frames);
+	    int reto;
+	    if (self->cpl->dfs_sign_products != NULL) {
+	        reto = self->cpl->dfs_sign_products(recipe->frames,
+						    CPL_DFS_SIGNATURE_DATAMD5 |
+						    CPL_DFS_SIGNATURE_CHECKSUM);
+	    } else {
+	        reto = self->cpl->dfs_update_product_header(recipe->frames);
+	    }
 	    if (reto != CPL_ERROR_NONE) {
 		self->cpl->msg_error (__func__,
 				      "could not update the product header."
