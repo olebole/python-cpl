@@ -109,6 +109,11 @@ cpl_library_t *create_library(const char *fname) {
     cpl->pluginlist_new = dlsym(handle, "cpl_pluginlist_new");
 
     cpl->dfs_update_product_header = dlsym(handle, "cpl_dfs_update_product_header");
+    if (cpl->version >= CPL_VERSION(6,5,0)) {
+        cpl->dfs_sign_products = dlsym(handle, "cpl_dfs_sign_products");
+    } else {
+        cpl->dfs_sign_products = NULL;
+    }
 
     cpl->error_get_code = dlsym(handle, "cpl_error_get_code");
     cpl->error_get_file = dlsym(handle, "cpl_error_get_file");
