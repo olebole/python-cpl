@@ -4,7 +4,7 @@ from setuptools import setup, Extension
 author = 'Ole Streicher'
 email = 'python-cpl@liska.ath.cx'
 license_ = 'GPL'
-cpl_version = '0.7.3'
+cpl_version = '0.7.4'
 description = "Python interface for the ESO Common Pipeline Library"
 long_description = '''\
 This module can list, configure and execute CPL-based recipes from Python

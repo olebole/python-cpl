@@ -1,3 +1,8 @@
+Version 0.7.4 (2018-11-05)
+
+* Support Python 3.7 (fix #18)
+* Fix product header update for newer CPL functions (#20, #21)
+
 Version 0.7.3 (2018-08-10)
 
 * Add signal handler to ignore SIGWINCH (fix #8)
